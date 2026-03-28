@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}{% if product.SKU %}Edit Product - {{ product.Title }}{% else %}Add New Product{% endif %} - LibertyE Inventory and Ads{% endblock %}
+
+{% block content %}
+<div class="form-header">
+    <h1>{% if product.SKU %}✏️ Edit Product{% else %}➕ Add New Product{% endif %}</h1>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<!-- AI Analysis Section -->
+<div class="ai-analysis-section">
+    <h3>🤖 AI Photo Analysis</h3>
+    <p>Upload a photo and let Anthropic Claude AI auto-fill the product details!</p>
+    <div class="ai-upload">
+        <input type="file" id="aiImage" accept="image/*" class="form-control">
+        <button type="button" onclick="analyzeWithAI()" class="btn btn-ai">✨ Analyze Photo</button>
+    </div>
+    <div id="aiLoading" class="ai-loading" style="display:none;">
+        <span class="spinner">🔄</span> Analyzing image with Anthropic Claude AI...
+    </div>
+    <div id="aiResult" class="ai-result"></div>
+</div>
+
+<form method="POST" enctype="multipart/form-data" class="product-form">
+    <div class="form-grid">
+        <div class="form-section">
+            <h3>Basic Information</h3>
+            
+            <div class="form-group">
+                <label for="sku">SKU (Stock Keeping Unit) *</label>
+                <input type="text" id="sku" name="sku" value="{{ product.SKU or '' }}" 
+                       {% if product.SKU %}readonly{% endif %} required
+                       placeholder="e.g., ITEM-001">
+                <small>Unique identifier for this product</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="title">Product Title *</label>
+                <input type="text" id="title" name="title" value="{{ product.Title or '' }}" required
+                       placeholder="e.g., Vintage Crystal Vase">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4"
+                          placeholder="Describe the product, its condition, history, etc.">{{ product.Description or '' }}</textarea>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3>Details & Pricing</h3>
+            
+            <div class="form-group">
+                <label for="category">Category</label>
+                <input type="text" id="category" name="category" value="{{ product.Category or '' }}"
+                       list="category-list" placeholder="e.g., Home Decor">
+                <datalist id="category-list">
+                    {% for cat in categories %}
+                    <option value="{{ cat }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            
+            <div class="form-group">
+                <label for="condition">Condition</label>
+                <select id="condition" name="condition">
+                    {% for cond in conditions %}
+                    <option value="{{ cond }}" {% if product.Condition == cond %}selected{% endif %}>{{ cond }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="price">Price ($)</label>
+                <input type="number" id="price" name="price" value="{{ product.Price or '' }}" 
+                       step="0.01" min="0" placeholder="29.99">
+            </div>
+
+            {% if session.get('username') == 'admin' %}
+            <div class="form-group" style="background:#f0f7f4; padding:1rem; border-radius:8px; border:1px solid #b8ddd7;">
+                <label for="cost_paid" style="color:#2e7d6e;">🔒 Cost Paid ($) <small style="font-weight:normal; color:#6b9e95;">— Admin only</small></label>
+                <input type="number" id="cost_paid" name="cost_paid" value="{{ product.get('Cost Paid', '') or '' }}"
+                       step="0.01" min="0" placeholder="0.00">
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    {% for status in statuses %}
+                    <option value="{{ status }}" {% if product.Status == status %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="background:#f0f7f4; border:1px solid #b8ddd7; border-radius:8px; padding:1rem; margin-top:0.5rem;">
+                <h4 style="color:#2e7d6e; margin-bottom:0.75rem;">📍 Store Location</h4>
+                <div class="form-group">
+                    <label for="section">Section / Area</label>
+                    <input type="text" id="section" name="section"
+                           value="{{ product.get('Section', '') or '' }}"
+                           list="section-list"
+                           placeholder="e.g. Furniture Room, Front Display, Back Wall">
+                    <datalist id="section-list">
+                        <option value="Front Display">
+                        <option value="Back Wall">
+                        <option value="Furniture Room">
+                        <option value="Clothing Area">
+                        <option value="Electronics Corner">
+                        <option value="Jewellery Case">
+                        <option value="Kitchen Section">
+                        <option value="Books & Media">
+                        <option value="Toys & Games">
+                        <option value="Storage Room">
+                    </datalist>
+                </div>
+                <div class="form-group" style="margin-top:0.75rem; margin-bottom:0;">
+                    <label for="shelf">Shelf / Bin</label>
+                    <input type="text" id="shelf" name="shelf"
+                           value="{{ product.get('Shelf', '') or '' }}"
+                           placeholder="e.g. Shelf A, Bin 3, Top Rack">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-section">
+        <h3>📷 Images</h3>
+        
+        {% if product.valid_images %}
+        <div class="current-images">
+            <h4>Current Images</h4>
+            <div class="image-grid">
+                {% for img in product.valid_images %}
+                <div class="image-thumbnail">
+                    <img src="{{ url_for('serve_upload', filename=img) }}" alt="Product image">
+                    <span class="image-name">{{ img }}</span>
+                    <form method="POST" action="{{ url_for('delete_image', sku=product.SKU) }}"
+                          onsubmit="return confirm('Delete this image?');"
+                          style="margin:0;">
+                        <input type="hidden" name="filename" value="{{ img }}">
+                        <button type="submit" class="btn-delete-image">🗑️ Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="form-group" style="margin-top:1rem;">
+            <label for="images">Upload New Images (multiple allowed)</label>
+            <input type="file" id="images" name="images" multiple accept="image/*">
+            <small>Supported: JPG, PNG, GIF, WEBP</small>
+        </div>
+    </div>
+    
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-large">
+            {% if product.SKU %}💾 Save Changes{% else %}✨ Create Product{% endif %}
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+{% if product.SKU %}
+<div class="danger-zone">
+    <h3>⚠️ Danger Zone</h3>
+    <form method="POST" action="{{ url_for('delete_product', sku=product.SKU) }}" 
+          onsubmit="return confirm('Are you sure you want to delete this product? This cannot be undone!');">
+        <button type="submit" class="btn btn-danger">🗑️ Delete Product</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.ai-analysis-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.ai-analysis-section h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+}
+
+.ai-upload {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.ai-upload input {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    min-width: 200px;
+}
+
+.btn-ai {
+    background: #00d4aa;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 0.75rem 1.5rem;
+}
+
+.btn-ai:hover {
+    background: #00b894;
+}
+
+.ai-loading {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.ai-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.95);
+    color: #333;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.ai-result h4 {
+    margin: 0 0 0.5rem 0;
+    color: #667eea;
+}
+
+.ai-result p {
+    margin: 0.25rem 0;
+}
+
+.ai-result ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+/* ── Image grid fix: small thumbnails with delete button ── */
+.image-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.image-thumbnail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 130px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.5rem;
+    gap: 0.4rem;
+}
+
+.image-thumbnail img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.image-name {
+    font-size: 0.65rem;
+    color: #999;
+    word-break: break-all;
+    text-align: center;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-delete-image {
+    width: 100%;
+    padding: 0.3rem 0.5rem;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-delete-image:hover {
+    background: #c0392b;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function analyzeWithAI() {
+    const fileInput = document.getElementById('aiImage');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Please select an image first!');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    document.getElementById('aiLoading').style.display = 'block';
+    document.getElementById('aiResult').innerHTML = '';
+    
+    fetch('/ai-analyze', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('aiLoading').style.display = 'none';
+        
+        if (data.error) {
+            document.getElementById('aiResult').innerHTML = 
+                '<p style="color:red;">❌ Error: ' + data.error + '</p>';
+            return;
+        }
+        
+        document.getElementById('title').value = data.title || '';
+        document.getElementById('category').value = data.category || '';
+        document.getElementById('description').value = data.description || '';
+        document.getElementById('price').value = data.suggested_price || '';
+        document.getElementById('condition').value = data.condition || 'Good';
+        
+        let html = '<h4>✅ AI Analysis Complete!</h4>';
+        html += '<p><strong>Detected:</strong> ' + (data.labels ? data.labels.slice(0,3).join(', ') : 'N/A') + '</p>';
+        if (data.objects && data.objects.length > 0) {
+            html += '<p><strong>Objects:</strong> ' + data.objects.slice(0,3).join(', ') + '</p>';
+        }
+        html += '<p style="color:#27ae60;"><strong>Form auto-filled! Review and submit.</strong></p>';
+        
+        document.getElementById('aiResult').innerHTML = html;
+    })
+    .catch(e => {
+        document.getElementById('aiLoading').style.display = 'none';
+        document.getElementById('aiResult').innerHTML = 
+            '<p style="color:red;">❌ Error: ' + e + '</p>';
+    });
+}
+</script>
+{% endblock %}

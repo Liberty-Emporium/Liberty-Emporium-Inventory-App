@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard">
+    <h1 style="text-align:center;">{{ store_name or 'LibertyE' }} — Inventory Dashboard</h1>
+
+    {% if stats.pending_users and stats.pending_users > 0 %}
+    <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+        <span style="color:#7c5a00; font-weight:600;">⏳ {{ stats.pending_users }} account request{{ 's' if stats.pending_users != 1 else '' }} waiting for your approval</span>
+        <a href="{{ url_for('admin_users') }}" class="btn btn-small" style="background:#f0a500; color:white;">Review Now</a>
+    </div>
+    {% endif %}
+
+    {% if sale_state and sale_state.active %}
+    <div style="background:linear-gradient(135deg,#fef3c7,#fde68a); border:1px solid #f59e0b; border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.25rem;">
+        🔥 <strong>Seasonal Sale Active:</strong> {{ sale_state.discount_percent }}% off {{ sale_state.category }}
+        {% if session.get('username') == 'admin' %}
+        <a href="{{ url_for('seasonal_sale') }}" class="btn btn-small" style="margin-left:1rem; background:#d97706; color:white;">Manage Sale</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if session.get('username') == 'admin' %}
+    <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary btn-small">👥 Manage Users</a>
+        <a href="{{ url_for('admin_backups') }}" class="btn btn-secondary btn-small">💾 Backups</a>
+        <a href="{{ url_for('export_inventory') }}" class="btn btn-secondary btn-small">📥 Export CSV</a>
+        <a href="{{ url_for('export_square') }}" class="btn btn-small" style="background:#3182ce; color:white;">⬛ Export for Square</a>
+        <a href="{{ url_for('import_square') }}" class="btn btn-small" style="background:#2e7d6e; color:white;">📥 Import from Square</a>
+    </div>
+    {% endif %}
+
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-value">{{ stats.total|default(0) }}</div>
+            <div class="stat-label">Total Items</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ stats.available|default(0) }}</div>
+            <div class="stat-label">Available</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ stats.sold|default(0) }}</div>
+            <div class="stat-label">Sold</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">${{ '%.2f'|format(stats.total_value|default(0)) }}</div>
+            <div class="stat-label">Total Value</div>
+        </div>
+    </div>
+
+    <div class="actions-bar">
+        <h2>Products</h2>
+        <a href="{{ url_for('new_product') }}" class="btn btn-primary">Add New Product</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if products %}
+        <div class="products-grid">
+            {% for product in products %}
+                <div class="product-card">
+                    <div class="product-image">
+                        {% if product.valid_images and product.valid_images|length > 0 %}
+                            <img src="{{ url_for('serve_upload', filename=product.valid_images[0]) }}" alt="{{ product.Title }}">
+                        {% else %}
+                            <div class="no-image">No Image</div>
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <h3>{{ product.Title }}</h3>
+                        <p class="sku">SKU: {{ product.SKU }}</p>
+                        <p class="price">${{ product.Price|default('0.00') }}</p>
+                        <p class="status status-{{ product.Status|lower }}">{{ product.Status }}</p>
+                        {% if product.get('Section') or product.get('Shelf') %}
+                        <p style="font-size:0.8rem; color:#6b9e95; margin-top:0.3rem;">
+                            📍
+                            {% if product.get('Section') %}{{ product.Section }}{% endif %}
+                            {% if product.get('Section') and product.get('Shelf') %} · {% endif %}
+                            {% if product.get('Shelf') %}{{ product.Shelf }}{% endif %}
+                        </p>
+                        {% endif %}
+                        <div class="product-actions">
+                            <a href="{{ url_for('view_product', sku=product.SKU) }}" class="btn btn-small">View</a>
+                            <a href="{{ url_for('edit_product', sku=product.SKU) }}" class="btn btn-small">Edit</a>
+                            <a href="{{ url_for('edit_image', sku=product.SKU) }}" class="btn btn-small btn-secondary">Edit Image</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No products yet. <a href="{{ url_for('new_product') }}">Add your first product!</a></p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

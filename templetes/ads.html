@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Generated Ads | {{ store_name }}{% endblock %}
+{% block content %}
+<div style="max-width:900px;margin:0 auto;padding:2rem 1rem;">
+  <a href="{{ url_for('ads') }}" class="back-link">&larr; Back to Ad Generator</a>
+  <h2 style="margin:1rem 0;">✅ Generated Ads</h2>
+  <p style="color:#7a7a8c;margin-bottom:1.5rem;">Your ads have been saved. View or download each one below.</p>
+
+  {% if generated %}
+    {% for filename in generated %}
+    <div style="background:white;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,0.1);overflow:hidden;margin-bottom:1.5rem;">
+      <div style="display:flex;justify-content:flex-end;gap:0.5rem;padding:0.75rem 1rem;background:#f9f9f9;border-bottom:1px solid #eee;">
+        <a href="{{ url_for('view_ad', filename=filename) }}" target="_blank"
+           style="background:#1877f2;color:white;padding:0.5rem 1rem;border-radius:6px;text-decoration:none;font-size:0.9rem;font-weight:600;">
+          🔗 Open Ad
+        </a>
+        <a href="{{ url_for('download_ad', filename=filename) }}"
+           style="background:#27ae60;color:white;padding:0.5rem 1rem;border-radius:6px;text-decoration:none;font-size:0.9rem;font-weight:600;">
+          ⬇️ Download
+        </a>
+      </div>
+      <iframe src="{{ url_for('view_ad', filename=filename) }}"
+              style="width:100%;height:520px;border:none;display:block;"
+              title="{{ filename }}"></iframe>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:#aaa;">No ads generated yet. <a href="{{ url_for('ads') }}">Go generate some!</a></p>
+  {% endif %}
+</div>
+{% endblock %}

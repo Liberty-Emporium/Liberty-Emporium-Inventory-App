@@ -1,0 +1,630 @@
+{% extends 'base.html' %}
+
+{% block title %}Ad Generator | Liberty Emporium{% endblock %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
+
+  .ad-gen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e8e0d4;
+  }
+
+  .ad-gen-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    color: #1a1a2e;
+    letter-spacing: -0.02em;
+  }
+
+  .ad-gen-header p {
+    color: #7a7a8c;
+    font-size: 0.95rem;
+    margin-top: 0.4rem;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .selection-info {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d5a 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 140px;
+  }
+
+  .selection-count {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: #f0c040;
+  }
+
+  .selection-label {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.25rem;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Ad Style Picker */
+  .style-picker {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  .style-picker h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: #1a1a2e;
+    margin-bottom: 1rem;
+  }
+
+  .style-options {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .style-option {
+    border: 2px solid #e0ddd8;
+    border-radius: 10px;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .style-option:hover {
+    border-color: #1a1a2e;
+    background: #f8f7f5;
+  }
+
+  .style-option.active {
+    border-color: #1a1a2e;
+    background: #1a1a2e;
+    color: white;
+  }
+
+  .style-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* Products Grid */
+  .products-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .selectable-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    cursor: pointer;
+    transition: all 0.25s;
+    border: 2.5px solid transparent;
+    position: relative;
+  }
+
+  .selectable-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+
+  .selectable-card.selected {
+    border-color: #1a1a2e;
+    box-shadow: 0 8px 24px rgba(26,26,46,0.2);
+  }
+
+  .select-checkbox {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: white;
+    border: 2.5px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: all 0.2s;
+    font-size: 14px;
+  }
+
+  .selectable-card.selected .select-checkbox {
+    background: #1a1a2e;
+    border-color: #1a1a2e;
+    color: white;
+  }
+
+  .card-img {
+    height: 180px;
+    background: #f0ede8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-img .no-img-text {
+    color: #b0aaa0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+  }
+
+  .card-body {
+    padding: 1rem 1.1rem 1.1rem;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: #1a1a2e;
+    margin-bottom: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-sku {
+    font-size: 0.75rem;
+    color: #a0a0b0;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-price {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: #27ae60;
+    font-size: 1.1rem;
+  }
+
+  .card-status {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+  }
+
+  .status-available { background: #d4edda; color: #155724; }
+  .status-sold { background: #f8d7da; color: #721c24; }
+
+  /* Generate Button */
+  .generate-bar {
+    position: sticky;
+    bottom: 1rem;
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem 1.75rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    z-index: 100;
+    border: 1.5px solid #e8e4de;
+  }
+
+  .generate-bar-info {
+    font-family: 'DM Sans', sans-serif;
+    color: #5a5a6e;
+    font-size: 0.9rem;
+  }
+
+  .generate-bar-info strong {
+    color: #1a1a2e;
+    font-size: 1.1rem;
+  }
+
+  .btn-generate {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d5a 100%);
+    color: white;
+    border: none;
+    padding: 0.9rem 2rem;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .btn-generate:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(26,26,46,0.4);
+  }
+
+  .btn-generate:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn-generate .gold-icon {
+    color: #f0c040;
+    font-size: 1.1rem;
+  }
+
+  /* Generated Ads List */
+  .generated-ads-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e8e0d4;
+    display: none;
+  }
+
+  .generated-ads-section.visible {
+    display: block;
+  }
+
+  .generated-ads-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: #1a1a2e;
+    margin-bottom: 1.5rem;
+  }
+
+  .ad-files-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .ad-file-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-left: 4px solid #f0c040;
+  }
+
+  .ad-file-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .ad-file-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ad-file-name {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: #1a1a2e;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ad-file-meta {
+    font-size: 0.75rem;
+    color: #a0a0b0;
+    margin-top: 0.2rem;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .ad-file-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .btn-view-ad, .btn-download-ad {
+    padding: 0.35rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-view-ad {
+    background: #1a1a2e;
+    color: white;
+  }
+
+  .btn-download-ad {
+    background: #f0f0f5;
+    color: #1a1a2e;
+  }
+
+  .btn-view-ad:hover { background: #2d2d5a; }
+  .btn-download-ad:hover { background: #e0e0ec; }
+
+  /* Loading overlay */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,46,0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .loading-overlay.active {
+    display: flex;
+  }
+
+  .spinner-ring {
+    width: 56px;
+    height: 56px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: #f0c040;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .max-warning {
+    background: #fff3cd;
+    color: #856404;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    display: none;
+    margin-bottom: 1rem;
+  }
+
+  .max-warning.visible { display: block; }
+</style>
+
+<div class="ad-gen-header">
+  <div>
+    <h1>📣 Ad Generator</h1>
+    <p>Select up to 10 products and generate polished JPEG ads ready to post.</p>
+  </div>
+  <div class="selection-info">
+    <div class="selection-count" id="countDisplay">0</div>
+    <div class="selection-label">Selected</div>
+  </div>
+</div>
+
+<!-- Style Picker -->
+<div class="style-picker">
+  <h3>Choose Ad Style</h3>
+  <div class="style-options">
+    <button class="style-option active" data-style="elegant" onclick="selectStyle(this)">
+      <span class="style-dot" style="background:#cc0000"></span> Red &amp; Gold
+    </button>
+    <button class="style-option" data-style="bright" onclick="selectStyle(this)">
+      <span class="style-dot" style="background:#ff6600"></span> Orange &amp; Yellow
+    </button>
+    <button class="style-option" data-style="minimal" onclick="selectStyle(this)">
+      <span class="style-dot" style="background:#003366"></span> Navy &amp; White
+    </button>
+    <button class="style-option" data-style="vintage" onclick="selectStyle(this)">
+      <span class="style-dot" style="background:#8B4513"></span> Brown &amp; Gold
+    </button>
+  </div>
+</div>
+
+<div class="max-warning" id="maxWarning">
+  ⚠️ Maximum 10 products selected. Deselect one to choose another.
+</div>
+
+<!-- Products Grid -->
+<div class="products-selection-grid">
+  {% for product in products %}
+  <div class="selectable-card" 
+       data-sku="{{ product.SKU }}"
+       data-title="{{ product.Title }}"
+       data-price="{{ product.Price|default('0.00') }}"
+       data-category="{{ product.Category|default('') }}"
+       data-condition="{{ product.Condition|default('') }}"
+       data-description="{{ product.Description|default('')|truncate(150) }}"
+       data-image="{% if product.valid_images %}{{ url_for('serve_upload', filename=product.valid_images[0]) }}{% endif %}"
+       onclick="toggleCard(this)">
+    <div class="select-checkbox" id="chk-{{ loop.index }}">✓</div>
+    <div class="card-img">
+      {% if product.valid_images and product.valid_images|length > 0 %}
+        <img src="{{ url_for('serve_upload', filename=product.valid_images[0]) }}" alt="{{ product.Title }}">
+      {% else %}
+        <span class="no-img-text">No Image</span>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <div class="card-title">{{ product.Title }}</div>
+      <div class="card-sku">SKU: {{ product.SKU }}</div>
+      <div class="card-footer-row">
+        <span class="card-price">${{ product.Price|default('0.00') }}</span>
+        <span class="card-status status-{{ product.Status|lower|default('available') }}">{{ product.Status }}</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if not products %}
+<div style="text-align:center; padding: 3rem; background: white; border-radius: 12px; color: #7a7a8c; font-family: 'DM Sans', sans-serif;">
+  No products in inventory yet. <a href="{{ url_for('new_product') }}" style="color: #1a1a2e; font-weight: 600;">Add some products first!</a>
+</div>
+{% endif %}
+
+<!-- Sticky Generate Bar -->
+<div class="generate-bar">
+  <div class="generate-bar-info">
+    <strong id="barCount">0</strong> products selected &mdash; choose up to 10
+  </div>
+  <button class="btn-generate" id="generateBtn" disabled onclick="generateAds()">
+    <span class="gold-icon">✦</span> Generate JPEG Ads
+  </button>
+</div>
+
+<!-- Generated Ads Section (shown after generation) -->
+<div class="generated-ads-section" id="generatedSection">
+  <h2>✅ Generated Ads</h2>
+  <p style="color:#7a7a8c; font-family: 'DM Sans', sans-serif; margin-bottom: 1.5rem;">
+    Your ads have been saved to the <code>ads/</code> folder as high-quality JPEG files. View or download each one below.
+  </p>
+  <div class="ad-files-list" id="adFilesList"></div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner-ring"></div>
+  <div>Generating your ads...</div>
+</div>
+
+<script>
+let selectedSkus = new Set();
+let selectedStyle = 'elegant';
+
+function selectStyle(btn) {
+  document.querySelectorAll('.style-option').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedStyle = btn.dataset.style;
+}
+
+function toggleCard(card) {
+  const sku = card.dataset.sku;
+  if (selectedSkus.has(sku)) {
+    selectedSkus.delete(sku);
+    card.classList.remove('selected');
+  } else {
+    if (selectedSkus.size >= 10) {
+      document.getElementById('maxWarning').classList.add('visible');
+      return;
+    }
+    document.getElementById('maxWarning').classList.remove('visible');
+    selectedSkus.add(sku);
+    card.classList.add('selected');
+  }
+  updateUI();
+}
+
+function updateUI() {
+  const count = selectedSkus.size;
+  document.getElementById('countDisplay').textContent = count;
+  document.getElementById('barCount').textContent = count;
+  document.getElementById('generateBtn').disabled = count === 0;
+}
+
+function generateAds() {
+  if (selectedSkus.size === 0) return;
+
+  // Gather selected product data
+  const products = [];
+  document.querySelectorAll('.selectable-card.selected').forEach(card => {
+    products.push({
+      sku: card.dataset.sku,
+      title: card.dataset.title,
+      price: card.dataset.price,
+      category: card.dataset.category,
+      condition: card.dataset.condition,
+      description: card.dataset.description,
+      image: card.dataset.image
+    });
+  });
+
+  document.getElementById('loadingOverlay').classList.add('active');
+
+  fetch('/generate-ads', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ products: products, style: selectedStyle })
+  })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('loadingOverlay').classList.remove('active');
+    if (data.success) {
+      showGeneratedAds(data.files);
+    } else {
+      alert('Error generating ads: ' + (data.error || 'Unknown error'));
+    }
+  })
+  .catch(e => {
+    document.getElementById('loadingOverlay').classList.remove('active');
+    alert('Error: ' + e);
+  });
+}
+
+function showGeneratedAds(files) {
+  const section = document.getElementById('generatedSection');
+  const list = document.getElementById('adFilesList');
+  list.innerHTML = '';
+
+  files.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'ad-file-card';
+    card.style.flexDirection = 'column';
+    card.style.alignItems = 'stretch';
+    card.innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-bottom:0.75rem;">
+        <div class="ad-file-info">
+          <div class="ad-file-name">${f.product_title}</div>
+        </div>
+        <div class="ad-file-actions">
+          <a href="/ads/${f.filename}" target="_blank" class="btn-view-ad">🔗 Open Ad</a>
+          <a href="/download-ad/${f.filename}" class="btn-download-ad">⬇️ Download</a>
+        </div>
+      </div>
+      <iframe src="/ads/${f.filename}" style="width:100%; height:520px; border:none; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.15);" title="${f.product_title}"></iframe>
+    `;
+    list.appendChild(card);
+  });
+
+  section.classList.add('visible');
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+{% endblock %}

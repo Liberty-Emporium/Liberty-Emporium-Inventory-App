@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Import from Square | LibertyE Inventory and Ads{% endblock %}
+
+{% block content %}
+<div style="max-width:700px; margin:0 auto;">
+    <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
+
+    <h1 style="color:#2e7d6e; margin-bottom:0.25rem;">📥 Import from Square</h1>
+    <p style="color:#7f8c8d; margin-bottom:2rem;">Upload your Square item export CSV to bring products into LibertyE.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}" style="margin-bottom:0.75rem;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Instructions -->
+    <div style="background:#f0f7f4; border:1px solid #b8ddd7; border-radius:10px; padding:1.25rem 1.5rem; margin-bottom:2rem;">
+        <h3 style="color:#2e7d6e; margin-bottom:0.75rem;">📋 How to export from Square</h3>
+        <ol style="color:#444; line-height:1.9; padding-left:1.25rem; margin:0;">
+            <li>Log in to your <strong>Square Dashboard</strong> at squareup.com</li>
+            <li>Go to <strong>Items &amp; Orders → Items</strong></li>
+            <li>Click <strong>Import / Export → Export Library</strong></li>
+            <li>Download the CSV file Square gives you</li>
+            <li>Upload that file below</li>
+        </ol>
+        <p style="margin-top:1rem; font-size:0.9rem; color:#6b9e95;">
+            ⚠️ Square's CSV has extra header/instruction rows at the top — that's fine, the importer handles them automatically.
+        </p>
+    </div>
+
+    <!-- Field Mapping Info -->
+    <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:10px; padding:1.25rem 1.5rem; margin-bottom:2rem;">
+        <h3 style="color:#7c5a00; margin-bottom:0.75rem;">🔄 How Square fields map to LibertyE</h3>
+        <table style="width:100%; font-size:0.9rem; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#fff3cd;">
+                    <th style="text-align:left; padding:0.4rem 0.75rem; border-bottom:1px solid #ffe082;">Square Field</th>
+                    <th style="text-align:left; padding:0.4rem 0.75rem; border-bottom:1px solid #ffe082;">LibertyE Field</th>
+                    <th style="text-align:left; padding:0.4rem 0.75rem; border-bottom:1px solid #ffe082;">Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding:0.4rem 0.75rem;">Item Name</td><td style="padding:0.4rem 0.75rem;">Title</td><td style="padding:0.4rem 0.75rem; color:#888;">—</td></tr>
+                <tr style="background:#fffdf0;"><td style="padding:0.4rem 0.75rem;">SKU</td><td style="padding:0.4rem 0.75rem;">SKU</td><td style="padding:0.4rem 0.75rem; color:#888;">Required</td></tr>
+                <tr><td style="padding:0.4rem 0.75rem;">Description</td><td style="padding:0.4rem 0.75rem;">Description</td><td style="padding:0.4rem 0.75rem; color:#888;">—</td></tr>
+                <tr style="background:#fffdf0;"><td style="padding:0.4rem 0.75rem;">Categories</td><td style="padding:0.4rem 0.75rem;">Category</td><td style="padding:0.4rem 0.75rem; color:#888;">First category used</td></tr>
+                <tr><td style="padding:0.4rem 0.75rem;">Price</td><td style="padding:0.4rem 0.75rem;">Price</td><td style="padding:0.4rem 0.75rem; color:#888;">—</td></tr>
+                <tr style="background:#fffdf0;"><td style="padding:0.4rem 0.75rem;">Archived (Y)</td><td style="padding:0.4rem 0.75rem;">Status = Sold</td><td style="padding:0.4rem 0.75rem; color:#888;">N = Available</td></tr>
+                <tr><td style="padding:0.4rem 0.75rem;">Condition</td><td style="padding:0.4rem 0.75rem;">Condition</td><td style="padding:0.4rem 0.75rem; color:#888;">Defaults to "Good"</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Upload Form -->
+    <div style="background:white; border-radius:10px; padding:2rem; box-shadow:0 4px 16px rgba(46,125,110,0.12);">
+        <form method="POST" enctype="multipart/form-data">
+
+            <div class="form-group" style="margin-bottom:1.25rem;">
+                <label for="csv_file" style="font-weight:600; color:#2c3e50;">Select Square CSV File</label>
+                <input type="file" id="csv_file" name="csv_file" accept=".csv" required
+                       style="display:block; margin-top:0.5rem; padding:0.6rem; border:1px solid #ddd; border-radius:6px; width:100%; box-sizing:border-box;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.5rem;">
+                <label style="font-weight:600; color:#2c3e50;">If a SKU already exists in LibertyE:</label>
+                <div style="margin-top:0.75rem; display:flex; flex-direction:column; gap:0.5rem;">
+                    <label style="display:flex; align-items:center; gap:0.6rem; font-weight:normal; cursor:pointer;">
+                        <input type="radio" name="import_mode" value="skip" checked>
+                        <span><strong>Skip</strong> — keep the existing product unchanged</span>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:0.6rem; font-weight:normal; cursor:pointer;">
+                        <input type="radio" name="import_mode" value="overwrite">
+                        <span><strong>Overwrite</strong> — update title, description, price, category and status (images &amp; location preserved)</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit"
+                    style="width:100%; padding:0.9rem; background:#2e7d6e; color:white; border:none; border-radius:8px; font-size:1.05rem; font-weight:700; cursor:pointer;">
+                📥 Import Now
+            </button>
+        </form>
+    </div>
+
+    <div style="margin-top:1.5rem; text-align:center;">
+        <a href="{{ url_for('export_inventory') }}" style="color:#2e7d6e; font-size:0.9rem;">⬇️ Export current LibertyE inventory as CSV</a>
+    </div>
+</div>
+{% endblock %}

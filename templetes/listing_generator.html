@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% block title %}Listing Generator | {{ store_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap');
+
+  .listing-wrap { max-width: 900px; margin: 0 auto; }
+
+  .listing-header { margin-bottom: 2rem; }
+  .listing-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; color: #1a1a2e; }
+  .listing-header p  { color: #7a7a8c; margin-top: 0.4rem; }
+
+  .product-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .pick-card {
+    background: white;
+    border: 2px solid #e0ddd8;
+    border-radius: 10px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .pick-card:hover  { border-color: #1877f2; transform: translateY(-2px); }
+  .pick-card.active { border-color: #1877f2; background: #e8f0fe; }
+
+  .pick-card img { width:100%; height:100px; object-fit:cover; border-radius:6px; margin-bottom:0.5rem; }
+  .pick-card .no-img { height:100px; background:#f0f0f0; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#aaa; margin-bottom:0.5rem; }
+  .pick-card h4 { font-size:0.85rem; color:#2c3e50; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pick-card p  { font-size:0.8rem; color:#27ae60; font-weight:600; margin:0.2rem 0 0; }
+
+  .platform-tabs { display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+  .tab-btn {
+    padding: 0.6rem 1.2rem; border-radius: 8px; border: 2px solid #e0ddd8;
+    background: white; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+    transition: all 0.2s; color: #555;
+  }
+  .tab-btn:hover  { border-color: #1877f2; color: #1877f2; }
+  .tab-btn.active { background: #1877f2; color: white; border-color: #1877f2; }
+  .tab-btn.fb     { }
+  .tab-btn.cl.active  { background: #7c2d12; border-color: #7c2d12; }
+  .tab-btn.cl:hover   { border-color: #7c2d12; color: #7c2d12; }
+  .tab-btn.ig.active  { background: #c13584; border-color: #c13584; }
+  .tab-btn.ig:hover   { border-color: #c13584; color: #c13584; }
+
+  .generate-btn {
+    background: #1877f2; color: white; border: none; padding: 0.85rem 2rem;
+    border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s; margin-bottom: 1.5rem;
+  }
+  .generate-btn:hover    { background: #1558b0; }
+  .generate-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .listing-output { display: none; }
+  .listing-output.visible { display: block; }
+
+  .listing-preview {
+    background: white; border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 1.5rem;
+  }
+
+  .fb-header {
+    background: #1877f2; color: white; padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .fb-header .fb-logo { font-size: 1.5rem; }
+  .fb-header h3 { margin:0; font-size: 1rem; }
+  .fb-header p  { margin:0; font-size:0.8rem; opacity:0.8; }
+
+  .listing-body { padding: 1.5rem; }
+
+  .listing-field { margin-bottom: 1.25rem; }
+  .listing-field label {
+    display: block; font-size: 0.75rem; font-weight: 700; color: #7a7a8c;
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;
+  }
+  .listing-field .field-wrap {
+    display: flex; gap: 0.5rem; align-items: flex-start;
+  }
+  .listing-field textarea, .listing-field input[type=text] {
+    flex: 1; padding: 0.75rem; border: 1px solid #e0ddd8; border-radius: 6px;
+    font-size: 0.95rem; font-family: inherit; resize: vertical; background: #fafafa;
+  }
+  .listing-field textarea { min-height: 100px; }
+  .copy-btn {
+    background: #f0f0f0; border: 1px solid #ddd; border-radius: 6px;
+    padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8rem; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover   { background: #e0e0e0; }
+  .copy-btn.copied  { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+
+  .copy-all-btn {
+    width: 100%; padding: 1rem; background: #25d366; color: white; border: none;
+    border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: background 0.2s; margin-top: 0.5rem;
+  }
+  .copy-all-btn:hover { background: #128c7e; }
+
+  .loading-msg {
+    text-align: center; padding: 2rem; color: #7a7a8c;
+    font-size: 1rem; display: none;
+  }
+  .loading-msg.visible { display: block; }
+
+  .spinner {
+    display: inline-block; width: 24px; height: 24px;
+    border: 3px solid #e0ddd8; border-top-color: #1877f2;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    vertical-align: middle; margin-right: 0.5rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .tip-box {
+    background: #fffbf0; border: 1px solid #ffe082; border-radius: 8px;
+    padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #7c5a00;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="listing-wrap">
+  <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
+
+  <div class="listing-header">
+    <h1>📋 Listing Generator</h1>
+    <p>Pick a product and a platform — AI writes your listing instantly.</p>
+  </div>
+
+  <!-- Platform Tabs -->
+  <div class="platform-tabs">
+    <button class="tab-btn fb active" onclick="selectPlatform(this,'facebook')">📘 Facebook Marketplace</button>
+    <button class="tab-btn cl"        onclick="selectPlatform(this,'craigslist')">📌 Craigslist</button>
+    <button class="tab-btn ig"        onclick="selectPlatform(this,'instagram')">📸 Instagram</button>
+  </div>
+
+  <!-- Product Picker -->
+  <div class="product-picker">
+    {% for product in products %}
+    <div class="pick-card" onclick="selectProduct(this)"
+         data-sku="{{ product.SKU }}"
+         data-title="{{ product.Title }}"
+         data-price="{{ product.Price }}"
+         data-category="{{ product.Category }}"
+         data-condition="{{ product.Condition }}"
+         data-description="{{ product.Description or '' }}">
+      {% if product.valid_images %}
+        <img src="{{ url_for('serve_upload', filename=product.valid_images[0]) }}" alt="{{ product.Title }}">
+      {% else %}
+        <div class="no-img">📷</div>
+      {% endif %}
+      <h4>{{ product.Title }}</h4>
+      <p>${{ product.Price }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <button class="generate-btn" id="generateBtn" onclick="generateListing()" disabled>
+    ✨ Generate Listing
+  </button>
+
+  <!-- Loading -->
+  <div class="loading-msg" id="loadingMsg">
+    <span class="spinner"></span> AI is writing your listing...
+  </div>
+
+  <!-- Output -->
+  <div class="listing-output" id="listingOutput">
+    <div class="listing-preview">
+      <div class="fb-header" id="platformHeader">
+        <div class="fb-logo">📘</div>
+        <div>
+          <h3>Facebook Marketplace</h3>
+          <p>Copy and paste into your listing</p>
+        </div>
+      </div>
+      <div class="listing-body">
+
+        <div class="listing-field" id="fieldTitle">
+          <label>Title</label>
+          <div class="field-wrap">
+            <input type="text" id="outTitle" readonly>
+            <button class="copy-btn" onclick="copyField('outTitle', this)">Copy</button>
+          </div>
+        </div>
+
+        <div class="listing-field">
+          <label>Price</label>
+          <div class="field-wrap">
+            <input type="text" id="outPrice" readonly>
+            <button class="copy-btn" onclick="copyField('outPrice', this)">Copy</button>
+          </div>
+        </div>
+
+        <div class="listing-field" id="fieldCondition">
+          <label>Condition</label>
+          <div class="field-wrap">
+            <input type="text" id="outCondition" readonly>
+            <button class="copy-btn" onclick="copyField('outCondition', this)">Copy</button>
+          </div>
+        </div>
+
+        <div class="listing-field">
+          <label>Description</label>
+          <div class="field-wrap">
+            <textarea id="outDescription" readonly></textarea>
+            <button class="copy-btn" onclick="copyField('outDescription', this)">Copy</button>
+          </div>
+        </div>
+
+        <div class="listing-field" id="fieldLocation">
+          <label>Location</label>
+          <div class="field-wrap">
+            <input type="text" id="outLocation" readonly value="Liberty, NC 27298">
+            <button class="copy-btn" onclick="copyField('outLocation', this)">Copy</button>
+          </div>
+        </div>
+
+        <button class="copy-all-btn" onclick="copyAll()">📋 Copy Complete Listing</button>
+      </div>
+    </div>
+
+    <div class="tip-box" id="platformTip">
+      💡 <strong>Tip:</strong> Go to <a href="https://www.facebook.com/marketplace/create/item" target="_blank">Facebook Marketplace</a>, click "Create new listing → Item for sale", then paste each field.
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedProduct = null;
+let selectedPlatform = 'facebook';
+
+function selectPlatform(btn, platform) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedPlatform = platform;
+
+  const header = document.getElementById('platformHeader');
+  const tip    = document.getElementById('platformTip');
+  const titleField = document.getElementById('fieldTitle');
+  const condField  = document.getElementById('fieldCondition');
+  const locField   = document.getElementById('fieldLocation');
+
+  if (platform === 'facebook') {
+    header.style.background = '#1877f2';
+    header.querySelector('h3').textContent = 'Facebook Marketplace';
+    header.querySelector('.fb-logo').textContent = '📘';
+    tip.innerHTML = '💡 <strong>Tip:</strong> Go to <a href="https://www.facebook.com/marketplace/create/item" target="_blank">Facebook Marketplace</a>, click "Create new listing → Item for sale", then paste each field.';
+    titleField.style.display = ''; condField.style.display = ''; locField.style.display = '';
+  } else if (platform === 'craigslist') {
+    header.style.background = '#7c2d12';
+    header.querySelector('h3').textContent = 'Craigslist';
+    header.querySelector('.fb-logo').textContent = '📌';
+    tip.innerHTML = '💡 <strong>Tip:</strong> Go to <a href="https://post.craigslist.org" target="_blank">Craigslist</a> → For Sale → select your category, then paste.';
+    titleField.style.display = ''; condField.style.display = 'none'; locField.style.display = '';
+  } else if (platform === 'instagram') {
+    header.style.background = '#c13584';
+    header.querySelector('h3').textContent = 'Instagram Caption';
+    header.querySelector('.fb-logo').textContent = '📸';
+    tip.innerHTML = '💡 <strong>Tip:</strong> Open Instagram, create a new post with the product photo, then paste the caption below.';
+    titleField.style.display = 'none'; condField.style.display = 'none'; locField.style.display = 'none';
+  }
+}
+
+function selectProduct(card) {
+  document.querySelectorAll('.pick-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  selectedProduct = {
+    sku:         card.dataset.sku,
+    title:       card.dataset.title,
+    price:       card.dataset.price,
+    category:    card.dataset.category,
+    condition:   card.dataset.condition,
+    description: card.dataset.description
+  };
+  document.getElementById('generateBtn').disabled = false;
+}
+
+function generateListing() {
+  if (!selectedProduct) return;
+
+  document.getElementById('loadingMsg').classList.add('visible');
+  document.getElementById('listingOutput').classList.remove('visible');
+  document.getElementById('generateBtn').disabled = true;
+
+  fetch('/generate-listing', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product: selectedProduct, platform: selectedPlatform })
+  })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('loadingMsg').classList.remove('visible');
+    document.getElementById('generateBtn').disabled = false;
+
+    if (data.error) { alert('Error: ' + data.error); return; }
+
+    document.getElementById('outTitle').value       = data.title       || '';
+    document.getElementById('outPrice').value       = data.price       || '';
+    document.getElementById('outCondition').value   = data.condition   || '';
+    document.getElementById('outDescription').value = data.description || '';
+    document.getElementById('outLocation').value    = data.location    || 'Liberty, NC 27298';
+
+    document.getElementById('listingOutput').classList.add('visible');
+    document.getElementById('listingOutput').scrollIntoView({ behavior: 'smooth' });
+  })
+  .catch(e => {
+    document.getElementById('loadingMsg').classList.remove('visible');
+    document.getElementById('generateBtn').disabled = false;
+    alert('Error: ' + e);
+  });
+}
+
+function copyField(id, btn) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.value).then(() => {
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyAll() {
+  const title       = document.getElementById('outTitle').value;
+  const price       = document.getElementById('outPrice').value;
+  const condition   = document.getElementById('outCondition').value;
+  const description = document.getElementById('outDescription').value;
+  const location    = document.getElementById('outLocation').value;
+
+  let text = '';
+  if (selectedPlatform === 'instagram') {
+    text = description;
+  } else {
+    if (title)     text += title + '\n\n';
+    if (price)     text += '💰 ' + price + '\n';
+    if (condition) text += '📦 Condition: ' + condition + '\n';
+    if (location)  text += '📍 ' + location + '\n\n';
+    text += description;
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-all-btn');
+    btn.textContent = '✅ Listing Copied to Clipboard!';
+    setTimeout(() => { btn.textContent = '📋 Copy Complete Listing'; }, 2500);
+  });
+}
+</script>
+{% endblock %}

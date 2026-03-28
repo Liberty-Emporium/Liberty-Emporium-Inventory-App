@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.Title }} | Liberty Emporium{% endblock %}
+
+{% block content %}
+<div class="product-detail">
+    <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
+
+    <div class="product-header">
+        <h1>{{ product.Title }}</h1>
+        <div class="product-meta">
+            <span class="sku">SKU: {{ product.SKU }}</span>
+            <span class="status status-{{ product.Status|lower }}">{{ product.Status }}</span>
+        </div>
+    </div>
+
+    <div class="product-content">
+        <div class="product-images">
+            {% if product.valid_images and product.valid_images|length > 0 %}
+                <div class="image-gallery">
+                    {% for image in product.valid_images %}
+                        <img src="{{ url_for('serve_upload', filename=image) }}" alt="{{ product.Title }}">
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-images">No images available</div>
+            {% endif %}
+        </div>
+
+        <div class="product-info">
+            <p class="price">${{ product.Price|default('0.00') }}</p>
+            <p class="condition">Condition: {{ product.Condition }}</p>
+            <p class="category">Category: {{ product.Category }}</p>
+
+            {% if product.get('Section') or product.get('Shelf') %}
+            <div style="display:inline-flex; align-items:center; gap:0.5rem; background:#f0f7f4; border:1px solid #b8ddd7; border-radius:8px; padding:0.6rem 1rem; margin-top:0.5rem;">
+                <span style="font-size:1.2rem;">📍</span>
+                <div>
+                    {% if product.get('Section') %}
+                    <div style="font-weight:600; color:#2e7d6e; font-size:0.95rem;">{{ product.Section }}</div>
+                    {% endif %}
+                    {% if product.get('Shelf') %}
+                    <div style="color:#6b9e95; font-size:0.85rem;">{{ product.Shelf }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <h3>Description</h3>
+            <p class="description">{{ product.Description|default('No description available') }}</p>
+
+            {% if session.get('username') == 'admin' %}
+            <div style="margin-top:1.25rem; background:#f0f7f4; border:1px solid #b8ddd7; border-radius:8px; padding:1rem 1.25rem;">
+                <h3 style="color:#2e7d6e; margin-bottom:0.75rem; font-size:1rem;">🔒 Admin Only — Cost & Profit</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; text-align:center;">
+                    <div style="background:white; border-radius:6px; padding:0.75rem; border:1px solid #d4ede8;">
+                        <div style="font-size:1.4rem; font-weight:bold; color:#e57373;">
+                            ${{ product.get('Cost Paid', '0.00') or '0.00' }}
+                        </div>
+                        <div style="font-size:0.8rem; color:#6b9e95; text-transform:uppercase;">Cost Paid</div>
+                    </div>
+                    <div style="background:white; border-radius:6px; padding:0.75rem; border:1px solid #d4ede8;">
+                        <div style="font-size:1.4rem; font-weight:bold; color:#2e7d6e;">
+                            ${{ product.Price or '0.00' }}
+                        </div>
+                        <div style="font-size:0.8rem; color:#6b9e95; text-transform:uppercase;">Sale Price</div>
+                    </div>
+                    <div style="background:white; border-radius:6px; padding:0.75rem; border:1px solid #d4ede8;">
+                        {% set cost = (product.get('Cost Paid', '0') or '0')|float %}
+                        {% set price = (product.Price or '0')|float %}
+                        {% set profit = price - cost %}
+                        <div style="font-size:1.4rem; font-weight:bold; color:{% if profit >= 0 %}#27ae60{% else %}#e74c3c{% endif %};">
+                            ${{ '%.2f'|format(profit) }}
+                        </div>
+                        <div style="font-size:0.8rem; color:#6b9e95; text-transform:uppercase;">
+                            {% if profit >= 0 %}Profit{% else %}Loss{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── Share Buttons ─────────────────────────────────────── -->
+            <div class="share-section">
+                <h3>📣 Share This Item</h3>
+                <div class="share-buttons">
+
+                    <!-- Facebook -->
+                    <a id="fb-btn" href="#" target="_blank" class="share-btn share-facebook">
+                        <span>📘</span> Share on Facebook
+                    </a>
+
+                    <!-- Craigslist -->
+                    <a id="cl-btn" href="#" target="_blank" class="share-btn share-craigslist">
+                        <span>📋</span> Post to Craigslist
+                    </a>
+
+                    <!-- Instagram (copy to clipboard) -->
+                    <button onclick="copyForInstagram()" class="share-btn share-instagram">
+                        <span>📸</span> Copy for Instagram
+                    </button>
+
+                    <!-- Copy link -->
+                    <button onclick="copyLink()" class="share-btn share-link">
+                        <span>🔗</span> Copy Link
+                    </button>
+
+                </div>
+                <div id="share-toast" class="share-toast"></div>
+            </div>
+            <!-- ──────────────────────────────────────────────────────── -->
+
+            <div class="product-actions" style="margin-top:1.5rem;">
+                {% if not session.get('is_guest') %}
+                <a href="{{ url_for('edit_product', sku=product.SKU) }}" class="btn btn-primary">Edit Product</a>
+                <a href="{{ url_for('edit_image', sku=product.SKU) }}" class="btn btn-secondary">Edit Images</a>
+                <a href="{{ url_for('price_tag', sku=product.SKU) }}" class="btn btn-secondary">🏷️ Print Tag</a>
+                <form method="POST" action="{{ url_for('delete_product', sku=product.SKU) }}" class="delete-form" style="display: inline;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this product?')">Delete</button>
+                </form>
+                {% else %}
+                <p style="color:#6b9e95; font-style:italic;">👁️ Guest view — sign in to edit products</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.share-section { margin-top: 1.5rem; }
+.share-section h3 { margin-bottom: 0.75rem; color: #2c3e50; }
+.share-buttons { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.1s;
+}
+.share-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.share-facebook  { background: #1877f2; color: white; }
+.share-craigslist { background: #7c3aed; color: white; }
+.share-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; }
+.share-link      { background: #2c3e50; color: white; }
+.share-toast {
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    color: #27ae60;
+    font-weight: 600;
+    min-height: 1.2rem;
+}
+</style>
+
+<script>
+var productTitle      = {{ product.Title | tojson }};
+var productPrice      = {{ product.Price | default('0.00') | tojson }};
+var productDesc       = {{ product.Description | default('') | tojson }};
+var productCondition  = {{ product.Condition | default('') | tojson }};
+var productCategory   = {{ product.Category | default('') | tojson }};
+var productUrl        = window.location.href;
+
+function showToast(msg) {
+    var t = document.getElementById('share-toast');
+    t.textContent = msg;
+    setTimeout(function() { t.textContent = ''; }, 3000);
+}
+
+// Facebook — shares the current page URL
+document.getElementById('fb-btn').href =
+    'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(productUrl);
+
+// Craigslist — opens new posting with title and body pre-filled
+var clBody = productTitle + '\n\n'
+    + 'Price: $' + productPrice + '\n'
+    + 'Condition: ' + productCondition + '\n'
+    + 'Category: ' + productCategory + '\n\n'
+    + productDesc + '\n\n'
+    + 'View full listing: ' + productUrl;
+
+document.getElementById('cl-btn').href =
+    'https://post.craigslist.org/c/sfc?act=SO&cc=US' +
+    '&category=sss' +
+    '&title=' + encodeURIComponent(productTitle) +
+    '&postal=&body=' + encodeURIComponent(clBody);
+
+// Instagram — copies a ready-to-paste caption
+function copyForInstagram() {
+    var caption = '🛍️ ' + productTitle + '\n\n'
+        + '💵 Only $' + productPrice + '\n'
+        + '✅ Condition: ' + productCondition + '\n\n'
+        + productDesc + '\n\n'
+        + '📍 Liberty Emporium & Thrift\n'
+        + '🔗 Link in bio\n\n'
+        + '#thrift #thriftstore #vintage #forsale #libertyemporium';
+
+    navigator.clipboard.writeText(caption).then(function() {
+        showToast('✅ Instagram caption copied! Open Instagram and paste it.');
+    }).catch(function() {
+        prompt('Copy this caption for Instagram:', caption);
+    });
+}
+
+// Copy link
+function copyLink() {
+    navigator.clipboard.writeText(productUrl).then(function() {
+        showToast('✅ Link copied to clipboard!');
+    }).catch(function() {
+        prompt('Copy this link:', productUrl);
+    });
+}
+</script>
+
+{% endblock %}

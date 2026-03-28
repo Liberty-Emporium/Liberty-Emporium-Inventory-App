@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Backups | Liberty Emporium{% endblock %}
+{% block content %}
+<div style="max-width:800px; margin:0 auto;">
+    <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h1 style="color:#2e7d6e;">💾 Inventory Backups</h1>
+        <form method="POST" action="{{ url_for('manual_backup') }}">
+            <button type="submit" class="btn btn-primary">📦 Create Backup Now</button>
+        </form>
+    </div>
+
+    <div style="background:#e8f5f2; border-radius:8px; padding:1rem; margin-bottom:1.5rem; font-size:0.95rem; color:#2d4a3e;">
+        ℹ️ Backups are created automatically every time inventory is saved. The last <strong>20 backups</strong> are kept.
+    </div>
+
+    <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 8px rgba(46,125,110,0.1);">
+        <h2 style="color:#2e7d6e; margin-bottom:1rem;">📋 Available Backups ({{ backups|length }})</h2>
+
+        {% if backups %}
+            {% for b in backups %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f0f7f4; border-radius:6px; margin-bottom:0.5rem; border:1px solid #d4ede8;">
+                <div>
+                    <strong style="font-size:0.95rem;">{{ b.filename }}</strong>
+                    <br>
+                    <span style="color:#6b9e95; font-size:0.85rem;">{{ b.modified }} &nbsp;·&nbsp; {{ (b.size / 1024)|round(1) }} KB</span>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <a href="{{ url_for('download_backup', filename=b.filename) }}" class="btn btn-secondary btn-small">⬇️ Download</a>
+                    <form method="POST" action="{{ url_for('restore_backup', filename=b.filename) }}"
+                          onsubmit="return confirm('Restore inventory from this backup? Current inventory will be overwritten.')">
+                        <button type="submit" class="btn btn-primary btn-small">♻️ Restore</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#6b9e95;">No backups yet. Add or edit a product to trigger the first one, or click "Create Backup Now".</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}User Management | Liberty Emporium{% endblock %}
+{% block content %}
+<div style="max-width:800px; margin:0 auto;">
+    <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
+    <h1 style="color:#2e7d6e; margin-bottom:1.5rem;">👥 User Management</h1>
+
+    <!-- Pending approvals -->
+    <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 8px rgba(46,125,110,0.1); margin-bottom:1.5rem; border-left:4px solid #f0a500;">
+        <h2 style="color:#7c5a00; margin-bottom:1rem;">⏳ Pending Approval ({{ pending|length }})</h2>
+        {% if pending %}
+            {% for user in pending %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#fffbf0; border-radius:6px; margin-bottom:0.5rem; border:1px solid #ffe4a0;">
+                <div>
+                    <strong>{{ user.username }}</strong>
+                    <span style="color:#6b9e95; margin-left:0.75rem; font-size:0.9rem;">{{ user.email }}</span>
+                    <span style="color:#aaa; margin-left:0.75rem; font-size:0.85rem;">Requested: {{ user.requested }}</span>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <form method="POST" action="{{ url_for('approve_user', username=user.username) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-primary btn-small">✅ Approve</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('reject_user', username=user.username) }}" style="display:inline;"
+                          onsubmit="return confirm('Reject {{ user.username }}?')">
+                        <button type="submit" class="btn btn-danger btn-small">❌ Reject</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#6b9e95;">No pending requests.</p>
+        {% endif %}
+    </div>
+
+    <!-- Approved users -->
+    <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 8px rgba(46,125,110,0.1); border-left:4px solid #3a9688;">
+        <h2 style="color:#2e7d6e; margin-bottom:1rem;">✅ Approved Users ({{ approved|length + 1 }})</h2>
+        <!-- Admin always shown -->
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f0f7f4; border-radius:6px; margin-bottom:0.5rem;">
+            <div>
+                <strong>admin</strong>
+                <span style="background:#2e7d6e; color:white; font-size:0.75rem; padding:0.15rem 0.5rem; border-radius:10px; margin-left:0.5rem;">Owner</span>
+            </div>
+        </div>
+        {% for username in approved %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f0f7f4; border-radius:6px; margin-bottom:0.5rem;">
+            <strong>{{ username }}</strong>
+            <form method="POST" action="{{ url_for('remove_user', username=username) }}" style="display:inline;"
+                  onsubmit="return confirm('Remove {{ username }}?')">
+                <button type="submit" class="btn btn-danger btn-small">🗑️ Remove</button>
+            </form>
+        </div>
+        {% endfor %}
+        {% if not approved %}
+            <p style="color:#6b9e95; margin-top:0.5rem;">No other approved users yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
