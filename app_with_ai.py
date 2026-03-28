@@ -18,7 +18,7 @@ try:
 except ImportError:
     pass
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templetes')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
