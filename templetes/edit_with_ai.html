@@ -142,10 +142,15 @@
     <div id="aiResult" class="ai-result"></div>
 
     <!-- Usage stats bar -->
-    <div id="ai-stats-bar" style="margin-top:0.85rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.2); display:flex; gap:1.25rem; flex-wrap:wrap; font-size:0.82rem; opacity:0.85;">
-      <span>📊 Session: <strong id="session-count">0</strong> analyses</span>
-      <span>📅 All-time: <strong id="total-count">0</strong> analyses</span>
-      <span>⚡ Model: <strong>Claude Haiku</strong></span>
+    <div style="margin-top:0.85rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.2); display:flex; gap:1rem; flex-wrap:wrap; font-size:0.82rem; opacity:0.9; align-items:center;">
+      <span>📊 Session: <strong id="session-count">0</strong></span>
+      <span>📅 All-time: <strong id="total-count">0</strong></span>
+      <span>💸 Session cost: <strong id="session-cost">$0.0000</strong></span>
+      <span>🧾 Total spent: <strong id="total-cost">$0.0000</strong></span>
+      <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener"
+         style="color:#00d4aa; font-size:0.8rem; font-weight:600; text-decoration:none; margin-left:auto; white-space:nowrap;">
+        💳 View account balance →
+      </a>
     </div>
 
 </div>
@@ -512,30 +517,49 @@ function toggleKeyVisibility() {
   }
 }
 
-// ── Usage tracking ───────────────────────────────────────────────────────────
-var sessionAnalyses = 0;
+// ── Pricing (Claude Haiku) ────────────────────────────────────────────────────
+var PRICE_INPUT  = 0.80  / 1_000_000;   // $0.80 per million input tokens
+var PRICE_OUTPUT = 4.00  / 1_000_000;   // $4.00 per million output tokens
 
-function loadUsageStats() {
-  var today = new Date().toISOString().slice(0, 10);
-  var stored = JSON.parse(localStorage.getItem('ai_usage') || '{"date":"","count":0,"total":0}');
-  if (stored.date !== today) {
-    stored = { date: today, count: 0, total: stored.total || 0 };
-    localStorage.setItem('ai_usage', JSON.stringify(stored));
-  }
-  document.getElementById('usage-count').textContent  = stored.count;
-  document.getElementById('session-count').textContent = sessionAnalyses;
-  document.getElementById('total-count').textContent   = stored.total;
+function calcCost(inputTok, outputTok) {
+  return inputTok * PRICE_INPUT + outputTok * PRICE_OUTPUT;
 }
 
-function incrementUsage() {
-  var today = new Date().toISOString().slice(0, 10);
-  var stored = JSON.parse(localStorage.getItem('ai_usage') || '{"date":"","count":0,"total":0}');
-  if (stored.date !== today) stored = { date: today, count: 0, total: stored.total || 0 };
+function fmtCost(usd) {
+  return '$' + usd.toFixed(4);
+}
+
+// ── Usage tracking ───────────────────────────────────────────────────────────
+var sessionAnalyses = 0;
+var sessionCostUSD  = 0;
+
+function loadUsageStats() {
+  var today  = new Date().toISOString().slice(0, 10);
+  var stored = JSON.parse(localStorage.getItem('ai_usage') || '{"date":"","count":0,"total":0,"totalCost":0}');
+  if (stored.date !== today) {
+    stored = { date: today, count: 0, total: stored.total || 0, totalCost: stored.totalCost || 0 };
+    localStorage.setItem('ai_usage', JSON.stringify(stored));
+  }
+  document.getElementById('usage-count').textContent   = stored.count;
+  document.getElementById('session-count').textContent = sessionAnalyses;
+  document.getElementById('total-count').textContent   = stored.total;
+  document.getElementById('session-cost').textContent  = fmtCost(sessionCostUSD);
+  document.getElementById('total-cost').textContent    = fmtCost(stored.totalCost || 0);
+}
+
+function incrementUsage(inputTok, outputTok) {
+  var cost   = calcCost(inputTok, outputTok);
+  var today  = new Date().toISOString().slice(0, 10);
+  var stored = JSON.parse(localStorage.getItem('ai_usage') || '{"date":"","count":0,"total":0,"totalCost":0}');
+  if (stored.date !== today) stored = { date: today, count: 0, total: stored.total || 0, totalCost: stored.totalCost || 0 };
   stored.count++;
   stored.total++;
+  stored.totalCost = (stored.totalCost || 0) + cost;
   sessionAnalyses++;
+  sessionCostUSD += cost;
   localStorage.setItem('ai_usage', JSON.stringify(stored));
   loadUsageStats();
+  return cost;
 }
 
 // ── Analyze ──────────────────────────────────────────────────────────────────
@@ -576,14 +600,19 @@ function analyzeWithAI() {
     document.getElementById('price').value       = data.suggested_price || '';
     document.getElementById('condition').value   = data.condition || 'Good';
 
-    incrementUsage();
+    var usage = data._usage || { input_tokens: 0, output_tokens: 0 };
+    var cost  = incrementUsage(usage.input_tokens, usage.output_tokens);
 
     var html = '<h4>✅ AI Analysis Complete!</h4>';
     html += '<p><strong>Detected:</strong> ' + (data.labels ? data.labels.slice(0,3).join(', ') : 'N/A') + '</p>';
     if (data.objects && data.objects.length > 0) {
       html += '<p><strong>Objects:</strong> ' + data.objects.slice(0,3).join(', ') + '</p>';
     }
-    html += '<p style="color:#27ae60;"><strong>Form auto-filled! Review and submit.</strong></p>';
+    html += '<p style="color:#27ae60; margin-bottom:0.25rem;"><strong>Form auto-filled! Review and submit.</strong></p>';
+    html += '<p style="font-size:0.82rem; color:#555; margin:0;">'
+          + '🪙 This analysis: <strong>' + fmtCost(cost) + '</strong>'
+          + ' &nbsp;·&nbsp; Tokens: ' + usage.input_tokens + ' in / ' + usage.output_tokens + ' out'
+          + '</p>';
     document.getElementById('aiResult').innerHTML = html;
   })
   .catch(function(e) {

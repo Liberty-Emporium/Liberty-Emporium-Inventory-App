@@ -475,7 +475,14 @@ def ai_analyze():
         text = result['content'][0]['text'].strip()
         if text.startswith('```'):
             text = text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
-        return jsonify(_json.loads(text))
+        parsed = _json.loads(text)
+        # Attach token usage so the frontend can calculate cost
+        usage = result.get('usage', {})
+        parsed['_usage'] = {
+            'input_tokens':  usage.get('input_tokens', 0),
+            'output_tokens': usage.get('output_tokens', 0),
+        }
+        return jsonify(parsed)
     except Exception as e:
         return jsonify({'error': str(e)})
 
