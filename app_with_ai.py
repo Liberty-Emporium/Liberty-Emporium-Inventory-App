@@ -594,7 +594,7 @@ def list_music():
             display = display.replace('-', ' ').replace('_', ' ')
             display = ' '.join(w.capitalize() for w in display.split())
             if len(display) > 40:
-                display = display[:40].rsplit(' ', 1)[0]
+                display = display[:40]
             tracks.append({'filename': fname, 'display_name': display})
     return jsonify(tracks)
 
