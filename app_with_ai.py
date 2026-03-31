@@ -36,9 +36,29 @@ def fix_image_orientation(img):
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Use persistent storage on Railway (/data is the mounted persistent disk)
-# Falls back to local directory if not running on Railway
-DATA_DIR = os.environ.get('RAILWAY_DATA_DIR', '/data' if os.path.exists('/data') else BASE_DIR)
+def _find_writable_data_dir():
+    """Return the first directory that exists and is writable."""
+    candidates = [
+        os.environ.get('RAILWAY_DATA_DIR', ''),
+        '/data',
+        BASE_DIR,
+        '/tmp',
+    ]
+    for d in candidates:
+        if not d:
+            continue
+        try:
+            os.makedirs(d, exist_ok=True)
+            test = os.path.join(d, '.write_test')
+            with open(test, 'w') as f:
+                f.write('ok')
+            os.unlink(test)
+            return d
+        except Exception:
+            continue
+    return BASE_DIR
+
+DATA_DIR = _find_writable_data_dir()
 
 INVENTORY_FILE = os.path.join(DATA_DIR, 'inventory.csv')
 UPLOAD_FOLDER  = os.path.join(DATA_DIR, 'uploads')

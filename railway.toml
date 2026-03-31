@@ -4,9 +4,3 @@ packages = ["ffmpeg"]
 
 [build.nixpacks.env]
 NIXPACKS_PYTHON_VERSION = "3.11"
-
-[volumes]
-"/data" = "liberty_emporium_data"
-
-[env]
-RAILWAY_DATA_DIR = "/data"
