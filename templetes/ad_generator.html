@@ -1082,14 +1082,32 @@ function vsShowResults(files) {
   files.forEach(f => {
     const card = document.createElement('div');
     card.className = 'vs-video-card';
-    card.innerHTML = `
-      <div class="vs-video-card-header">
-        <span class="vs-video-title">🎬 ${f.product_title}</span>
-        <a href="/download-ad/${f.filename}" class="btn-dl-video">⬇️ Download MP4</a>
-      </div>
-      <video src="/ads/${f.filename}" controls autoplay muted loop
-             style="width:100%; display:block; max-height:480px; background:#000;"></video>
-    `;
+
+    const header = document.createElement('div');
+    header.className = 'vs-video-card-header';
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'vs-video-title';
+    titleSpan.textContent = '🎬 ' + f.product_title;
+
+    const dlLink = document.createElement('a');
+    dlLink.href = '/download-ad/' + encodeURIComponent(f.filename);
+    dlLink.className = 'btn-dl-video';
+    dlLink.textContent = '⬇️ Download MP4';
+
+    header.appendChild(titleSpan);
+    header.appendChild(dlLink);
+
+    const video = document.createElement('video');
+    video.src = '/ads/' + encodeURIComponent(f.filename);
+    video.controls = true;
+    video.autoplay = true;
+    video.muted = true;
+    video.loop = true;
+    video.style.cssText = 'width:100%; display:block; max-height:480px; background:#000;';
+
+    card.appendChild(header);
+    card.appendChild(video);
     list.appendChild(card);
   });
   const results = document.getElementById('vsResults');
@@ -1108,12 +1126,25 @@ function vsLoadMusicLibrary() {
     tracks.forEach(t => {
       const card = document.createElement('div');
       card.className = 'vs-track-card';
-      card.innerHTML = `
-        <button class="vs-play-btn" onclick="event.stopPropagation(); vsPlayPreview(this, '${t.filename}')">
-          <span class="vs-play-icon">▶️</span>
-        </button>
-        <div class="vs-track-name" title="${t.filename}">${t.display_name}</div>
-      `;
+
+      const playBtn = document.createElement('button');
+      playBtn.className = 'vs-play-btn';
+      const playIcon = document.createElement('span');
+      playIcon.className = 'vs-play-icon';
+      playIcon.textContent = '▶️';
+      playBtn.appendChild(playIcon);
+      playBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        vsPlayPreview(playBtn, t.filename);
+      });
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'vs-track-name';
+      nameDiv.title = t.filename;
+      nameDiv.textContent = t.display_name;
+
+      card.appendChild(playBtn);
+      card.appendChild(nameDiv);
       card.onclick = () => vsSelectTrack(card, t.filename);
       grid.appendChild(card);
     });
