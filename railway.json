@@ -1,0 +1,6 @@
+{
+  "nixpacks": {
+    "packages": ["ffmpeg"],
+    "buildImage": "ubuntu:22.04"
+  }
+}
