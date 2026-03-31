@@ -1278,6 +1278,59 @@ def manual_backup():
     flash('Manual backup created!', 'success')
     return redirect(url_for('admin_backups'))
 
+# ── Ad Vault (Video Storage) ──────────────────────────────────────────────────
+@app.route('/ad-vault')
+@login_required
+def ad_vault():
+    """Display all generated video ads."""
+    videos = []
+    if os.path.exists(ADS_FOLDER):
+        for filename in os.listdir(ADS_FOLDER):
+            if filename.lower().endswith('.mp4'):
+                filepath = os.path.join(ADS_FOLDER, filename)
+                try:
+                    size_bytes = os.path.getsize(filepath)
+                    size_mb = round(size_bytes / (1024 * 1024), 2)
+                    mod_time = os.path.getmtime(filepath)
+                    mod_date = datetime.datetime.fromtimestamp(mod_time).strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    # Parse filename to extract SKU and template
+                    # Format: video_ad_{SKU}_{TEMPLATE}_{FORMAT}_{TIMESTAMP}.mp4
+                    parts = filename.replace('video_ad_', '').replace('.mp4', '').split('_')
+                    sku = parts[0] if parts else 'Unknown'
+                    
+                    videos.append({
+                        'filename': filename,
+                        'sku': sku,
+                        'size_mb': size_mb,
+                        'mod_date': mod_date,
+                        'display_name': filename.replace('.mp4', '').replace('video_ad_', '')
+                    })
+                except Exception:
+                    pass
+    
+    # Sort by modification time (newest first)
+    videos.sort(key=lambda v: v['mod_date'], reverse=True)
+    
+    return render_template('ad_vault.html', videos=videos, **ctx())
+
+@app.route('/ad-vault/delete/<filename>', methods=['POST'])
+@login_required
+@admin_required
+def delete_video(filename):
+    """Delete a video from the ad vault."""
+    if not filename.endswith('.mp4'):
+        return jsonify({'error': 'Invalid file type'}), 400
+    
+    filepath = os.path.join(ADS_FOLDER, filename)
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        try:
+            os.remove(filepath)
+            return jsonify({'success': True, 'message': f'Video deleted: {filename}'})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    return jsonify({'error': 'File not found'}), 404
+
 # ── Debug ─────────────────────────────────────────────────────────────────────
 @app.route('/debug')
 @login_required
