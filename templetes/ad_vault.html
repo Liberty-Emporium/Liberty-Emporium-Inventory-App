@@ -47,12 +47,10 @@
                   ⬇️ Download
                 </a>
                 
-                <!-- Delete Button (Admin only) -->
-                {% if user_role == 'admin' %}
-                  <button class="btn btn-sm btn-danger" onclick="deleteVideo('{{ video.filename }}')" title="Delete this video">
-                    🗑️ Delete
-                  </button>
-                {% endif %}
+                <!-- Delete Button -->
+                <button class="btn btn-sm btn-danger ms-1" onclick="deleteVideo('{{ video.filename }}')" title="Delete this video">
+                  🗑️ Delete
+                </button>
               </td>
             </tr>
           {% endfor %}
