@@ -27,11 +27,12 @@ INVENTORY_FILE = os.path.join(BASE_DIR, 'inventory.csv')
 UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
 BACKUP_FOLDER  = os.path.join(BASE_DIR, 'backups')
 ADS_FOLDER     = os.path.join(BASE_DIR, 'ads')
+MUSIC_FOLDER   = os.path.join(BASE_DIR, 'music')
 USERS_FILE     = os.path.join(BASE_DIR, 'users.json')
 PENDING_FILE   = os.path.join(BASE_DIR, 'pending_users.json')
 SALE_FILE      = os.path.join(BASE_DIR, 'sale_state.json')
 
-for d in [UPLOAD_FOLDER, BACKUP_FOLDER, ADS_FOLDER]:
+for d in [UPLOAD_FOLDER, BACKUP_FOLDER, ADS_FOLDER, MUSIC_FOLDER]:
     os.makedirs(d, exist_ok=True)
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -581,6 +582,27 @@ def view_ad(filename):
 @login_required
 def download_ad(filename):
     return send_from_directory(ADS_FOLDER, filename, as_attachment=True)
+
+# ── Music Library ─────────────────────────────────────────────────────────────
+@app.route('/music')
+@login_required
+def list_music():
+    tracks = []
+    for fname in sorted(os.listdir(MUSIC_FOLDER)):
+        if fname.lower().endswith('.mp3'):
+            display = os.path.splitext(fname)[0]
+            display = display.replace('-', ' ').replace('_', ' ')
+            display = ' '.join(w.capitalize() for w in display.split())
+            if len(display) > 40:
+                display = display[:40].rsplit(' ', 1)[0]
+            tracks.append({'filename': fname, 'display_name': display})
+    return jsonify(tracks)
+
+
+@app.route('/music/<filename>')
+@login_required
+def serve_music(filename):
+    return send_from_directory(MUSIC_FOLDER, filename)
 
 # ── Listing Generator ─────────────────────────────────────────────────────────
 @app.route('/listing-generator')
