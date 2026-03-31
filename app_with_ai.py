@@ -709,10 +709,11 @@ def generate_video_ad():
         W, H = video_size
 
         for p in products:
-            sku   = p.get('sku', 'UNKNOWN')
-            title = p.get('title', 'Untitled')
-            price = p.get('price', '0.00')
-            image_url = p.get('image', '')
+            sku         = p.get('sku', 'UNKNOWN')
+            title       = p.get('title', 'Untitled')
+            price       = p.get('price', '0.00')
+            description = p.get('description', '')
+            image_url   = p.get('image', '')
 
             # ── Build frame image with Pillow ─────────────────────────────────
             from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
