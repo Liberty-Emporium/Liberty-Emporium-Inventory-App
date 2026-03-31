@@ -921,39 +921,88 @@
 
     <!-- Seasonal Templates -->
     <div class="vs-section-label">🎄 Seasonal Template</div>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:0.5rem; margin-bottom:1.25rem;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:0.5rem; margin-bottom:0.75rem;">
       <div class="vs-template-card active" data-template="default" onclick="vsSelectTemplate(this)">
         <span style="font-size:1.2rem;">📅</span>
         <span style="font-size:0.75rem; font-weight:700;">Default</span>
+        <div style="display:flex;gap:3px;margin-top:2px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#1a1a2e;border:1px solid #ccc;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#f0c040;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#f0f0f5;border:1px solid #ccc;"></div>
+        </div>
       </div>
       <div class="vs-template-card" data-template="holiday" onclick="vsSelectTemplate(this)">
         <span style="font-size:1.2rem;">🎅</span>
         <span style="font-size:0.75rem; font-weight:700;">Holiday</span>
+        <div style="display:flex;gap:3px;margin-top:2px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#0d3d22;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ff2d2d;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ffff00;"></div>
+        </div>
       </div>
       <div class="vs-template-card" data-template="valentine" onclick="vsSelectTemplate(this)">
         <span style="font-size:1.2rem;">💌</span>
         <span style="font-size:0.75rem; font-weight:700;">Valentine</span>
+        <div style="display:flex;gap:3px;margin-top:2px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#4a0e4e;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ff1493;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ffb6c1;"></div>
+        </div>
       </div>
       <div class="vs-template-card" data-template="spring" onclick="vsSelectTemplate(this)">
         <span style="font-size:1.2rem;">🌸</span>
         <span style="font-size:0.75rem; font-weight:700;">Spring</span>
+        <div style="display:flex;gap:3px;margin-top:2px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#f5f5f5;border:1px solid #ccc;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#00d084;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#2d5f3f;"></div>
+        </div>
       </div>
       <div class="vs-template-card" data-template="summer" onclick="vsSelectTemplate(this)">
         <span style="font-size:1.2rem;">☀️</span>
         <span style="font-size:0.75rem; font-weight:700;">Summer</span>
+        <div style="display:flex;gap:3px;margin-top:2px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#003d82;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ffa500;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#fff76d;"></div>
+        </div>
       </div>
       <div class="vs-template-card" data-template="fall" onclick="vsSelectTemplate(this)">
         <span style="font-size:1.2rem;">🍂</span>
         <span style="font-size:0.75rem; font-weight:700;">Fall</span>
+        <div style="display:flex;gap:3px;margin-top:2px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#3d2817;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ff7f50;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ffe4b5;"></div>
+        </div>
       </div>
       <div class="vs-template-card" data-template="blackfriday" onclick="vsSelectTemplate(this)">
         <span style="font-size:1.2rem;">🔥</span>
         <span style="font-size:0.75rem; font-weight:700;">Black Friday</span>
+        <div style="display:flex;gap:3px;margin-top:2px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#000000;border:1px solid #ccc;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ffff00;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ff6600;"></div>
+        </div>
       </div>
       <div class="vs-template-card" data-template="backtoschool" onclick="vsSelectTemplate(this)">
         <span style="font-size:1.2rem;">📚</span>
         <span style="font-size:0.75rem; font-weight:700;">Back-to-School</span>
+        <div style="display:flex;gap:3px;margin-top:2px;">
+          <div style="width:12px;height:12px;border-radius:50%;background:#1a1a38;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#4169e1;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#fff176;"></div>
+        </div>
       </div>
+    </div>
+    <!-- Live color preview strip -->
+    <div id="vsTemplatePreview" style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.8rem;border-radius:8px;margin-bottom:1.25rem;transition:background 0.3s;background:#1a1a2e;">
+      <div style="display:flex;gap:4px;">
+        <div id="vsPreviewBg"  style="width:20px;height:20px;border-radius:4px;background:#1a1a2e;border:1px solid rgba(255,255,255,0.2);"></div>
+        <div id="vsPreviewAcc" style="width:20px;height:20px;border-radius:4px;background:#f0c040;"></div>
+        <div id="vsPreviewTxt" style="width:20px;height:20px;border-radius:4px;background:#f0f0f5;border:1px solid rgba(0,0,0,0.1);"></div>
+      </div>
+      <span id="vsPreviewLabel" style="font-size:0.78rem;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5);">Default theme selected</span>
     </div>
 
     <!-- Social Media Format -->
@@ -1286,6 +1335,7 @@ function vsApplyPreset(presetName) {
   if (templateCard) {
     templateCard.classList.add('active');
     vsSelectedTemplate = preset.template;
+    vsUpdateTemplatePreview(vsSelectedTemplate);
   }
   
   // Set format
@@ -1311,15 +1361,24 @@ function vsApplyPreset(presetName) {
   document.getElementById('vsDurationLabel').textContent = preset.duration + ' seconds';
   
   // Show confirmation
-  const msg = `✅ Preset applied: ${preset.name}`;
-  vsShowError(msg);
-  setTimeout(() => vsShowError(''), 3000);
+  vsShowToast(`✅ Preset applied: ${preset.name}`);
 }
 
 function vsSelectTemplate(card) {
   document.querySelectorAll('.vs-template-card').forEach(c => c.classList.remove('active'));
   card.classList.add('active');
   vsSelectedTemplate = card.dataset.template;
+  vsUpdateTemplatePreview(vsSelectedTemplate);
+}
+
+function vsUpdateTemplatePreview(name) {
+  const t = vsTemplates[name] || vsTemplates['default'];
+  const label = name.charAt(0).toUpperCase() + name.slice(1).replace(/([a-z])([A-Z])/g, '$1 $2');
+  document.getElementById('vsTemplatePreview').style.background = t.bg_dark;
+  document.getElementById('vsPreviewBg').style.background  = t.bg_dark;
+  document.getElementById('vsPreviewAcc').style.background = t.accent;
+  document.getElementById('vsPreviewTxt').style.background = t.overlay_text;
+  document.getElementById('vsPreviewLabel').textContent = label + ' theme selected';
 }
 
 function vsSelectFormat(card) {
@@ -1392,7 +1451,16 @@ function vsUpdateGenerateBtn() {
 function vsShowError(msg) {
   const el = document.getElementById('vsError');
   el.textContent = msg;
+  el.style.color = '#e53e3e';
   el.style.display = msg ? 'block' : 'none';
+}
+
+function vsShowToast(msg) {
+  const el = document.getElementById('vsError');
+  el.textContent = msg;
+  el.style.color = '#276749';
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
 }
 
 function vsGenerate() {
@@ -1610,6 +1678,9 @@ function vsLoadMusicLibrary() {
 const _origUpdateUI = updateUI;
 updateUI = function() { _origUpdateUI(); vsUpdateGenerateBtn(); };
 
-document.addEventListener('DOMContentLoaded', vsLoadMusicLibrary);
+document.addEventListener('DOMContentLoaded', () => {
+  vsLoadMusicLibrary();
+  vsUpdateTemplatePreview('default');
+});
 </script>
 {% endblock %}
