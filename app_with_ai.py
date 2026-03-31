@@ -637,11 +637,11 @@ def generate_video_ad():
     try:
         # Save uploaded music to a temp file if provided
         if music_file_upload:
-            if music_file_upload.content_length and music_file_upload.content_length > 20 * 1024 * 1024:
-                return jsonify({'error': 'Uploaded MP3 must be under 20 MB.'})
             tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
             music_file_upload.save(tmp_music.name)
             tmp_files.append(tmp_music.name)
+            if os.path.getsize(tmp_music.name) > 20 * 1024 * 1024:
+                return jsonify({'error': 'Uploaded MP3 must be under 20 MB.'})
             music_path = tmp_music.name
         else:
             music_path = os.path.join(MUSIC_FOLDER, os.path.basename(music_track_name))
@@ -733,7 +733,7 @@ def generate_video_ad():
                     ffmpeg_path, '-y',
                     '-loop', '1', '-i', tmp_frame.name,
                     '-i', music_path,
-                    '-c:v', 'libx264', '-tune', 'stillimage',
+                    '-tune', 'stillimage', '-c:v', 'libx264',
                     '-c:a', 'aac',
                     '-t', str(duration),
                     '-pix_fmt', 'yuv420p',
