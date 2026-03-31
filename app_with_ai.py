@@ -631,64 +631,61 @@ def serve_music(filename):
 @app.route('/generate-video-ad', methods=['POST'])
 @login_required
 def generate_video_ad():
-    import subprocess, tempfile, textwrap
+    import subprocess, tempfile, textwrap, shutil as _shutil
 
-    # ── Parse inputs ──────────────────────────────────────────────────────────
     try:
+        # ── Parse inputs ──────────────────────────────────────────────────────
         products  = json.loads(request.form.get('products', '[]'))
-        style     = request.form.get('style', 'slideshow')          # slideshow | kenburns
+        style     = request.form.get('style', 'slideshow')
         duration  = max(10, min(60, int(request.form.get('duration', 30))))
-        template  = request.form.get('template', 'default')         # seasonal template
-        format_str = request.form.get('format', '1920x1080')         # video format WxH
+        template  = request.form.get('template', 'default')
+        format_str = request.form.get('format', '1920x1080')
         cta_text  = request.form.get('cta_text', '').strip()
         tagline   = request.form.get('tagline', '').strip()
         logo_position = request.form.get('logo_position', 'top-right')
         logo_size = request.form.get('logo_size', 'medium')
-    except Exception as e:
-        return jsonify({'error': f'Bad request: {e}'})
 
-    # ── Template color schemes ─────────────────────────────────────
-    templates = {
-        'default':       {'accent': '#f0c040', 'bg_dark': '#1a1a2e', 'overlay_text': '#f0f0f5'},
-        'holiday':       {'accent': '#ff2d2d', 'bg_dark': '#0d3d22', 'overlay_text': '#ffff00'},
-        'valentine':     {'accent': '#ff1493', 'bg_dark': '#4a0e4e', 'overlay_text': '#ffb6c1'},
-        'spring':        {'accent': '#00d084', 'bg_dark': '#f5f5f5', 'overlay_text': '#2d5f3f'},
-        'summer':        {'accent': '#ffa500', 'bg_dark': '#003d82', 'overlay_text': '#fff76d'},
-        'fall':          {'accent': '#ff7f50', 'bg_dark': '#3d2817', 'overlay_text': '#ffe4b5'},
-        'blackfriday':   {'accent': '#ffff00', 'bg_dark': '#000000', 'overlay_text': '#ff6600'},
-        'backtoschool':  {'accent': '#4169e1', 'bg_dark': '#1a1a38', 'overlay_text': '#fff176'},
-    }
-    
-    # ── Format dimensions ──────────────────────────────────────────
-    formats = {
-        '1920x1080': (1920, 1080),  # YouTube / Universal 16:9
-        '1080x1350': (1080, 1350),  # Instagram 4:5
-        '1080x1920': (1080, 1920),  # TikTok / Vertical 9:16
-        '1200x628':  (1200, 628),   # Facebook 16:9 Link
-        '1080x1080': (1080, 1080),  # Square 1:1
-    }
-    
-    template_config = templates.get(template, templates['default'])
-    video_size = formats.get(format_str, formats['1920x1080'])
+        # ── Template color schemes ─────────────────────────────────────────────
+        templates = {
+            'default':       {'accent': '#f0c040', 'bg_dark': '#1a1a2e', 'overlay_text': '#f0f0f5'},
+            'holiday':       {'accent': '#ff2d2d', 'bg_dark': '#0d3d22', 'overlay_text': '#ffff00'},
+            'valentine':     {'accent': '#ff1493', 'bg_dark': '#4a0e4e', 'overlay_text': '#ffb6c1'},
+            'spring':        {'accent': '#00d084', 'bg_dark': '#f5f5f5', 'overlay_text': '#2d5f3f'},
+            'summer':        {'accent': '#ffa500', 'bg_dark': '#003d82', 'overlay_text': '#fff76d'},
+            'fall':          {'accent': '#ff7f50', 'bg_dark': '#3d2817', 'overlay_text': '#ffe4b5'},
+            'blackfriday':   {'accent': '#ffff00', 'bg_dark': '#000000', 'overlay_text': '#ff6600'},
+            'backtoschool':  {'accent': '#4169e1', 'bg_dark': '#1a1a38', 'overlay_text': '#fff176'},
+        }
 
-    # Determine music path
-    music_file_upload = request.files.get('music_file')
-    music_track_name  = request.form.get('music_track', '').strip()
+        # ── Format dimensions ──────────────────────────────────────────────────
+        formats = {
+            '1920x1080': (1920, 1080),
+            '1080x1350': (1080, 1350),
+            '1080x1920': (1080, 1920),
+            '1200x628':  (1200, 628),
+            '1080x1080': (1080, 1080),
+        }
 
-    if not products:
-        return jsonify({'error': 'No products provided.'})
-    if not music_file_upload and not music_track_name:
-        return jsonify({'error': 'No music track selected.'})
+        template_config = templates.get(template, templates['default'])
+        video_size = formats.get(format_str, formats['1920x1080'])
 
-    # Check ffmpeg
-    ffmpeg_path = '/usr/bin/ffmpeg'
-    if not os.path.exists(ffmpeg_path):
-        return jsonify({'error': 'Video generation not available on this server (ffmpeg missing).'})
+        # Determine music path
+        music_file_upload = request.files.get('music_file')
+        music_track_name  = request.form.get('music_track', '').strip()
 
-    generated = []
-    tmp_files = []   # track temp files to clean up
-    
-    try:
+        if not products:
+            return jsonify({'error': 'No products provided.'})
+        if not music_file_upload and not music_track_name:
+            return jsonify({'error': 'No music track selected.'})
+
+        # Find ffmpeg — works on both apt (/usr/bin) and nixpacks installs
+        ffmpeg_path = _shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
+        if not os.path.exists(ffmpeg_path):
+            return jsonify({'error': f'ffmpeg not found on this server (searched PATH + /usr/bin/ffmpeg).'})
+
+        generated = []
+        tmp_files = []
+
         # Save uploaded music to a temp file if provided
         if music_file_upload:
             tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
@@ -840,17 +837,17 @@ def generate_video_ad():
                     logo_img = _Img.open(logo_path)
                     logo_img = fix_image_orientation(logo_img)
                     logo_img = logo_img.convert('RGBA')
-                    
+                
                     # Determine logo size based on size setting
                     size_map = {'small': 60, 'medium': 90, 'large': 120}
                     target_size = size_map.get(logo_size, 90)
-                    
+                
                     # Scale relative to video size
                     target_size = int(target_size * (W / 1280.0))
-                    
+                
                     # Maintain aspect ratio
                     logo_img.thumbnail((target_size, target_size), _Img.LANCZOS)
-                    
+                
                     # Calculate position based on logo_position setting
                     padding = int(W * 0.015)
                     pos_map = {
@@ -860,7 +857,7 @@ def generate_video_ad():
                         'bottom-right': (W - logo_img.width - padding, H - logo_img.height - padding)
                     }
                     pos = pos_map.get(logo_position, pos_map['top-right'])
-                    
+                
                     # Paste logo onto frame
                     frame = frame.convert('RGBA')
                     frame.paste(logo_img, pos, logo_img)
@@ -912,26 +909,20 @@ def generate_video_ad():
 
             generated.append({'filename': out_name, 'product_title': title})
 
-        # Return success
-        return jsonify({'success': True, 'files': generated})
+            # Return success
+            return jsonify({'success': True, 'files': generated})
 
     except Exception as e:
-        # Catch any unexpected errors and return JSON instead of error page
         import traceback
-        error_msg = f"{str(e)}\n{traceback.format_exc()}"
-        app.logger.error(f"Video generation error: {error_msg}")
+        app.logger.error(f"Video generation error: {str(e)}\n{traceback.format_exc()}")
         return jsonify({'error': f'Video generation failed: {str(e)}'}), 500
 
     finally:
-        # Clean up temp files
-        try:
-            for f in tmp_files if 'tmp_files' in locals() else []:
-                try:
-                    os.unlink(f)
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        for _f in (tmp_files if 'tmp_files' in dir() else []):
+            try:
+                os.unlink(_f)
+            except Exception:
+                pass
 
 # ── Listing Generator ─────────────────────────────────────────────────────────
 @app.route('/listing-generator')
