@@ -783,6 +783,73 @@
   </button>
 </div>
 
+<!-- ══ Video Studio Panel ══ -->
+<div class="vs-panel">
+  <div class="vs-header">
+    <div>
+      <h3>🎬 Video Studio</h3>
+      <p>Turn your product photos into video ads with music</p>
+    </div>
+    <span class="vs-badge">NEW</span>
+  </div>
+  <div class="vs-body">
+
+    <!-- Video Style -->
+    <div class="vs-section-label">🎨 Video Style</div>
+    <div class="vs-style-grid">
+      <div class="vs-style-card active" data-vstyle="slideshow" onclick="vsSelectStyle(this)">
+        <div class="vs-card-icon">🎞️</div>
+        <h4>Slideshow</h4>
+        <p>Smooth fade &amp; slide</p>
+      </div>
+      <div class="vs-style-card" data-vstyle="kenburns" onclick="vsSelectStyle(this)">
+        <div class="vs-card-icon">🎥</div>
+        <h4>Ken Burns</h4>
+        <p>Slow cinematic zoom</p>
+      </div>
+    </div>
+
+    <!-- Music Track -->
+    <div class="vs-section-label">🎵 Music Track</div>
+    <div class="vs-music-grid" id="vsMusicGrid">
+      <!-- Populated by JS from GET /music -->
+      <div style="color:#aaa; font-size:0.88rem; padding:0.5rem;">Loading tracks...</div>
+    </div>
+
+    <!-- Upload own track -->
+    <div class="vs-upload-zone" onclick="document.getElementById('vsUploadInput').click()">
+      <span style="font-size:1.3rem;">📤</span>
+      <div>
+        <div class="vs-upload-label" id="vsUploadLabel">Upload Your Own Track</div>
+        <div class="vs-upload-sub">MP3 files only · max 20 MB</div>
+      </div>
+      <input type="file" id="vsUploadInput" accept=".mp3" style="display:none" onchange="vsHandleUpload(this)">
+    </div>
+
+    <!-- Duration -->
+    <div class="vs-section-label">⏱️ Duration — <span id="vsDurationLabel" style="color:#7c3aed; font-weight:800;">30 seconds</span></div>
+    <div class="vs-slider-row">
+      <span>10s</span>
+      <input type="range" id="vsDurationSlider" min="10" max="60" value="30"
+             oninput="document.getElementById('vsDurationLabel').textContent = this.value + ' seconds'">
+      <span>60s</span>
+    </div>
+
+    <!-- Generate button -->
+    <button class="btn-generate-video" id="vsGenerateBtn" disabled onclick="vsGenerate()">
+      🎬 Create Video Ad
+    </button>
+    <div id="vsError" style="color:#e53e3e; font-size:0.85rem; margin-top:0.6rem; display:none;"></div>
+
+  </div>
+</div>
+
+<!-- Video Results -->
+<div class="vs-results" id="vsResults">
+  <h2>🎬 Generated Video Ads</h2>
+  <div id="vsResultsList"></div>
+</div>
+
 <!-- Generated Ads Section (shown after generation) -->
 <div class="generated-ads-section" id="generatedSection">
   <h2>✅ Generated Ads</h2>
