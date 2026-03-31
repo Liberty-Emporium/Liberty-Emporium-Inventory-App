@@ -59,6 +59,7 @@ def _find_writable_data_dir():
     return BASE_DIR
 
 DATA_DIR = _find_writable_data_dir()
+print(f"[STARTUP] DATA_DIR={DATA_DIR}", flush=True)
 
 INVENTORY_FILE = os.path.join(DATA_DIR, 'inventory.csv')
 UPLOAD_FOLDER  = os.path.join(DATA_DIR, 'uploads')
@@ -72,12 +73,14 @@ SALE_FILE      = os.path.join(DATA_DIR, 'sale_state.json')
 for d in [UPLOAD_FOLDER, BACKUP_FOLDER, ADS_FOLDER, MUSIC_FOLDER]:
     os.makedirs(d, exist_ok=True)
 
-# Migrate any existing data files from BASE_DIR to DATA_DIR on first boot
-for _fname in ['inventory.csv', 'users.json', 'pending_users.json', 'sale_state.json']:
-    _src = os.path.join(BASE_DIR, _fname)
-    _dst = os.path.join(DATA_DIR, _fname)
-    if os.path.exists(_src) and not os.path.exists(_dst):
-        shutil.copy2(_src, _dst)
+# Seed data files into DATA_DIR from BASE_DIR if not already present
+if DATA_DIR != BASE_DIR:
+    for _fname in ['inventory.csv', 'users.json', 'pending_users.json', 'sale_state.json']:
+        _src = os.path.join(BASE_DIR, _fname)
+        _dst = os.path.join(DATA_DIR, _fname)
+        if os.path.exists(_src) and not os.path.exists(_dst):
+            shutil.copy2(_src, _dst)
+            print(f"[STARTUP] Seeded {_fname} -> {_dst}", flush=True)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 STORE_NAME    = 'Liberty Emporium & Thrift'
