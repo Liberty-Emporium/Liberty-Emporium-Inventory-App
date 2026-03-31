@@ -302,3 +302,9 @@ music/                      — Music library (MP3 files)
 
 **Tip:** Generated videos are saved on the server. You can re-download them any time by visiting the ads page or scrolling to your generated video!
 
+import shutil
+
+ffmpeg_path = shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
+if not ffmpeg_path or not os.path.exists(ffmpeg_path):
+    return jsonify({'error': 'Video generation not available on this server (ffmpeg missing).'})
+
