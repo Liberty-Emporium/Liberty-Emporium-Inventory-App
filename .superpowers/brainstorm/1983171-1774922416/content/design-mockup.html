@@ -1,0 +1,166 @@
+<h2>Video Studio — Design Mockup</h2>
+<p class="subtitle">This is how the Ad Generator page will look with the new Video Studio panel added below the existing image ad controls.</p>
+
+<div class="mockup" style="max-width:820px;margin:0 auto;">
+  <div class="mockup-header">Ad Generator Page — /ads (Ad Generator)</div>
+  <div class="mockup-body" style="padding:0; background:#f5f5f5; font-family:'Segoe UI',sans-serif; font-size:0.88rem;">
+
+    <!-- Existing top section -->
+    <div style="background:#1a1a2e; color:white; padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-size:1.3rem; font-weight:700;">📣 Ad Generator</div>
+        <div style="opacity:0.7; font-size:0.82rem; margin-top:2px;">Select products · choose style · generate image ads or video ads</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:0.5rem 1rem; text-align:center;">
+        <div style="font-size:1.6rem; font-weight:900; color:#f0c040;">0</div>
+        <div style="font-size:0.7rem; opacity:0.8;">Selected</div>
+      </div>
+    </div>
+
+    <!-- Style picker (existing) -->
+    <div style="background:white; padding:1rem 1.5rem; border-bottom:1px solid #eee;">
+      <div style="font-size:0.78rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.6rem;">Ad Style</div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <span style="background:#1a1a2e; color:white; border-radius:8px; padding:0.4rem 0.9rem; font-size:0.82rem; font-weight:600;">● Red &amp; Gold ✓</span>
+        <span style="border:1px solid #ddd; border-radius:8px; padding:0.4rem 0.9rem; font-size:0.82rem; color:#555;">● Navy &amp; Cream</span>
+        <span style="border:1px solid #ddd; border-radius:8px; padding:0.4rem 0.9rem; font-size:0.82rem; color:#555;">● Forest &amp; Tan</span>
+        <span style="border:1px solid #ddd; border-radius:8px; padding:0.4rem 0.9rem; font-size:0.82rem; color:#555;">● Midnight</span>
+      </div>
+    </div>
+
+    <!-- Product grid (existing, simplified) -->
+    <div style="padding:1rem 1.5rem; background:white; border-bottom:3px solid #e8e8e8;">
+      <div style="font-size:0.78rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.75rem;">Select Products</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem;">
+        <div style="border:2px solid #1a1a2e; border-radius:8px; overflow:hidden; position:relative;">
+          <div style="background:#e0ddd8; height:70px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">🖼️</div>
+          <div style="padding:0.4rem 0.5rem; font-size:0.75rem; font-weight:600;">Vintage Vase</div>
+          <div style="position:absolute; top:5px; right:5px; background:#1a1a2e; color:white; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:0.65rem;">✓</div>
+        </div>
+        <div style="border:1px solid #ddd; border-radius:8px; overflow:hidden;">
+          <div style="background:#e0ddd8; height:70px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">🖼️</div>
+          <div style="padding:0.4rem 0.5rem; font-size:0.75rem; font-weight:600;">Wood Chair</div>
+        </div>
+        <div style="border:1px solid #ddd; border-radius:8px; overflow:hidden;">
+          <div style="background:#e0ddd8; height:70px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">🖼️</div>
+          <div style="padding:0.4rem 0.5rem; font-size:0.75rem; font-weight:600;">Lamp Set</div>
+        </div>
+        <div style="border:1px solid #ddd; border-radius:8px; overflow:hidden;">
+          <div style="background:#e0ddd8; height:70px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">🖼️</div>
+          <div style="padding:0.4rem 0.5rem; font-size:0.75rem; font-weight:600;">Mirror</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky generate bar (existing) -->
+    <div style="background:white; padding:0.85rem 1.5rem; border-bottom:3px solid #2c2c2c; display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+      <span style="color:#555; font-size:0.88rem;"><strong style="color:#1a1a2e;">1</strong> product selected</span>
+      <button style="background:linear-gradient(135deg,#1a1a2e,#2d2d5a); color:white; border:none; padding:0.7rem 1.5rem; border-radius:8px; font-weight:700; font-size:0.9rem; cursor:pointer;">✨ Generate Image Ads</button>
+    </div>
+
+    <!-- ══ NEW: VIDEO STUDIO PANEL ══ -->
+    <div style="margin:1.25rem 1.5rem; border:2px solid #7c3aed; border-radius:14px; overflow:hidden; box-shadow:0 4px 20px rgba(124,58,237,0.15);">
+
+      <!-- Panel header -->
+      <div style="background:linear-gradient(135deg,#7c3aed,#4f46e5); color:white; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-size:1.1rem; font-weight:800;">🎬 Video Studio</div>
+          <div style="font-size:0.78rem; opacity:0.85; margin-top:2px;">Turn your product photos into video ads with music</div>
+        </div>
+        <div style="font-size:0.75rem; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:20px;">NEW</div>
+      </div>
+
+      <div style="background:white; padding:1.25rem;">
+
+        <!-- Row 1: Video Style -->
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:0.78rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;">🎨 Video Style</div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <div style="border:2px solid #7c3aed; border-radius:10px; padding:0.5rem 1rem; background:#f5f3ff; cursor:pointer; text-align:center; min-width:110px;">
+              <div style="font-size:1.1rem;">🎞️</div>
+              <div style="font-size:0.8rem; font-weight:700; color:#7c3aed;">Slideshow</div>
+              <div style="font-size:0.7rem; color:#888;">Fades &amp; slides</div>
+            </div>
+            <div style="border:1px solid #ddd; border-radius:10px; padding:0.5rem 1rem; cursor:pointer; text-align:center; min-width:110px;">
+              <div style="font-size:1.1rem;">🎥</div>
+              <div style="font-size:0.8rem; font-weight:700; color:#555;">Ken Burns</div>
+              <div style="font-size:0.7rem; color:#888;">Slow zoom/pan</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Music -->
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:0.78rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;">🎵 Music Track</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:0.6rem;">
+            <div style="border:2px solid #7c3aed; border-radius:8px; padding:0.5rem 0.75rem; background:#f5f3ff; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <span>▶️</span>
+              <div>
+                <div style="font-size:0.8rem; font-weight:700; color:#7c3aed;">Phonk Beat</div>
+                <div style="font-size:0.7rem; color:#888;">audiogreen-phonk</div>
+              </div>
+            </div>
+            <div style="border:1px solid #ddd; border-radius:8px; padding:0.5rem 0.75rem; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <span>▶️</span>
+              <div>
+                <div style="font-size:0.8rem; font-weight:600;">Vice City Vibes</div>
+                <div style="font-size:0.7rem; color:#888;">deltax-music</div>
+              </div>
+            </div>
+            <div style="border:1px solid #ddd; border-radius:8px; padding:0.5rem 0.75rem; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <span>▶️</span>
+              <div>
+                <div style="font-size:0.8rem; font-weight:600;">Sailor Song</div>
+                <div style="font-size:0.7rem; color:#888;">Gigi Perez</div>
+              </div>
+            </div>
+            <div style="border:1px solid #ddd; border-radius:8px; padding:0.5rem 0.75rem; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <span>▶️</span>
+              <div>
+                <div style="font-size:0.8rem; font-weight:600;">HHH Track</div>
+                <div style="font-size:0.7rem; color:#888;">hhh.mp3</div>
+              </div>
+            </div>
+          </div>
+          <!-- Upload own track -->
+          <div style="border:1px dashed #7c3aed; border-radius:8px; padding:0.6rem 1rem; display:flex; align-items:center; gap:0.75rem; background:#faf8ff; cursor:pointer;">
+            <span style="font-size:1.1rem;">📤</span>
+            <div>
+              <div style="font-size:0.82rem; font-weight:700; color:#7c3aed;">Upload Your Own Track</div>
+              <div style="font-size:0.72rem; color:#888;">MP3 files only</div>
+            </div>
+            <input type="file" accept=".mp3" style="display:none;">
+          </div>
+        </div>
+
+        <!-- Row 3: Duration -->
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:0.78rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;">⏱️ Video Duration — <span style="color:#7c3aed; font-weight:800;">30 seconds</span></div>
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <span style="font-size:0.78rem; color:#888;">10s</span>
+            <input type="range" min="10" max="60" value="30" style="flex:1; accent-color:#7c3aed;">
+            <span style="font-size:0.78rem; color:#888;">60s</span>
+          </div>
+        </div>
+
+        <!-- Generate Video button -->
+        <button style="width:100%; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:white; border:none; padding:0.85rem; border-radius:10px; font-size:1rem; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+          🎬 Create Video Ad
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Video results area -->
+    <div style="margin:0 1.5rem 1.5rem; border:1px dashed #ccc; border-radius:12px; padding:1.5rem; text-align:center; background:white; color:#aaa;">
+      <div style="font-size:2rem; margin-bottom:0.5rem;">🎬</div>
+      <div style="font-size:0.9rem;">Generated video ads will appear here</div>
+      <div style="font-size:0.78rem; margin-top:0.25rem;">Each video gets a preview player + download button</div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top:1rem; padding:0.75rem 1rem; background:#f0f7f4; border-radius:8px; font-size:0.85rem; color:#2d6b5e; max-width:820px; margin-left:auto; margin-right:auto;">
+  <strong>How it works under the hood:</strong> When you click "Create Video Ad", the server uses <strong>ffmpeg</strong> (already installed) to compose the product image + animated text + selected music into an MP4. No external APIs needed — runs entirely on your server.
+</div>

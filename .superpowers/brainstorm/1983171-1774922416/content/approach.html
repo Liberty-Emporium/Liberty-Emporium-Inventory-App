@@ -1,0 +1,49 @@
+<h2>Ads Page — Music & Video Feature</h2>
+<p class="subtitle">How should the music and video features be organized? Pick the layout that feels right.</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Expand the Existing Ads Page</h3>
+      <p>Add a <strong>Music</strong> tab and a <strong>Create Video</strong> button directly on the current <code>/ads</code> page. Everything lives in one place — generated image ads, music picker, and video ads all together.</p>
+      <ul style="margin-top:0.5rem; padding-left:1.2rem; font-size:0.88rem; color:#666;">
+        <li>One URL, one page</li>
+        <li>Tabs or sections separate the three content types</li>
+        <li>Simplest for the user to discover</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>New "Video Studio" Section on Ad Generator</h3>
+      <p>Add a <strong>Video Studio</strong> panel on the Ad Generator page (<code>/ads</code> generator). Users select products, pick a music track, then hit <strong>Create Video Ad</strong>. Video results appear below alongside image ads.</p>
+      <ul style="margin-top:0.5rem; padding-left:1.2rem; font-size:0.88rem; color:#666;">
+        <li>Music + video selection happens before generating</li>
+        <li>Keeps the workflow together: select → style → music → generate</li>
+        <li>More powerful but slightly more complex UI</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Separate "Video Ads" Page</h3>
+      <p>A dedicated <code>/video-ads</code> page just for video creation. Users pick products, choose music, set style, and generate MP4 videos. The existing ads page stays for image ads only.</p>
+      <ul style="margin-top:0.5rem; padding-left:1.2rem; font-size:0.88rem; color:#666;">
+        <li>Clean separation between image and video ads</li>
+        <li>More room to build out video-specific features</li>
+        <li>Requires navigating to a different page</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:1.5rem; padding:1rem; background:#f0f7f4; border-radius:8px; font-size:0.88rem; color:#2d6b5e;">
+  <strong>Context:</strong> ffmpeg is already installed on the server. You already have 4 MP3 tracks in the <code>music/</code> folder and existing MP4 files in <code>ads/</code> showing this was partially explored before.
+</div>
