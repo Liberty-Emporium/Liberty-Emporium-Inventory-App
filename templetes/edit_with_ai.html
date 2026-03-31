@@ -78,16 +78,68 @@
 
 <!-- AI Analysis Section -->
 <div class="ai-analysis-section">
-    <h3>🤖 AI Photo Analysis</h3>
-    <p>Upload a photo and let Anthropic Claude AI auto-fill the product details!</p>
+
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+      <div>
+        <h3 style="margin:0 0 0.25rem;">🤖 AI Photo Analysis</h3>
+        <p style="margin:0; opacity:0.85; font-size:0.92rem;">Upload a photo and let Claude AI auto-fill the product details!</p>
+      </div>
+      <!-- Usage tracker badge -->
+      <div id="ai-usage-badge" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:10px; padding:0.4rem 0.85rem; font-size:0.82rem; text-align:center; white-space:nowrap;">
+        <div style="font-size:1.1rem; font-weight:800;" id="usage-count">0</div>
+        <div style="opacity:0.8; font-size:0.72rem;">analyses today</div>
+      </div>
+    </div>
+
+    <!-- API Key subsection -->
+    <div style="background:rgba(0,0,0,0.2); border-radius:8px; padding:1rem; margin-bottom:1rem;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+        <label style="font-weight:700; font-size:0.92rem; margin:0;">🔑 Your Claude API Key</label>
+        <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener"
+           style="color:#00d4aa; font-size:0.82rem; font-weight:600; text-decoration:none; white-space:nowrap;">
+          Get a free API key →
+        </a>
+      </div>
+      <p style="font-size:0.82rem; opacity:0.8; margin:0 0 0.6rem;">
+        AI analysis requires an Anthropic Claude API key. Sign up free at
+        <strong>console.anthropic.com</strong> → API Keys → Create Key.
+        New accounts include free credits to get started.
+      </p>
+      <div style="display:flex; gap:0.5rem; align-items:center;">
+        <input type="password" id="aiApiKey" placeholder="sk-ant-api03-..."
+               style="flex:1; padding:0.55rem 0.75rem; border-radius:6px; border:none; font-size:0.88rem; min-width:0; background:rgba(255,255,255,0.95); color:#333;"
+               oninput="saveApiKey()">
+        <button type="button" onclick="toggleKeyVisibility()"
+                style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:white; border-radius:6px; padding:0.5rem 0.75rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;"
+                title="Show/hide key" id="key-toggle-btn">👁 Show</button>
+        <button type="button" onclick="clearApiKey()"
+                style="background:rgba(255,80,80,0.25); border:1px solid rgba(255,100,100,0.4); color:white; border-radius:6px; padding:0.5rem 0.75rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
+          Clear
+        </button>
+      </div>
+      <div id="key-status" style="font-size:0.78rem; margin-top:0.4rem; opacity:0.75;"></div>
+    </div>
+
+    <!-- Upload & Analyze -->
     <div class="ai-upload">
         <input type="file" id="aiImage" accept="image/*" class="form-control">
         <button type="button" onclick="analyzeWithAI()" class="btn btn-ai">✨ Analyze Photo</button>
     </div>
+
+    <!-- Loading / Result -->
     <div id="aiLoading" class="ai-loading" style="display:none;">
-        <span class="spinner">🔄</span> Analyzing image with Anthropic Claude AI...
+        <span class="spinner">🔄</span> Analyzing image with Claude AI...
     </div>
     <div id="aiResult" class="ai-result"></div>
+
+    <!-- Usage stats bar -->
+    <div id="ai-stats-bar" style="margin-top:0.85rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.2); display:flex; gap:1.25rem; flex-wrap:wrap; font-size:0.82rem; opacity:0.85;">
+      <span>📊 Session: <strong id="session-count">0</strong> analyses</span>
+      <span>📅 All-time: <strong id="total-count">0</strong> analyses</span>
+      <span>⚡ Model: <strong>Claude Haiku</strong></span>
+    </div>
+
 </div>
 
 <form method="POST" enctype="multipart/form-data" class="product-form">
@@ -385,55 +437,126 @@
 
 {% block extra_js %}
 <script>
-function analyzeWithAI() {
-    const fileInput = document.getElementById('aiImage');
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        alert('Please select an image first!');
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append('image', file);
-    
-    document.getElementById('aiLoading').style.display = 'block';
-    document.getElementById('aiResult').innerHTML = '';
-    
-    fetch('/ai-analyze', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('aiLoading').style.display = 'none';
-        
-        if (data.error) {
-            document.getElementById('aiResult').innerHTML = 
-                '<p style="color:red;">❌ Error: ' + data.error + '</p>';
-            return;
-        }
-        
-        document.getElementById('title').value = data.title || '';
-        document.getElementById('category').value = data.category || '';
-        document.getElementById('description').value = data.description || '';
-        document.getElementById('price').value = data.suggested_price || '';
-        document.getElementById('condition').value = data.condition || 'Good';
-        
-        let html = '<h4>✅ AI Analysis Complete!</h4>';
-        html += '<p><strong>Detected:</strong> ' + (data.labels ? data.labels.slice(0,3).join(', ') : 'N/A') + '</p>';
-        if (data.objects && data.objects.length > 0) {
-            html += '<p><strong>Objects:</strong> ' + data.objects.slice(0,3).join(', ') + '</p>';
-        }
-        html += '<p style="color:#27ae60;"><strong>Form auto-filled! Review and submit.</strong></p>';
-        
-        document.getElementById('aiResult').innerHTML = html;
-    })
-    .catch(e => {
-        document.getElementById('aiLoading').style.display = 'none';
-        document.getElementById('aiResult').innerHTML = 
-            '<p style="color:red;">❌ Error: ' + e + '</p>';
-    });
+// ── API Key persistence ──────────────────────────────────────────────────────
+function saveApiKey() {
+  var key = document.getElementById('aiApiKey').value.trim();
+  if (key) {
+    localStorage.setItem('claude_api_key', key);
+    document.getElementById('key-status').textContent = '✅ Key saved in your browser.';
+  }
 }
+
+function loadApiKey() {
+  var key = localStorage.getItem('claude_api_key') || '';
+  if (key) {
+    document.getElementById('aiApiKey').value = key;
+    document.getElementById('key-status').textContent = '✅ Key loaded from browser storage.';
+  }
+}
+
+function clearApiKey() {
+  localStorage.removeItem('claude_api_key');
+  document.getElementById('aiApiKey').value = '';
+  document.getElementById('key-status').textContent = '🗑️ Key cleared.';
+}
+
+function toggleKeyVisibility() {
+  var input = document.getElementById('aiApiKey');
+  var btn   = document.getElementById('key-toggle-btn');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈 Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁 Show';
+  }
+}
+
+// ── Usage tracking ───────────────────────────────────────────────────────────
+var sessionAnalyses = 0;
+
+function loadUsageStats() {
+  var today = new Date().toISOString().slice(0, 10);
+  var stored = JSON.parse(localStorage.getItem('ai_usage') || '{"date":"","count":0,"total":0}');
+  if (stored.date !== today) {
+    stored = { date: today, count: 0, total: stored.total || 0 };
+    localStorage.setItem('ai_usage', JSON.stringify(stored));
+  }
+  document.getElementById('usage-count').textContent  = stored.count;
+  document.getElementById('session-count').textContent = sessionAnalyses;
+  document.getElementById('total-count').textContent   = stored.total;
+}
+
+function incrementUsage() {
+  var today = new Date().toISOString().slice(0, 10);
+  var stored = JSON.parse(localStorage.getItem('ai_usage') || '{"date":"","count":0,"total":0}');
+  if (stored.date !== today) stored = { date: today, count: 0, total: stored.total || 0 };
+  stored.count++;
+  stored.total++;
+  sessionAnalyses++;
+  localStorage.setItem('ai_usage', JSON.stringify(stored));
+  loadUsageStats();
+}
+
+// ── Analyze ──────────────────────────────────────────────────────────────────
+function analyzeWithAI() {
+  var fileInput = document.getElementById('aiImage');
+  var file = fileInput.files[0];
+  if (!file) { alert('Please select an image first!'); return; }
+
+  var apiKey = document.getElementById('aiApiKey').value.trim();
+  if (!apiKey) {
+    document.getElementById('aiResult').innerHTML =
+      '<p style="color:#c0392b;">❌ Please enter your Claude API key above before analyzing.</p>';
+    document.getElementById('aiApiKey').focus();
+    return;
+  }
+
+  var formData = new FormData();
+  formData.append('image', file);
+  formData.append('api_key', apiKey);
+
+  document.getElementById('aiLoading').style.display = 'block';
+  document.getElementById('aiResult').innerHTML = '';
+
+  fetch('/ai-analyze', { method: 'POST', body: formData })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    document.getElementById('aiLoading').style.display = 'none';
+
+    if (data.error) {
+      document.getElementById('aiResult').innerHTML =
+        '<p style="color:#c0392b;">❌ ' + data.error + '</p>';
+      return;
+    }
+
+    document.getElementById('title').value       = data.title || '';
+    document.getElementById('category').value    = data.category || '';
+    document.getElementById('description').value = data.description || '';
+    document.getElementById('price').value       = data.suggested_price || '';
+    document.getElementById('condition').value   = data.condition || 'Good';
+
+    incrementUsage();
+
+    var html = '<h4>✅ AI Analysis Complete!</h4>';
+    html += '<p><strong>Detected:</strong> ' + (data.labels ? data.labels.slice(0,3).join(', ') : 'N/A') + '</p>';
+    if (data.objects && data.objects.length > 0) {
+      html += '<p><strong>Objects:</strong> ' + data.objects.slice(0,3).join(', ') + '</p>';
+    }
+    html += '<p style="color:#27ae60;"><strong>Form auto-filled! Review and submit.</strong></p>';
+    document.getElementById('aiResult').innerHTML = html;
+  })
+  .catch(function(e) {
+    document.getElementById('aiLoading').style.display = 'none';
+    document.getElementById('aiResult').innerHTML =
+      '<p style="color:#c0392b;">❌ Error: ' + e + '</p>';
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  loadApiKey();
+  loadUsageStats();
+});
 </script>
 {% endblock %}

@@ -404,9 +404,10 @@ def save_image(sku):
 @app.route('/ai-analyze', methods=['POST'])
 @login_required
 def ai_analyze():
-    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    # Accept key from the request first (user-supplied), fall back to server env var
+    api_key = request.form.get('api_key', '').strip() or os.environ.get('ANTHROPIC_API_KEY')
     if not api_key:
-        return jsonify({'error': 'AI feature not configured. ANTHROPIC_API_KEY missing.'})
+        return jsonify({'error': 'No API key provided. Enter your Claude API key in the AI box above.'})
     file = request.files.get('image')
     if not file:
         return jsonify({'error': 'No image provided.'})
