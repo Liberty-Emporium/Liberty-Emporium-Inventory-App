@@ -92,33 +92,41 @@
       </div>
     </div>
 
-    <!-- API Key subsection -->
-    <div style="background:rgba(0,0,0,0.2); border-radius:8px; padding:1rem; margin-bottom:1rem;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
-        <label style="font-weight:700; font-size:0.92rem; margin:0;">🔑 Your Claude API Key</label>
-        <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener"
-           style="color:#00d4aa; font-size:0.82rem; font-weight:600; text-decoration:none; white-space:nowrap;">
-          Get a free API key →
-        </a>
+    <!-- API Key subsection (collapsible) -->
+    <div style="background:rgba(0,0,0,0.2); border-radius:8px; margin-bottom:1rem; overflow:hidden;">
+      <!-- Toggle row -->
+      <button type="button" onclick="toggleApiSection()" id="api-toggle-row"
+              style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:0.65rem 1rem; background:none; border:none; color:white; cursor:pointer; font-size:0.88rem; text-align:left;">
+        <span id="api-toggle-label" style="font-weight:700;">🔑 API Key <span id="api-key-indicator" style="font-size:0.75rem; opacity:0.75; font-weight:normal; margin-left:0.4rem;"></span></span>
+        <span id="api-chevron" style="font-size:0.8rem; transition:transform 0.25s;">▼</span>
+      </button>
+      <!-- Collapsible body -->
+      <div id="api-key-body" style="display:none; padding:0 1rem 1rem;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+          <label style="font-weight:600; font-size:0.88rem; margin:0; opacity:0.9;">Your Claude API Key</label>
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener"
+             style="color:#00d4aa; font-size:0.82rem; font-weight:600; text-decoration:none; white-space:nowrap;">
+            Get a free API key →
+          </a>
+        </div>
+        <p style="font-size:0.8rem; opacity:0.75; margin:0 0 0.65rem; line-height:1.5;">
+          Sign up free at <strong>console.anthropic.com</strong> → API Keys → Create Key.
+          New accounts include free credits. Your key is saved only in your browser.
+        </p>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <input type="password" id="aiApiKey" placeholder="sk-ant-api03-..."
+                 style="flex:1; padding:0.55rem 0.75rem; border-radius:6px; border:none; font-size:0.88rem; min-width:0; background:rgba(255,255,255,0.95); color:#333;"
+                 oninput="saveApiKey()">
+          <button type="button" onclick="toggleKeyVisibility()"
+                  style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:white; border-radius:6px; padding:0.5rem 0.75rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;"
+                  id="key-toggle-btn">👁 Show</button>
+          <button type="button" onclick="clearApiKey()"
+                  style="background:rgba(255,80,80,0.25); border:1px solid rgba(255,100,100,0.4); color:white; border-radius:6px; padding:0.5rem 0.75rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
+            Clear
+          </button>
+        </div>
+        <div id="key-status" style="font-size:0.78rem; margin-top:0.4rem; opacity:0.75;"></div>
       </div>
-      <p style="font-size:0.82rem; opacity:0.8; margin:0 0 0.6rem;">
-        AI analysis requires an Anthropic Claude API key. Sign up free at
-        <strong>console.anthropic.com</strong> → API Keys → Create Key.
-        New accounts include free credits to get started.
-      </p>
-      <div style="display:flex; gap:0.5rem; align-items:center;">
-        <input type="password" id="aiApiKey" placeholder="sk-ant-api03-..."
-               style="flex:1; padding:0.55rem 0.75rem; border-radius:6px; border:none; font-size:0.88rem; min-width:0; background:rgba(255,255,255,0.95); color:#333;"
-               oninput="saveApiKey()">
-        <button type="button" onclick="toggleKeyVisibility()"
-                style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:white; border-radius:6px; padding:0.5rem 0.75rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;"
-                title="Show/hide key" id="key-toggle-btn">👁 Show</button>
-        <button type="button" onclick="clearApiKey()"
-                style="background:rgba(255,80,80,0.25); border:1px solid rgba(255,100,100,0.4); color:white; border-radius:6px; padding:0.5rem 0.75rem; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
-          Clear
-        </button>
-      </div>
-      <div id="key-status" style="font-size:0.78rem; margin-top:0.4rem; opacity:0.75;"></div>
     </div>
 
     <!-- Upload & Analyze -->
@@ -437,12 +445,27 @@
 
 {% block extra_js %}
 <script>
+// ── API Key section toggle ────────────────────────────────────────────────────
+function toggleApiSection(forceOpen) {
+  var body    = document.getElementById('api-key-body');
+  var chevron = document.getElementById('api-chevron');
+  var isOpen  = body.style.display !== 'none';
+  if (forceOpen === true || (!isOpen && forceOpen !== false)) {
+    body.style.display = 'block';
+    chevron.style.transform = 'rotate(180deg)';
+  } else {
+    body.style.display = 'none';
+    chevron.style.transform = 'rotate(0deg)';
+  }
+}
+
 // ── API Key persistence ──────────────────────────────────────────────────────
 function saveApiKey() {
   var key = document.getElementById('aiApiKey').value.trim();
   if (key) {
     localStorage.setItem('claude_api_key', key);
     document.getElementById('key-status').textContent = '✅ Key saved in your browser.';
+    updateKeyIndicator(key);
   }
 }
 
@@ -451,6 +474,21 @@ function loadApiKey() {
   if (key) {
     document.getElementById('aiApiKey').value = key;
     document.getElementById('key-status').textContent = '✅ Key loaded from browser storage.';
+    updateKeyIndicator(key);
+    // Key exists — keep section collapsed
+    toggleApiSection(false);
+  } else {
+    // No key yet — open section so user knows they need to enter one
+    toggleApiSection(true);
+  }
+}
+
+function updateKeyIndicator(key) {
+  var indicator = document.getElementById('api-key-indicator');
+  if (key) {
+    indicator.textContent = '(saved: …' + key.slice(-4) + ')';
+  } else {
+    indicator.textContent = '(not set)';
   }
 }
 
@@ -458,6 +496,8 @@ function clearApiKey() {
   localStorage.removeItem('claude_api_key');
   document.getElementById('aiApiKey').value = '';
   document.getElementById('key-status').textContent = '🗑️ Key cleared.';
+  updateKeyIndicator('');
+  toggleApiSection(true);
 }
 
 function toggleKeyVisibility() {
