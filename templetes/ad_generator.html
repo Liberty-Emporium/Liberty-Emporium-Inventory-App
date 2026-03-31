@@ -1477,7 +1477,20 @@ function vsGenerate() {
     }
 
     return fetch('/generate-video-ad', { method: 'POST', body: formData })
-      .then(r => r.json())
+      .then(r => {
+        // Check if response is OK, if not, get text first
+        if (!r.ok) {
+          return r.text().then(text => {
+            try {
+              const json = JSON.parse(text);
+              throw new Error(json.error || `HTTP ${r.status}`);
+            } catch (e) {
+              throw new Error(`Server error (${r.status}): ${text.substring(0, 200)}`);
+            }
+          });
+        }
+        return r.json();
+      })
       .then(data => {
         if (data.error) {
           throw new Error(data.error);
