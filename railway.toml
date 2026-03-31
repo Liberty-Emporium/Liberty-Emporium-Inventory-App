@@ -2,5 +2,15 @@
 providers = ["python"]
 packages = ["ffmpeg"]
 
+[build.nixpacks.env]
+NIXPACKS_PYTHON_VERSION = "3.11"
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 30
+
 [volumes]
 "/data" = "liberty_emporium_data"
+
+[env]
+RAILWAY_DATA_DIR = "/data"
