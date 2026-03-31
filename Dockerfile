@@ -31,4 +31,4 @@ ENV RAILWAY_DATA_DIR=/data
 EXPOSE 5000
 
 # Run with gunicorn
-CMD ["python", "-m", "gunicorn", "app_with_ai:app", "--bind", "0.0.0.0:5000", "--timeout", "180", "--workers", "1"]
+CMD ["python", "-m", "gunicorn", "app_with_ai:app", "--bind", "0.0.0.0:5000", "--timeout", "300", "--workers", "1", "--worker-class", "gthread", "--threads", "4"]
