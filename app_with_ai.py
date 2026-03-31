@@ -626,62 +626,62 @@ def serve_music(filename):
 def generate_video_ad():
     import subprocess, tempfile, textwrap
 
+    # ── Parse inputs ──────────────────────────────────────────────────────────
     try:
-        # ── Parse inputs ──────────────────────────────────────────────────────────
-        try:
-            products  = json.loads(request.form.get('products', '[]'))
-            style     = request.form.get('style', 'slideshow')          # slideshow | kenburns
-            duration  = max(10, min(60, int(request.form.get('duration', 30))))
-            template  = request.form.get('template', 'default')         # seasonal template
-            format_str = request.form.get('format', '1920x1080')         # video format WxH
-            cta_text  = request.form.get('cta_text', '').strip()
-            tagline   = request.form.get('tagline', '').strip()
-            logo_position = request.form.get('logo_position', 'top-right')
-            logo_size = request.form.get('logo_size', 'medium')
-        except Exception as e:
-            return jsonify({'error': f'Bad request: {e}'})
+        products  = json.loads(request.form.get('products', '[]'))
+        style     = request.form.get('style', 'slideshow')          # slideshow | kenburns
+        duration  = max(10, min(60, int(request.form.get('duration', 30))))
+        template  = request.form.get('template', 'default')         # seasonal template
+        format_str = request.form.get('format', '1920x1080')         # video format WxH
+        cta_text  = request.form.get('cta_text', '').strip()
+        tagline   = request.form.get('tagline', '').strip()
+        logo_position = request.form.get('logo_position', 'top-right')
+        logo_size = request.form.get('logo_size', 'medium')
+    except Exception as e:
+        return jsonify({'error': f'Bad request: {e}'})
 
-        # ── Template color schemes ─────────────────────────────────────
-        templates = {
-            'default':       {'accent': '#f0c040', 'bg_dark': '#1a1a2e', 'overlay_text': '#f0f0f5'},
-            'holiday':       {'accent': '#ff2d2d', 'bg_dark': '#0d3d22', 'overlay_text': '#ffff00'},
-            'valentine':     {'accent': '#ff1493', 'bg_dark': '#4a0e4e', 'overlay_text': '#ffb6c1'},
-            'spring':        {'accent': '#00d084', 'bg_dark': '#f5f5f5', 'overlay_text': '#2d5f3f'},
-            'summer':        {'accent': '#ffa500', 'bg_dark': '#003d82', 'overlay_text': '#fff76d'},
-            'fall':          {'accent': '#ff7f50', 'bg_dark': '#3d2817', 'overlay_text': '#ffe4b5'},
-            'blackfriday':   {'accent': '#ffff00', 'bg_dark': '#000000', 'overlay_text': '#ff6600'},
-            'backtoschool':  {'accent': '#4169e1', 'bg_dark': '#1a1a38', 'overlay_text': '#fff176'},
-        }
-        
-        # ── Format dimensions ──────────────────────────────────────────
-        formats = {
-            '1920x1080': (1920, 1080),  # YouTube / Universal 16:9
-            '1080x1350': (1080, 1350),  # Instagram 4:5
-            '1080x1920': (1080, 1920),  # TikTok / Vertical 9:16
-            '1200x628':  (1200, 628),   # Facebook 16:9 Link
-            '1080x1080': (1080, 1080),  # Square 1:1
-        }
-        
-        template_config = templates.get(template, templates['default'])
-        video_size = formats.get(format_str, formats['1920x1080'])
+    # ── Template color schemes ─────────────────────────────────────
+    templates = {
+        'default':       {'accent': '#f0c040', 'bg_dark': '#1a1a2e', 'overlay_text': '#f0f0f5'},
+        'holiday':       {'accent': '#ff2d2d', 'bg_dark': '#0d3d22', 'overlay_text': '#ffff00'},
+        'valentine':     {'accent': '#ff1493', 'bg_dark': '#4a0e4e', 'overlay_text': '#ffb6c1'},
+        'spring':        {'accent': '#00d084', 'bg_dark': '#f5f5f5', 'overlay_text': '#2d5f3f'},
+        'summer':        {'accent': '#ffa500', 'bg_dark': '#003d82', 'overlay_text': '#fff76d'},
+        'fall':          {'accent': '#ff7f50', 'bg_dark': '#3d2817', 'overlay_text': '#ffe4b5'},
+        'blackfriday':   {'accent': '#ffff00', 'bg_dark': '#000000', 'overlay_text': '#ff6600'},
+        'backtoschool':  {'accent': '#4169e1', 'bg_dark': '#1a1a38', 'overlay_text': '#fff176'},
+    }
+    
+    # ── Format dimensions ──────────────────────────────────────────
+    formats = {
+        '1920x1080': (1920, 1080),  # YouTube / Universal 16:9
+        '1080x1350': (1080, 1350),  # Instagram 4:5
+        '1080x1920': (1080, 1920),  # TikTok / Vertical 9:16
+        '1200x628':  (1200, 628),   # Facebook 16:9 Link
+        '1080x1080': (1080, 1080),  # Square 1:1
+    }
+    
+    template_config = templates.get(template, templates['default'])
+    video_size = formats.get(format_str, formats['1920x1080'])
 
-        # Determine music path
-        music_file_upload = request.files.get('music_file')
-        music_track_name  = request.form.get('music_track', '').strip()
+    # Determine music path
+    music_file_upload = request.files.get('music_file')
+    music_track_name  = request.form.get('music_track', '').strip()
 
-        if not products:
-            return jsonify({'error': 'No products provided.'})
-        if not music_file_upload and not music_track_name:
-            return jsonify({'error': 'No music track selected.'})
+    if not products:
+        return jsonify({'error': 'No products provided.'})
+    if not music_file_upload and not music_track_name:
+        return jsonify({'error': 'No music track selected.'})
 
-        # Check ffmpeg
-        ffmpeg_path = '/usr/bin/ffmpeg'
-        if not os.path.exists(ffmpeg_path):
-            return jsonify({'error': 'Video generation not available on this server (ffmpeg missing).'})
+    # Check ffmpeg
+    ffmpeg_path = '/usr/bin/ffmpeg'
+    if not os.path.exists(ffmpeg_path):
+        return jsonify({'error': 'Video generation not available on this server (ffmpeg missing).'})
 
-        generated = []
-        tmp_files = []   # track temp files to clean up
-        try:
+    generated = []
+    tmp_files = []   # track temp files to clean up
+    
+    try:
             # Save uploaded music to a temp file if provided
             if music_file_upload:
                 tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
