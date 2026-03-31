@@ -805,6 +805,14 @@ def generate_video_ad():
             draw.text((text_x, y), f'${price}', font=font_price, fill=text_color)
             y += font_price_size + 12
 
+            # ── Product Description ───────────────────────────────────────────
+            if description:
+                desc_lines = textwrap.wrap(description, width=18 if is_vertical else 24)
+                for desc_line in desc_lines[:3]:  # Limit to 3 lines
+                    draw.text((text_x, y), desc_line, font=font_small, fill=(200, 200, 220))
+                    y += font_small_size + 5
+                y += int(font_small_size * 0.5)  # Extra spacing after description
+
             # ── Custom CTA text ───────────────────────────────────────────────
             if cta_text:
                 cta_lines = textwrap.wrap(cta_text, width=15 if is_vertical else 20)
