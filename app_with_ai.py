@@ -21,6 +21,18 @@ except ImportError:
 app = Flask(__name__, template_folder='templetes')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
 
+# ── Helper: Fix EXIF orientation ──────────────────────────────────────────────
+def fix_image_orientation(img):
+    """
+    Rotate image based on EXIF orientation metadata.
+    Handles sideways/upside-down photos from smartphones.
+    """
+    try:
+        from PIL import ImageOps
+        return ImageOps.exif_transpose(img)
+    except (AttributeError, ImportError, KeyError):
+        return img
+
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 INVENTORY_FILE = os.path.join(BASE_DIR, 'inventory.csv')
@@ -724,7 +736,9 @@ def generate_video_ad():
                 img_path = os.path.join(UPLOAD_FOLDER, img_filename)
                 if os.path.exists(img_path):
                     try:
-                        prod_img = _Img.open(img_path).convert('RGB')
+                        prod_img = _Img.open(img_path)
+                        prod_img = fix_image_orientation(prod_img)
+                        prod_img = prod_img.convert('RGB')
                         prod_img.thumbnail((img_width, img_height), _Img.LANCZOS)
                         if is_vertical:
                             frame.paste(prod_img, (0, 0))
@@ -802,7 +816,9 @@ def generate_video_ad():
             # ── Add watermark/logo if provided ───────────────────────────────
             if logo_path and os.path.exists(logo_path):
                 try:
-                    logo_img = _Img.open(logo_path).convert('RGBA')
+                    logo_img = _Img.open(logo_path)
+                    logo_img = fix_image_orientation(logo_img)
+                    logo_img = logo_img.convert('RGBA')
                     
                     # Determine logo size based on size setting
                     size_map = {'small': 60, 'medium': 90, 'large': 120}
