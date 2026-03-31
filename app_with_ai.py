@@ -34,23 +34,30 @@ def fix_image_orientation(img):
         return img
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Use persistent storage on Railway (/data is the mounted persistent disk)
-# Falls back to local directories if not running on Railway
+# Falls back to local directory if not running on Railway
 DATA_DIR = os.environ.get('RAILWAY_DATA_DIR', '/data' if os.path.exists('/data') else BASE_DIR)
 
-INVENTORY_FILE = os.path.join(BASE_DIR, 'inventory.csv')  # Stays in app directory
+INVENTORY_FILE = os.path.join(DATA_DIR, 'inventory.csv')
 UPLOAD_FOLDER  = os.path.join(DATA_DIR, 'uploads')
 BACKUP_FOLDER  = os.path.join(DATA_DIR, 'backups')
 ADS_FOLDER     = os.path.join(DATA_DIR, 'ads')
 MUSIC_FOLDER   = os.path.join(DATA_DIR, 'music')
-USERS_FILE     = os.path.join(BASE_DIR, 'users.json')
-PENDING_FILE   = os.path.join(BASE_DIR, 'pending_users.json')
-SALE_FILE      = os.path.join(BASE_DIR, 'sale_state.json')
+USERS_FILE     = os.path.join(DATA_DIR, 'users.json')
+PENDING_FILE   = os.path.join(DATA_DIR, 'pending_users.json')
+SALE_FILE      = os.path.join(DATA_DIR, 'sale_state.json')
 
 for d in [UPLOAD_FOLDER, BACKUP_FOLDER, ADS_FOLDER, MUSIC_FOLDER]:
     os.makedirs(d, exist_ok=True)
+
+# Migrate any existing data files from BASE_DIR to DATA_DIR on first boot
+for _fname in ['inventory.csv', 'users.json', 'pending_users.json', 'sale_state.json']:
+    _src = os.path.join(BASE_DIR, _fname)
+    _dst = os.path.join(DATA_DIR, _fname)
+    if os.path.exists(_src) and not os.path.exists(_dst):
+        shutil.copy2(_src, _dst)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 STORE_NAME    = 'Liberty Emporium & Thrift'
