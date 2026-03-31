@@ -604,6 +604,158 @@ def list_music():
 def serve_music(filename):
     return send_from_directory(MUSIC_FOLDER, filename)
 
+@app.route('/generate-video-ad', methods=['POST'])
+@login_required
+def generate_video_ad():
+    import subprocess, tempfile, textwrap
+
+    # ── Parse inputs ──────────────────────────────────────────────────────────
+    try:
+        products  = json.loads(request.form.get('products', '[]'))
+        style     = request.form.get('style', 'slideshow')          # slideshow | kenburns
+        duration  = max(10, min(60, int(request.form.get('duration', 30))))
+    except Exception as e:
+        return jsonify({'error': f'Bad request: {e}'})
+
+    # Determine music path
+    music_file_upload = request.files.get('music_file')
+    music_track_name  = request.form.get('music_track', '').strip()
+
+    if not products:
+        return jsonify({'error': 'No products provided.'})
+    if not music_file_upload and not music_track_name:
+        return jsonify({'error': 'No music track selected.'})
+
+    # Check ffmpeg
+    ffmpeg_path = '/usr/bin/ffmpeg'
+    if not os.path.exists(ffmpeg_path):
+        return jsonify({'error': 'Video generation not available on this server (ffmpeg missing).'})
+
+    generated = []
+    tmp_files = []   # track temp files to clean up
+
+    try:
+        # Save uploaded music to a temp file if provided
+        if music_file_upload:
+            if music_file_upload.content_length and music_file_upload.content_length > 20 * 1024 * 1024:
+                return jsonify({'error': 'Uploaded MP3 must be under 20 MB.'})
+            tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
+            music_file_upload.save(tmp_music.name)
+            tmp_files.append(tmp_music.name)
+            music_path = tmp_music.name
+        else:
+            music_path = os.path.join(MUSIC_FOLDER, os.path.basename(music_track_name))
+            if not os.path.exists(music_path):
+                return jsonify({'error': f'Music track not found: {music_track_name}'})
+
+        for p in products:
+            sku   = p.get('sku', 'UNKNOWN')
+            title = p.get('title', 'Untitled')
+            price = p.get('price', '0.00')
+            image_url = p.get('image', '')
+
+            # ── Build frame image with Pillow ─────────────────────────────────
+            from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+            import io as _io
+
+            W, H = 1280, 720
+            frame = _Img.new('RGB', (W, H), color=(26, 26, 46))
+
+            # Paste product image if available
+            if image_url:
+                img_filename = image_url.split('/')[-1]
+                img_path = os.path.join(UPLOAD_FOLDER, img_filename)
+                if os.path.exists(img_path):
+                    try:
+                        prod_img = _Img.open(img_path).convert('RGB')
+                        # Fit into left 860px, full height
+                        prod_img.thumbnail((860, H), _Img.LANCZOS)
+                        frame.paste(prod_img, (0, (H - prod_img.height) // 2))
+                    except Exception:
+                        pass
+
+            # Dark right-side overlay for text
+            overlay = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
+            _Draw.Draw(overlay).rectangle([(820, 0), (W, H)], fill=(15, 15, 35, 230))
+            frame = _Img.alpha_composite(frame.convert('RGBA'), overlay).convert('RGB')
+
+            draw = _Draw.Draw(frame)
+
+            # Try to use a system font, fall back to default
+            try:
+                font_title = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 42)
+                font_price = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 64)
+                font_small = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 26)
+            except Exception:
+                font_title = _Font.load_default()
+                font_price = font_title
+                font_small = font_title
+
+            # Wrap title to ~20 chars per line
+            lines = textwrap.wrap(title, width=20)
+            y = 180
+            for line in lines[:3]:
+                draw.text((850, y), line, font=font_title, fill=(240, 192, 64))
+                y += 54
+
+            # Price
+            draw.text((850, y + 20), f'${price}', font=font_price, fill=(255, 255, 255))
+
+            # Store name footer
+            draw.text((850, H - 80), 'Liberty Emporium', font=font_small, fill=(160, 160, 200))
+            draw.text((850, H - 48), '125 W Swannanoa Ave, Liberty NC', font=font_small, fill=(120, 120, 160))
+
+            # Save frame to temp file
+            tmp_frame = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+            frame.save(tmp_frame.name, 'JPEG', quality=92)
+            tmp_files.append(tmp_frame.name)
+
+            # ── Run ffmpeg ────────────────────────────────────────────────────
+            ts       = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            out_name = f'video_ad_{sku}_{ts}.mp4'
+            out_path = os.path.join(ADS_FOLDER, out_name)
+
+            if style == 'kenburns':
+                vf = f"zoompan=z='min(zoom+0.0015,1.5)':d={duration * 25}:s=1280x720,fps=25"
+                cmd = [
+                    ffmpeg_path, '-y',
+                    '-loop', '1', '-i', tmp_frame.name,
+                    '-i', music_path,
+                    '-vf', vf,
+                    '-c:v', 'libx264', '-c:a', 'aac',
+                    '-t', str(duration),
+                    '-pix_fmt', 'yuv420p',
+                    '-shortest',
+                    out_path
+                ]
+            else:  # slideshow (default)
+                cmd = [
+                    ffmpeg_path, '-y',
+                    '-loop', '1', '-i', tmp_frame.name,
+                    '-i', music_path,
+                    '-c:v', 'libx264', '-tune', 'stillimage',
+                    '-c:a', 'aac',
+                    '-t', str(duration),
+                    '-pix_fmt', 'yuv420p',
+                    '-shortest',
+                    out_path
+                ]
+
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            if result.returncode != 0:
+                return jsonify({'error': f'ffmpeg failed: {result.stderr[-500:]}'})
+
+            generated.append({'filename': out_name, 'product_title': title})
+
+    finally:
+        for f in tmp_files:
+            try:
+                os.unlink(f)
+            except Exception:
+                pass
+
+    return jsonify({'success': True, 'files': generated})
+
 # ── Listing Generator ─────────────────────────────────────────────────────────
 @app.route('/listing-generator')
 @login_required
