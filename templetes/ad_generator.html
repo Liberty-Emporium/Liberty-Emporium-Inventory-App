@@ -966,5 +966,167 @@ function showGeneratedAds(files) {
   section.classList.add('visible');
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+// ── Video Studio ──────────────────────────────────────────────────────────────
+let vsSelectedStyle  = 'slideshow';
+let vsSelectedTrack  = null;   // filename string (library) or null
+let vsUploadedFile   = null;   // File object (upload) or null
+let vsAudioPlayer    = null;   // current HTMLAudioElement for preview
+
+function vsSelectStyle(card) {
+  document.querySelectorAll('.vs-style-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  vsSelectedStyle = card.dataset.vstyle;
+}
+
+function vsSelectTrack(card, filename) {
+  // Deselect all library cards
+  document.querySelectorAll('.vs-track-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  vsSelectedTrack = filename;
+  vsUploadedFile  = null;
+  document.getElementById('vsUploadLabel').textContent = 'Upload Your Own Track';
+  vsUpdateGenerateBtn();
+}
+
+function vsHandleUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    vsShowError('Uploaded MP3 must be under 20 MB.');
+    input.value = '';
+    return;
+  }
+  vsUploadedFile  = file;
+  vsSelectedTrack = null;
+  document.querySelectorAll('.vs-track-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('vsUploadLabel').textContent = '✅ ' + file.name;
+  vsUpdateGenerateBtn();
+}
+
+function vsPlayPreview(btn, filename) {
+  // Stop any existing preview
+  if (vsAudioPlayer) { vsAudioPlayer.pause(); vsAudioPlayer = null; }
+  const icon = btn.querySelector('.vs-play-icon');
+  if (icon && icon.textContent === '⏸️') { icon.textContent = '▶️'; return; }
+  document.querySelectorAll('.vs-play-icon').forEach(i => i.textContent = '▶️');
+  vsAudioPlayer = new Audio('/music/' + encodeURIComponent(filename));
+  vsAudioPlayer.play();
+  if (icon) icon.textContent = '⏸️';
+  vsAudioPlayer.onended = () => { if (icon) icon.textContent = '▶️'; };
+}
+
+function vsUpdateGenerateBtn() {
+  const hasProduct = selectedSkus.size > 0;
+  const hasMusic   = vsSelectedTrack !== null || vsUploadedFile !== null;
+  document.getElementById('vsGenerateBtn').disabled = !(hasProduct && hasMusic);
+}
+
+function vsShowError(msg) {
+  const el = document.getElementById('vsError');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function vsGenerate() {
+  vsShowError('');
+  if (selectedSkus.size === 0) { vsShowError('Select at least one product above.'); return; }
+  if (!vsSelectedTrack && !vsUploadedFile) { vsShowError('Select or upload a music track.'); return; }
+
+  const products = [];
+  document.querySelectorAll('.selectable-card.selected').forEach(card => {
+    products.push({
+      sku: card.dataset.sku, title: card.dataset.title,
+      price: card.dataset.price, image: card.dataset.image,
+      description: card.dataset.description
+    });
+  });
+
+  const duration = document.getElementById('vsDurationSlider').value;
+  const formData = new FormData();
+  formData.append('products',  JSON.stringify(products));
+  formData.append('style',     vsSelectedStyle);
+  formData.append('duration',  duration);
+  if (vsUploadedFile) {
+    formData.append('music_file', vsUploadedFile);
+  } else {
+    formData.append('music_track', vsSelectedTrack);
+  }
+
+  const btn = document.getElementById('vsGenerateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-ring" style="width:22px;height:22px;border-width:3px;border-top-color:white;display:inline-block;"></span> &nbsp;Generating…';
+  document.getElementById('loadingOverlay').classList.add('active');
+  document.querySelector('#loadingOverlay div:last-child').textContent = 'Creating video ad… this may take up to a minute.';
+
+  fetch('/generate-video-ad', { method: 'POST', body: formData })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('loadingOverlay').classList.remove('active');
+    btn.disabled = false;
+    btn.innerHTML = '🎬 Create Video Ad';
+    if (data.error) { vsShowError(data.error); return; }
+    vsShowResults(data.files);
+  })
+  .catch(e => {
+    document.getElementById('loadingOverlay').classList.remove('active');
+    btn.disabled = false;
+    btn.innerHTML = '🎬 Create Video Ad';
+    vsShowError('Network error: ' + e);
+  });
+}
+
+function vsShowResults(files) {
+  const list = document.getElementById('vsResultsList');
+  list.innerHTML = '';
+  files.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'vs-video-card';
+    card.innerHTML = `
+      <div class="vs-video-card-header">
+        <span class="vs-video-title">🎬 ${f.product_title}</span>
+        <a href="/download-ad/${f.filename}" class="btn-dl-video">⬇️ Download MP4</a>
+      </div>
+      <video src="/ads/${f.filename}" controls autoplay muted loop
+             style="width:100%; display:block; max-height:480px; background:#000;"></video>
+    `;
+    list.appendChild(card);
+  });
+  const results = document.getElementById('vsResults');
+  results.classList.add('visible');
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Load music library on page load
+function vsLoadMusicLibrary() {
+  fetch('/music')
+  .then(r => r.json())
+  .then(tracks => {
+    const grid = document.getElementById('vsMusicGrid');
+    if (!tracks.length) { grid.innerHTML = '<div style="color:#aaa;font-size:0.88rem;">No tracks in library yet.</div>'; return; }
+    grid.innerHTML = '';
+    tracks.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'vs-track-card';
+      card.innerHTML = `
+        <button class="vs-play-btn" onclick="event.stopPropagation(); vsPlayPreview(this, '${t.filename}')">
+          <span class="vs-play-icon">▶️</span>
+        </button>
+        <div class="vs-track-name" title="${t.filename}">${t.display_name}</div>
+      `;
+      card.onclick = () => vsSelectTrack(card, t.filename);
+      grid.appendChild(card);
+    });
+  })
+  .catch(() => {
+    document.getElementById('vsMusicGrid').innerHTML = '<div style="color:#e53e3e;font-size:0.88rem;">Could not load music library.</div>';
+  });
+}
+
+// Re-evaluate generate button when product selection changes (hook into existing updateUI)
+const _origUpdateUI = updateUI;
+updateUI = function() { _origUpdateUI(); vsUpdateGenerateBtn(); };
+
+document.addEventListener('DOMContentLoaded', vsLoadMusicLibrary);
 </script>
 {% endblock %}
