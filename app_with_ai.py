@@ -926,7 +926,10 @@ def generate_video_ad():
                     out_path
                 ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
+            except subprocess.TimeoutExpired:
+                return jsonify({'error': 'Video generation timed out (try a shorter duration or smaller format).'})
             if result.returncode != 0:
                 return jsonify({'error': f'ffmpeg failed: {result.stderr[-500:]}'})
 
