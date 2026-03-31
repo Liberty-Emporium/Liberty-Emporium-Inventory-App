@@ -1,6 +1,49 @@
 {% extends 'base.html' %}
 {% block title %}Listing Generator | {{ store_name }}{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">📝</div>
+  <div class="ht-label">Listing Generator — How-To Guide</div>
+  <h2>Create Platform-Ready Listings</h2>
+  <p>The Listing Generator uses AI to write complete, copy-paste-ready sale listings for your products — formatted specifically for Facebook Marketplace, Craigslist, or Instagram.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🛍️</div>
+  <div class="ht-label">Step 1 — Pick a Product</div>
+  <h2>Selecting a Product</h2>
+  <ol>
+    <li>Browse the product cards at the top of the page.</li>
+    <li>Click a product card to select it — the border highlights blue.</li>
+    <li>Only one product can be selected at a time.</li>
+  </ol>
+  <div class="ht-tip">Products without images can still have listings generated — the AI uses the title and description.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🌐</div>
+  <div class="ht-label">Step 2 — Choose Platform</div>
+  <h2>Picking a Platform</h2>
+  <p>Select where you plan to post the listing using the platform tabs:</p>
+  <ul>
+    <li>📘 <strong>Facebook Marketplace</strong> — formatted for FB buyers</li>
+    <li>📋 <strong>Craigslist</strong> — plain text style for CL posts</li>
+    <li>📸 <strong>Instagram</strong> — hashtag-rich caption format</li>
+  </ul>
+  <div class="ht-tip">Each platform generates a different tone and format tailored to that audience.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⚡</div>
+  <div class="ht-label">Step 3 — Generate &amp; Copy</div>
+  <h2>Generating Your Listing</h2>
+  <ol>
+    <li>With a product selected, click <strong>"Generate Listing"</strong>.</li>
+    <li>The AI writes a complete listing using the product's title, price, description, and condition.</li>
+    <li>The result appears in an editable preview below.</li>
+    <li>Click <strong>"Copy to Clipboard"</strong> to copy the listing and paste it directly into your chosen platform.</li>
+  </ol>
+</div>
+{% endblock %}
+
 {% block extra_css %}
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap');
@@ -125,6 +168,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="ht-page-bar" style="max-width:900px;"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div class="listing-wrap">
   <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
 

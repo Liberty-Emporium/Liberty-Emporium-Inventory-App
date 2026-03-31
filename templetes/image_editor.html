@@ -2,7 +2,49 @@
 
 {% block title %}Edit Images | {{ product.Title }}{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🖼️</div>
+  <div class="ht-label">Image Editor — How-To Guide</div>
+  <h2>Editing Your Product Photos</h2>
+  <p>The Image Editor lets you rotate and zoom your product photos to get them looking just right before customers see them on the product page and dashboard.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🖱️</div>
+  <div class="ht-label">Step 1 — Select an Image</div>
+  <h2>Choosing a Photo to Edit</h2>
+  <ol>
+    <li>The product's photos appear as small thumbnails at the bottom of the editor.</li>
+    <li>Click a thumbnail to load it into the main canvas editor above.</li>
+    <li>The selected image will appear on the canvas, ready to edit.</li>
+  </ol>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🔧</div>
+  <div class="ht-label">Step 2 — Edit Controls</div>
+  <h2>Using the Editor Controls</h2>
+  <div class="ht-grid">
+    <div class="ht-grid-item"><strong>Rotate</strong><span>Turns the image 90° clockwise</span></div>
+    <div class="ht-grid-item"><strong>Zoom In</strong><span>Makes the image larger on canvas</span></div>
+    <div class="ht-grid-item"><strong>Zoom Out</strong><span>Makes the image smaller on canvas</span></div>
+    <div class="ht-grid-item"><strong>Reset</strong><span>Undoes all changes to original</span></div>
+  </div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">💾</div>
+  <div class="ht-label">Step 3 — Save</div>
+  <h2>Saving Your Changes</h2>
+  <ol>
+    <li>Once the image looks right on the canvas, click the <strong>"Save"</strong> button.</li>
+    <li>The edited image is saved and replaces the original photo for this product.</li>
+    <li>Click the back link to return to the product page and see the updated image.</li>
+  </ol>
+  <div class="ht-tip">Each product can have multiple images. Edit and save each one individually using the thumbnails.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div class="image-editor">
     <a href="{{ url_for('view_product', sku=product.SKU) }}" class="back-link">&larr; Back to Product</a>
     

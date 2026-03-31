@@ -1,7 +1,66 @@
 {% extends 'base.html' %}
 {% block title %}Import from Square | LibertyE Inventory and Ads{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">📥</div>
+  <div class="ht-label">Import from Square — How-To Guide</div>
+  <h2>Bring Your Square Products In</h2>
+  <p>If you already use Square POS, you can export your item library and import it here in seconds. The importer automatically maps Square's fields to this app's fields.</p>
+  <div class="ht-tip">🔒 Only the admin account can import from Square.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⬛</div>
+  <div class="ht-label">Step 1 — Export from Square</div>
+  <h2>Getting Your Square CSV</h2>
+  <ol>
+    <li>Log in to your <strong>Square Dashboard</strong> at squareup.com.</li>
+    <li>Go to <strong>Items &amp; Orders → Items</strong>.</li>
+    <li>Click <strong>Import / Export → Export Library</strong>.</li>
+    <li>Square downloads a CSV file to your computer.</li>
+  </ol>
+  <div class="ht-tip">Square adds extra header rows at the top of the file — that's fine, the importer handles them automatically.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🔄</div>
+  <div class="ht-label">Step 2 — Field Mapping</div>
+  <h2>How Square Fields Map Here</h2>
+  <div class="ht-grid">
+    <div class="ht-grid-item"><strong>Item Name → Title</strong><span>Product display name</span></div>
+    <div class="ht-grid-item"><strong>SKU → SKU</strong><span>Required — must be unique</span></div>
+    <div class="ht-grid-item"><strong>Price → Price</strong><span>Sale price</span></div>
+    <div class="ht-grid-item"><strong>Categories → Category</strong><span>First category used</span></div>
+    <div class="ht-grid-item"><strong>Archived Y → Sold</strong><span>N = Available</span></div>
+    <div class="ht-grid-item"><strong>Condition → Condition</strong><span>Defaults to "Good"</span></div>
+  </div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⚙️</div>
+  <div class="ht-label">Step 3 — Import Options</div>
+  <h2>Choosing How to Handle Duplicates</h2>
+  <p>If a product SKU from Square already exists in this app, choose what to do:</p>
+  <ul>
+    <li><strong>Skip</strong> — leave the existing product unchanged. Safe option.</li>
+    <li><strong>Overwrite</strong> — update title, description, price, category, and status. Images and location info are kept.</li>
+  </ul>
+  <div class="ht-tip">Use <strong>Skip</strong> for a first import. Use <strong>Overwrite</strong> to sync price changes from Square.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🚀</div>
+  <div class="ht-label">Step 4 — Upload &amp; Import</div>
+  <h2>Running the Import</h2>
+  <ol>
+    <li>Click <strong>"Choose File"</strong> and select the Square CSV you downloaded.</li>
+    <li>Select your preferred duplicate handling option (Skip or Overwrite).</li>
+    <li>Click <strong>"📥 Import Now"</strong>.</li>
+    <li>A summary will appear showing how many products were added, updated, or skipped.</li>
+  </ol>
+  <div class="ht-warn">⚠️ Create a backup before importing if you want to be able to undo the changes.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar" style="max-width:700px;"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:700px; margin:0 auto;">
     <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
 

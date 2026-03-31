@@ -2,7 +2,64 @@
 
 {% block title %}Ad Generator | Liberty Emporium{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">📣</div>
+  <div class="ht-label">Ad Generator — How-To Guide</div>
+  <h2>Generate Ready-to-Post Ads</h2>
+  <p>The Ad Generator uses AI to create polished JPEG advertisement images for your products — perfect for Facebook, Instagram, or printing in-store. You can generate ads for up to 10 products at once.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">☑️</div>
+  <div class="ht-label">Step 1 — Select Products</div>
+  <h2>Choosing Your Products</h2>
+  <ol>
+    <li>Browse the product grid below the style picker.</li>
+    <li>Click any product card to <strong>select</strong> it — a checkmark appears and the border highlights.</li>
+    <li>Click again to <strong>deselect</strong> it.</li>
+    <li>The counter in the top-right shows how many are selected (max 10).</li>
+  </ol>
+  <div class="ht-tip">Only Available products appear. Sold products are not shown.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🎨</div>
+  <div class="ht-label">Step 2 — Choose Style</div>
+  <h2>Picking an Ad Style</h2>
+  <p>Before generating, choose a visual style for your ads using the style buttons at the top:</p>
+  <ul>
+    <li><strong>Red &amp; Gold</strong> — classic, elegant look</li>
+    <li><strong>Navy &amp; Cream</strong> — professional and clean</li>
+    <li><strong>Forest &amp; Tan</strong> — warm, earthy tone</li>
+    <li><strong>Midnight</strong> — bold dark theme</li>
+    <li><strong>Blush</strong> — soft, boutique feel</li>
+  </ul>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⚡</div>
+  <div class="ht-label">Step 3 — Generate</div>
+  <h2>Generating Your Ads</h2>
+  <ol>
+    <li>With at least one product selected, the <strong>"✨ Generate Ads"</strong> button becomes active.</li>
+    <li>Click it — a loading overlay appears while the AI creates your ads.</li>
+    <li>When done, a list of generated ad files appears below the product grid.</li>
+  </ol>
+  <div class="ht-tip">Generation takes a few seconds per product. Don't close the page while it's running.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⬇️</div>
+  <div class="ht-label">Step 4 — Use Your Ads</div>
+  <h2>Viewing &amp; Downloading Ads</h2>
+  <p>Each generated ad appears as a card in the results section with two buttons:</p>
+  <ul>
+    <li><strong>View</strong> — opens the ad image in a new browser tab so you can preview it.</li>
+    <li><strong>Download</strong> — saves the JPEG file to your computer, ready to post.</li>
+  </ul>
+  <div class="ht-tip">Ads are saved on the server. You can re-download them any time by visiting this page again.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
 

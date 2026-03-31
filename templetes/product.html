@@ -2,7 +2,64 @@
 
 {% block title %}{{ product.Title }} | Liberty Emporium{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🛍️</div>
+  <div class="ht-label">Product Page — How-To Guide</div>
+  <h2>Viewing a Product</h2>
+  <p>This page shows all the details for a single product — photos, price, condition, location, and description. From here you can also share, edit, or delete the item.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📋</div>
+  <div class="ht-label">Product Details</div>
+  <h2>Reading Product Info</h2>
+  <ul>
+    <li><strong>SKU</strong> — unique identifier for this item.</li>
+    <li><strong>Status badge</strong> — green = Available, red = Sold.</li>
+    <li><strong>Price, Condition, Category</strong> — key details at a glance.</li>
+    <li><strong>📍 Location</strong> — section and shelf where the item lives in the store.</li>
+    <li><strong>Description</strong> — full details about the item.</li>
+  </ul>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🔒</div>
+  <div class="ht-label">Admin Panel</div>
+  <h2>Cost &amp; Profit (Admin Only)</h2>
+  <p>If you're logged in as <strong>admin</strong>, a panel shows:</p>
+  <div class="ht-grid">
+    <div class="ht-grid-item"><strong>Cost Paid</strong><span>What you paid for the item</span></div>
+    <div class="ht-grid-item"><strong>Sale Price</strong><span>What you're selling it for</span></div>
+    <div class="ht-grid-item" style="grid-column:1/-1;"><strong>Profit / Loss</strong><span>Automatically calculated</span></div>
+  </div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📣</div>
+  <div class="ht-label">Sharing</div>
+  <h2>Share This Item</h2>
+  <p>Use the share buttons to promote the item across platforms:</p>
+  <ul>
+    <li>📘 <strong>Share on Facebook</strong> — opens Facebook with the product link.</li>
+    <li>📋 <strong>Post to Craigslist</strong> — opens a pre-filled Craigslist posting.</li>
+    <li>📸 <strong>Copy for Instagram</strong> — copies a ready-to-paste caption to your clipboard.</li>
+    <li>🔗 <strong>Copy Link</strong> — copies the product URL to share anywhere.</li>
+  </ul>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⚙️</div>
+  <div class="ht-label">Actions</div>
+  <h2>Product Actions</h2>
+  <ul>
+    <li><strong>Edit Product</strong> — update any details, price, or status.</li>
+    <li><strong>Edit Images</strong> — rotate or crop the product photos.</li>
+    <li><strong>🏷️ Print Tag</strong> — generate a printable price tag for this item.</li>
+    <li><strong>Delete</strong> — permanently removes the product. A confirmation is required.</li>
+  </ul>
+  <div class="ht-warn">⚠️ Deleting a product cannot be undone. Use the Backups page if you need to recover data.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div class="product-detail">
     <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
 

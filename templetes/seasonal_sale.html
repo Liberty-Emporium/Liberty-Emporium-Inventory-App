@@ -1,6 +1,40 @@
 {% extends 'base.html' %}
 {% block title %}Seasonal Sale | {{ store_name }}{% endblock %}
+
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🔥</div>
+  <div class="ht-label">Seasonal Sale — How-To Guide</div>
+  <h2>Run a Store-Wide Discount</h2>
+  <p>The Seasonal Sale feature lets you apply a percentage discount to an entire product category — great for holiday sales, clearance events, or weekly specials. The discounted price shows everywhere in the app.</p>
+  <div class="ht-tip">🔒 Only the admin account can activate or stop a sale.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">✅</div>
+  <div class="ht-label">Starting a Sale</div>
+  <h2>How to Activate a Sale</h2>
+  <ol>
+    <li>Select a <strong>Category</strong> from the dropdown — only products in this category will be discounted.</li>
+    <li>Enter a <strong>Discount %</strong> (e.g. 20 for 20% off).</li>
+    <li>Click <strong>"Activate Sale"</strong>.</li>
+    <li>A yellow banner will appear on the Dashboard letting everyone know the sale is active.</li>
+  </ol>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🛑</div>
+  <div class="ht-label">Stopping a Sale</div>
+  <h2>How to End a Sale</h2>
+  <ol>
+    <li>When a sale is active, this page shows a banner confirming the current discount and category.</li>
+    <li>Click the red <strong>"Stop Sale"</strong> button.</li>
+    <li>The discount is removed immediately and prices return to normal.</li>
+  </ol>
+  <div class="ht-tip">Only one sale can be active at a time. Start a new one to replace the current sale.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar" style="max-width:600px;"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:600px; margin:0 auto;">
     <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
     <h1 style="color:#2e7d6e; margin-bottom:1.5rem;">🔥 Seasonal Sale</h1>

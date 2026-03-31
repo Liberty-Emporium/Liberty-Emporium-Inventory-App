@@ -2,7 +2,75 @@
 
 {% block title %}{% if product.SKU %}Edit Product - {{ product.Title }}{% else %}Add New Product{% endif %} - LibertyE Inventory and Ads{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">{% if product.SKU %}✏️{% else %}➕{% endif %}</div>
+  <div class="ht-label">{% if product.SKU %}Edit Product{% else %}Add Product{% endif %} — How-To Guide</div>
+  <h2>{% if product.SKU %}Editing a Product{% else %}Adding a New Product{% endif %}</h2>
+  <p>This form lets you {% if product.SKU %}update an existing product's details{% else %}create a brand-new product in your inventory{% endif %}. Fill in the fields and save when done.</p>
+  <div class="ht-tip">💡 Use the <strong>AI Photo Analysis</strong> section at the top to auto-fill most fields by just uploading a photo!</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🤖</div>
+  <div class="ht-label">Step 1 — AI Analysis</div>
+  <h2>Let AI Fill In the Details</h2>
+  <ol>
+    <li>Click <strong>"Choose File"</strong> in the AI Photo Analysis box.</li>
+    <li>Select a clear photo of your item.</li>
+    <li>Click <strong>"✨ Analyze Photo"</strong>.</li>
+    <li>Claude AI will automatically fill in the title, description, category, condition, and a suggested price.</li>
+    <li>Review the results and adjust anything before saving.</li>
+  </ol>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🏷️</div>
+  <div class="ht-label">Step 2 — Basic Info</div>
+  <h2>Basic Information Fields</h2>
+  <ul>
+    <li><strong>SKU</strong> — unique ID for the item (e.g. ITEM-001). Required. Cannot be changed after saving.</li>
+    <li><strong>Title</strong> — the product name shown on all pages and listings.</li>
+    <li><strong>Description</strong> — details about the item, its condition, history, etc.</li>
+  </ul>
+  <div class="ht-tip">SKUs must be unique. If you leave it blank, one will not be auto-generated — you must enter one.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">💰</div>
+  <div class="ht-label">Step 3 — Details &amp; Pricing</div>
+  <h2>Details &amp; Pricing Fields</h2>
+  <ul>
+    <li><strong>Category</strong> — used for filtering and seasonal sales (e.g. "Furniture", "Clothing").</li>
+    <li><strong>Price</strong> — the sale price shown to customers.</li>
+    <li><strong>Cost Paid</strong> — what you paid for it (admin-only, used for profit tracking).</li>
+    <li><strong>Condition</strong> — e.g. Excellent, Good, Fair.</li>
+    <li><strong>Status</strong> — Available or Sold.</li>
+  </ul>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📍</div>
+  <div class="ht-label">Step 4 — Location &amp; Images</div>
+  <h2>Location &amp; Product Images</h2>
+  <ul>
+    <li><strong>Section</strong> — the area of the store where this item lives (e.g. "Back Wall").</li>
+    <li><strong>Shelf</strong> — more specific location within the section (e.g. "Shelf 3").</li>
+    <li><strong>Images</strong> — upload one or more photos. The first photo is used as the thumbnail on the dashboard.</li>
+  </ul>
+  <div class="ht-tip">Location fields help staff find items in the store quickly.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">💾</div>
+  <div class="ht-label">Step 5 — Save</div>
+  <h2>Saving Your Product</h2>
+  <ol>
+    <li>Review all fields to make sure everything looks correct.</li>
+    <li>Click the <strong>"Save Product"</strong> button at the bottom of the form.</li>
+    <li>You'll be taken back to the Dashboard where the product will appear in the grid.</li>
+  </ol>
+  <div class="ht-tip">A backup of your inventory is automatically created every time you save a product.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div class="form-header">
     <h1>{% if product.SKU %}✏️ Edit Product{% else %}➕ Add New Product{% endif %}</h1>
     <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>

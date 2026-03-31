@@ -1,213 +1,96 @@
 {% extends 'base.html' %}
 {% block title %}User Management | Liberty Emporium{% endblock %}
-{% block content %}
 
-<!-- ── How-To Button ── -->
-<div style="max-width:800px; margin:0 auto 0.75rem auto; text-align:right;">
-  <button onclick="openHowTo()" style="background:#2e7d6e; color:white; border:none; border-radius:8px; padding:0.45rem 1rem; font-size:0.88rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(46,125,110,0.3);">
-    ❓ How to Use This Page
-  </button>
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">👥</div>
+  <div class="ht-label">User Management — How-To Guide</div>
+  <h2>Managing Who Can Access Your Store</h2>
+  <p>This page lets you <strong>approve</strong> new signup requests, <strong>reject</strong> unwanted ones, and <strong>remove</strong> users who should no longer have access.</p>
+  <div class="ht-tip">🔒 Only the <strong>Owner (admin)</strong> account can see and use this page.</div>
 </div>
-
-<!-- ── How-To Modal Overlay ── -->
-<div id="howto-overlay" onclick="closeIfBackdrop(event)" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:16px; width:min(92vw,560px); max-height:90vh; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.35); display:flex; flex-direction:column; position:relative;">
-
-    <!-- Progress bar -->
-    <div style="height:4px; background:#e8f5e9;">
-      <div id="ht-progress" style="height:100%; background:linear-gradient(90deg,#2e7d6e,#56c7b6); width:14.28%; transition:width 0.3s;"></div>
+<div class="ht-slide">
+  <div class="ht-icon">⏳</div>
+  <div class="ht-label">Section 1 — Pending Approval</div>
+  <h2>Pending Approval</h2>
+  <p>When someone signs up, they appear here with their <strong>username</strong>, <strong>email</strong>, and <strong>request date</strong>.</p>
+  <div class="ht-mock">
+    <div class="ht-mock-row">
+      <span><strong>sarah_jones</strong> · Requested: 2026-03-28</span>
+      <span style="display:flex;gap:6px;">
+        <span style="background:#2e7d6e;color:white;padding:3px 9px;border-radius:5px;font-size:0.78rem;font-weight:700;">✅ Approve</span>
+        <span style="background:#e53e3e;color:white;padding:3px 9px;border-radius:5px;font-size:0.78rem;font-weight:700;">❌ Reject</span>
+      </span>
     </div>
-
-    <!-- Close button -->
-    <button onclick="closeHowTo()" style="position:absolute; top:10px; right:14px; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#888; line-height:1;">✕</button>
-
-    <!-- Slides wrapper -->
-    <div id="ht-slides" style="flex:1; overflow:hidden; position:relative; min-height:340px;">
-
-      <!-- Slide 1 -->
-      <div class="ht-slide" style="padding:32px 36px 24px;">
-        <div style="font-size:48px; margin-bottom:10px;">👥</div>
-        <div style="font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:#2e7d6e; margin-bottom:6px;">User Management — How-To Guide</div>
-        <h2 style="color:#1a4a42; font-size:1.35rem; margin-bottom:10px;">Managing Who Can Access Your Store</h2>
-        <p style="color:#555; font-size:0.92rem; line-height:1.6;">This page lets you <strong>approve</strong> new signup requests, <strong>reject</strong> unwanted ones, and <strong>remove</strong> users who should no longer have access.</p>
-        <div style="background:#f0f7f4; border-left:3px solid #2e7d6e; border-radius:0 8px 8px 0; padding:10px 14px; margin-top:14px; font-size:0.85rem; color:#2e7d6e;">
-          🔒 Only the <strong>Owner (admin)</strong> account can see and use this page.
-        </div>
-      </div>
-
-      <!-- Slide 2 -->
-      <div class="ht-slide" style="padding:32px 36px 24px; display:none;">
-        <div style="font-size:40px; margin-bottom:10px;">⏳</div>
-        <div style="font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:#7c5a00; margin-bottom:6px;">Section 1</div>
-        <h2 style="color:#1a4a42; font-size:1.35rem; margin-bottom:10px;">Pending Approval</h2>
-        <p style="color:#555; font-size:0.9rem; line-height:1.6; margin-bottom:14px;">When someone signs up for an account, they appear here. You'll see their <strong>username</strong>, <strong>email</strong>, and the <strong>date they requested</strong> access.</p>
-        <div style="background:#fffbf0; border:1px solid #ffe4a0; border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; font-size:0.88rem;">
-          <span><strong>sarah_jones</strong> <span style="color:#aaa;">· Requested: 2026-03-28</span></span>
-          <div style="display:flex; gap:6px;">
-            <span style="background:#2e7d6e; color:white; padding:4px 10px; border-radius:5px; font-size:0.78rem; font-weight:700;">✅ Approve</span>
-            <span style="background:#e53e3e; color:white; padding:4px 10px; border-radius:5px; font-size:0.78rem; font-weight:700;">❌ Reject</span>
-          </div>
-        </div>
-        <p style="color:#888; font-size:0.82rem; margin-top:10px;">If there are no pending requests, you'll see "No pending requests."</p>
-      </div>
-
-      <!-- Slide 3 -->
-      <div class="ht-slide" style="padding:32px 36px 24px; display:none;">
-        <div style="font-size:40px; margin-bottom:10px;">✅</div>
-        <div style="font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:#2e7d6e; margin-bottom:6px;">Action — Approve</div>
-        <h2 style="color:#1a4a42; font-size:1.35rem; margin-bottom:10px;">Approving a New User</h2>
-        <ol style="color:#444; font-size:0.9rem; line-height:1.8; padding-left:20px; margin-bottom:14px;">
-          <li>Find the user in the <strong>Pending Approval</strong> section.</li>
-          <li>Click the green <strong>✅ Approve</strong> button next to their name.</li>
-          <li>They are instantly moved to <strong>Approved Users</strong> and can now log in.</li>
-        </ol>
-        <div style="background:#f0f7f4; border-left:3px solid #2e7d6e; border-radius:0 8px 8px 0; padding:10px 14px; font-size:0.85rem; color:#2e7d6e;">
-          No confirmation dialog — approval is instant and takes effect immediately.
-        </div>
-      </div>
-
-      <!-- Slide 4 -->
-      <div class="ht-slide" style="padding:32px 36px 24px; display:none;">
-        <div style="font-size:40px; margin-bottom:10px;">❌</div>
-        <div style="font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:#c0392b; margin-bottom:6px;">Action — Reject</div>
-        <h2 style="color:#1a4a42; font-size:1.35rem; margin-bottom:10px;">Rejecting a Request</h2>
-        <ol style="color:#444; font-size:0.9rem; line-height:1.8; padding-left:20px; margin-bottom:14px;">
-          <li>Find the unwanted request in <strong>Pending Approval</strong>.</li>
-          <li>Click the red <strong>❌ Reject</strong> button next to their name.</li>
-          <li>A <strong>confirmation dialog</strong> appears — click OK to confirm.</li>
-          <li>The request is deleted permanently.</li>
-        </ol>
-        <div style="background:#fff5f5; border-left:3px solid #e53e3e; border-radius:0 8px 8px 0; padding:10px 14px; font-size:0.85rem; color:#c0392b;">
-          ⚠️ Rejection is <strong>permanent</strong>. The person would need to sign up again if you change your mind.
-        </div>
-      </div>
-
-      <!-- Slide 5 -->
-      <div class="ht-slide" style="padding:32px 36px 24px; display:none;">
-        <div style="font-size:40px; margin-bottom:10px;">✅</div>
-        <div style="font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:#2e7d6e; margin-bottom:6px;">Section 2</div>
-        <h2 style="color:#1a4a42; font-size:1.35rem; margin-bottom:10px;">Approved Users</h2>
-        <p style="color:#555; font-size:0.9rem; line-height:1.6; margin-bottom:14px;">Shows everyone who currently has access. The <strong>Owner (admin)</strong> always appears at the top and cannot be removed.</p>
-        <div style="background:#f0f7f4; border:1px solid #c8e6c9; border-radius:8px; padding:10px 14px; font-size:0.88rem; display:flex; flex-direction:column; gap:8px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span><strong>admin</strong> <span style="background:#2e7d6e; color:white; font-size:0.72rem; padding:2px 8px; border-radius:10px; margin-left:6px;">Owner</span></span>
-            <span style="color:#aaa; font-size:0.78rem;">Cannot remove</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>sarah_jones</strong>
-            <span style="background:#ff9100; color:white; padding:4px 10px; border-radius:5px; font-size:0.78rem; font-weight:700;">🗑️ Remove</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Slide 6 -->
-      <div class="ht-slide" style="padding:32px 36px 24px; display:none;">
-        <div style="font-size:40px; margin-bottom:10px;">🚫</div>
-        <div style="font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:#c0392b; margin-bottom:6px;">Action — Remove</div>
-        <h2 style="color:#1a4a42; font-size:1.35rem; margin-bottom:10px;">Removing an Approved User</h2>
-        <ol style="color:#444; font-size:0.9rem; line-height:1.8; padding-left:20px; margin-bottom:14px;">
-          <li>Scroll to the <strong>Approved Users</strong> section.</li>
-          <li>Click the orange <strong>🗑️ Remove</strong> button next to the user.</li>
-          <li>Confirm the action in the dialog that appears.</li>
-          <li>The user is removed and can no longer log in.</li>
-        </ol>
-        <div style="background:#fff8f0; border-left:3px solid #ff9100; border-radius:0 8px 8px 0; padding:10px 14px; font-size:0.85rem; color:#7a4400;">
-          The <strong>admin/Owner</strong> account can never be removed from this list.
-        </div>
-      </div>
-
-      <!-- Slide 7 -->
-      <div class="ht-slide" style="padding:32px 36px 24px; display:none;">
-        <div style="font-size:40px; margin-bottom:10px;">🎓</div>
-        <div style="font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:#2e7d6e; margin-bottom:6px;">Summary</div>
-        <h2 style="color:#1a4a42; font-size:1.35rem; margin-bottom:14px;">Quick Reference</h2>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.86rem;">
-          <div style="background:#f0f7f4; border-radius:8px; padding:10px 12px;">
-            <div style="font-size:1.2rem;">⏳</div>
-            <strong style="color:#2e7d6e;">Pending section</strong>
-            <p style="color:#555; margin-top:2px;">New signup requests waiting for review</p>
-          </div>
-          <div style="background:#f0f7f4; border-radius:8px; padding:10px 12px;">
-            <div style="font-size:1.2rem;">✅</div>
-            <strong style="color:#2e7d6e;">Approve</strong>
-            <p style="color:#555; margin-top:2px;">Grants login access instantly</p>
-          </div>
-          <div style="background:#f0f7f4; border-radius:8px; padding:10px 12px;">
-            <div style="font-size:1.2rem;">❌</div>
-            <strong style="color:#2e7d6e;">Reject</strong>
-            <p style="color:#555; margin-top:2px;">Permanently removes the request</p>
-          </div>
-          <div style="background:#f0f7f4; border-radius:8px; padding:10px 12px;">
-            <div style="font-size:1.2rem;">🗑️</div>
-            <strong style="color:#2e7d6e;">Remove</strong>
-            <p style="color:#555; margin-top:2px;">Revokes access from approved users</p>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /slides wrapper -->
-
-    <!-- Bottom nav -->
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-top:1px solid #e8f5e9; background:#fafafa;">
-      <button id="ht-prev" onclick="htNav(-1)" disabled style="background:#e8f5e9; border:none; border-radius:7px; padding:8px 18px; font-size:0.85rem; font-weight:600; cursor:pointer; color:#2e7d6e; transition:opacity 0.2s;" onmouseover="this.style.background='#d0ece7'" onmouseout="this.style.background='#e8f5e9'">← Prev</button>
-      <span id="ht-counter" style="font-size:0.82rem; color:#999;">1 / 7</span>
-      <button id="ht-next" onclick="htNav(1)" style="background:#2e7d6e; border:none; border-radius:7px; padding:8px 18px; font-size:0.85rem; font-weight:600; cursor:pointer; color:white; transition:background 0.2s;" onmouseover="this.style.background='#245f55'" onmouseout="this.style.background='#2e7d6e'">Next →</button>
+  </div>
+  <p style="margin-top:10px; font-size:0.84rem; color:#888;">If there are no pending requests, you'll see "No pending requests."</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">✅</div>
+  <div class="ht-label">Action — Approve</div>
+  <h2>Approving a New User</h2>
+  <ol>
+    <li>Find the user in the <strong>Pending Approval</strong> section.</li>
+    <li>Click the green <strong>✅ Approve</strong> button next to their name.</li>
+    <li>They are instantly moved to <strong>Approved Users</strong> and can now log in.</li>
+  </ol>
+  <div class="ht-tip">No confirmation dialog — approval is instant.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">❌</div>
+  <div class="ht-label">Action — Reject</div>
+  <h2>Rejecting a Request</h2>
+  <ol>
+    <li>Find the unwanted request in <strong>Pending Approval</strong>.</li>
+    <li>Click the red <strong>❌ Reject</strong> button.</li>
+    <li>A confirmation dialog appears — click OK to confirm.</li>
+    <li>The request is deleted permanently.</li>
+  </ol>
+  <div class="ht-warn">⚠️ Rejection is permanent. The person would need to sign up again if you change your mind.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">✅</div>
+  <div class="ht-label">Section 2 — Approved Users</div>
+  <h2>Approved Users</h2>
+  <p>Shows everyone who currently has access. The <strong>Owner (admin)</strong> always appears at the top and cannot be removed.</p>
+  <div class="ht-mock">
+    <div class="ht-mock-row">
+      <span><strong>admin</strong> <span style="background:#2e7d6e;color:white;font-size:0.72rem;padding:2px 8px;border-radius:10px;margin-left:6px;">Owner</span></span>
+      <span style="color:#aaa;font-size:0.78rem;">Cannot remove</span>
     </div>
-
+    <div class="ht-mock-row">
+      <strong>sarah_jones</strong>
+      <span style="background:#ff9100;color:white;padding:3px 9px;border-radius:5px;font-size:0.78rem;font-weight:700;">🗑️ Remove</span>
+    </div>
   </div>
 </div>
+<div class="ht-slide">
+  <div class="ht-icon">🚫</div>
+  <div class="ht-label">Action — Remove</div>
+  <h2>Removing an Approved User</h2>
+  <ol>
+    <li>Scroll to the <strong>Approved Users</strong> section.</li>
+    <li>Click the orange <strong>🗑️ Remove</strong> button next to the user.</li>
+    <li>Confirm the action in the dialog that appears.</li>
+    <li>The user is removed and can no longer log in.</li>
+  </ol>
+  <div class="ht-tip">The admin/Owner account can never be removed from this list.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🎓</div>
+  <div class="ht-label">Summary</div>
+  <h2>Quick Reference</h2>
+  <div class="ht-grid">
+    <div class="ht-grid-item"><strong>⏳ Pending</strong><span>New signup requests waiting for review</span></div>
+    <div class="ht-grid-item"><strong>✅ Approve</strong><span>Grants login access instantly</span></div>
+    <div class="ht-grid-item"><strong>❌ Reject</strong><span>Permanently removes the request</span></div>
+    <div class="ht-grid-item"><strong>🗑️ Remove</strong><span>Revokes access from approved users</span></div>
+  </div>
+</div>
+{% endblock %}
 
-<script>
-  var htCurrent = 0;
-  var htSlides = [];
-
-  function openHowTo() {
-    htSlides = document.querySelectorAll('.ht-slide');
-    htCurrent = 0;
-    htShowSlide(0);
-    var overlay = document.getElementById('howto-overlay');
-    overlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeHowTo() {
-    document.getElementById('howto-overlay').style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  function closeIfBackdrop(e) {
-    if (e.target === document.getElementById('howto-overlay')) closeHowTo();
-  }
-
-  function htShowSlide(n) {
-    htSlides = document.querySelectorAll('.ht-slide');
-    htSlides.forEach(function(s, i) { s.style.display = i === n ? 'block' : 'none'; });
-    var total = htSlides.length;
-    document.getElementById('ht-counter').textContent = (n + 1) + ' / ' + total;
-    document.getElementById('ht-prev').disabled = n === 0;
-    document.getElementById('ht-prev').style.opacity = n === 0 ? '0.4' : '1';
-    var nextBtn = document.getElementById('ht-next');
-    nextBtn.textContent = n === total - 1 ? 'Done ✓' : 'Next →';
-    document.getElementById('ht-progress').style.width = ((n + 1) / total * 100) + '%';
-  }
-
-  function htNav(dir) {
-    htSlides = document.querySelectorAll('.ht-slide');
-    var total = htSlides.length;
-    if (dir === 1 && htCurrent === total - 1) { closeHowTo(); return; }
-    htCurrent = Math.max(0, Math.min(htCurrent + dir, total - 1));
-    htShowSlide(htCurrent);
-  }
-
-  document.addEventListener('keydown', function(e) {
-    if (document.getElementById('howto-overlay').style.display === 'flex') {
-      if (e.key === 'ArrowRight') htNav(1);
-      if (e.key === 'ArrowLeft')  htNav(-1);
-      if (e.key === 'Escape')     closeHowTo();
-    }
-  });
-</script>
-
+{% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:800px; margin:0 auto;">
     <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
     <h1 style="color:#2e7d6e; margin-bottom:1.5rem;">👥 User Management</h1>

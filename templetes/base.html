@@ -6,6 +6,92 @@
     <title>{% block title %}{{ store_name }} | Demo{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% block extra_css %}{% endblock %}
+    <style>
+      /* ── How-To Modal (shared) ── */
+      #ht-overlay {
+        display:none; position:fixed; inset:0;
+        background:rgba(0,0,0,0.55); z-index:9999;
+        align-items:center; justify-content:center;
+      }
+      #ht-box {
+        background:#fff; border-radius:16px;
+        width:min(93vw,560px); max-height:90vh;
+        overflow:hidden; display:flex; flex-direction:column;
+        box-shadow:0 20px 60px rgba(0,0,0,0.35); position:relative;
+      }
+      #ht-progress-wrap { height:4px; background:#e8f5e9; }
+      #ht-progress-bar  { height:100%; background:linear-gradient(90deg,#2e7d6e,#56c7b6); transition:width .3s; }
+      #ht-close {
+        position:absolute; top:10px; right:14px;
+        background:none; border:none; font-size:1.3rem;
+        cursor:pointer; color:#999; line-height:1; z-index:1;
+      }
+      #ht-slides-wrap { flex:1; overflow:hidden; position:relative; min-height:300px; }
+      .ht-slide { padding:30px 34px 22px; display:none; }
+      .ht-slide.ht-active { display:block; }
+      .ht-icon { font-size:44px; margin-bottom:8px; line-height:1; }
+      .ht-label {
+        font-size:0.7rem; letter-spacing:2px; text-transform:uppercase;
+        color:#2e7d6e; margin-bottom:5px;
+      }
+      .ht-slide h2 { color:#1a4a42; font-size:1.28rem; margin-bottom:9px; }
+      .ht-slide p  { color:#555; font-size:0.9rem; line-height:1.6; margin-bottom:0; }
+      .ht-slide ol, .ht-slide ul { color:#444; font-size:0.9rem; line-height:1.85; padding-left:20px; margin:10px 0 0; }
+      .ht-tip {
+        background:#f0f7f4; border-left:3px solid #2e7d6e;
+        border-radius:0 8px 8px 0; padding:9px 13px;
+        margin-top:12px; font-size:0.84rem; color:#2d6b5e;
+      }
+      .ht-warn {
+        background:#fff5f5; border-left:3px solid #e53e3e;
+        border-radius:0 8px 8px 0; padding:9px 13px;
+        margin-top:12px; font-size:0.84rem; color:#c0392b;
+      }
+      .ht-mock {
+        background:#f8fffe; border:1px solid #c8e6e0;
+        border-radius:8px; padding:10px 14px; margin-top:12px; font-size:0.87rem;
+      }
+      .ht-mock-row {
+        display:flex; justify-content:space-between; align-items:center;
+        padding:7px 0; border-bottom:1px solid #eaf4f2; gap:8px;
+      }
+      .ht-mock-row:last-child { border-bottom:none; }
+      .ht-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:12px; }
+      .ht-grid-item {
+        background:#f0f7f4; border-radius:8px;
+        padding:9px 11px; font-size:0.84rem;
+      }
+      .ht-grid-item strong { color:#2e7d6e; display:block; margin-bottom:2px; }
+      .ht-grid-item span   { color:#555; }
+      #ht-nav {
+        display:flex; align-items:center; justify-content:space-between;
+        padding:12px 22px; border-top:1px solid #e8f5e9; background:#fafafa;
+      }
+      .ht-btn {
+        border:none; border-radius:7px; padding:8px 18px;
+        font-size:0.84rem; font-weight:700; cursor:pointer; transition:background .2s;
+      }
+      #ht-prev-btn { background:#e8f5e9; color:#2e7d6e; }
+      #ht-prev-btn:hover { background:#d0ece7; }
+      #ht-prev-btn:disabled { opacity:.35; cursor:default; }
+      #ht-next-btn { background:#2e7d6e; color:#fff; }
+      #ht-next-btn:hover { background:#245f55; }
+      #ht-counter { font-size:0.8rem; color:#aaa; }
+      /* How-To trigger button */
+      .ht-open-btn {
+        background:#2e7d6e; color:#fff; border:none;
+        border-radius:8px; padding:0.42rem 0.95rem;
+        font-size:0.84rem; font-weight:700; cursor:pointer;
+        display:inline-flex; align-items:center; gap:5px;
+        box-shadow:0 2px 6px rgba(46,125,110,.28);
+        vertical-align:middle;
+      }
+      .ht-open-btn:hover { background:#245f55; }
+      .ht-page-bar {
+        max-width:860px; margin:0 auto 0.7rem auto;
+        display:flex; justify-content:flex-end;
+      }
+    </style>
 </head>
 <body>
 
@@ -123,5 +209,74 @@
         </p>
     </footer>
     {% block extra_js %}{% endblock %}
+
+    <!-- ── How-To Modal Engine ── -->
+    <div id="ht-overlay" onclick="htCloseIfBackdrop(event)">
+      <div id="ht-box">
+        <div id="ht-progress-wrap"><div id="ht-progress-bar" style="width:0%"></div></div>
+        <button id="ht-close" onclick="htClose()">✕</button>
+        <div id="ht-slides-wrap">
+          {% block howto_slides %}{% endblock %}
+        </div>
+        <div id="ht-nav">
+          <button class="ht-btn" id="ht-prev-btn" onclick="htNav(-1)" disabled>← Prev</button>
+          <span id="ht-counter"></span>
+          <button class="ht-btn" id="ht-next-btn" onclick="htNav(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      var cur = 0;
+      function slides(){ return document.querySelectorAll('.ht-slide'); }
+
+      // Show trigger button only if slides exist
+      window.addEventListener('DOMContentLoaded', function(){
+        if(slides().length === 0){
+          document.querySelectorAll('.ht-open-btn').forEach(function(b){ b.style.display='none'; });
+        }
+      });
+
+      window.htOpen = function(){
+        var ss = slides();
+        if(!ss.length) return;
+        cur = 0;
+        htShow(0);
+        document.getElementById('ht-overlay').style.display='flex';
+        document.body.style.overflow='hidden';
+      };
+      window.htClose = function(){
+        document.getElementById('ht-overlay').style.display='none';
+        document.body.style.overflow='';
+      };
+      window.htCloseIfBackdrop = function(e){
+        if(e.target===document.getElementById('ht-overlay')) htClose();
+      };
+      window.htNav = function(dir){
+        var ss = slides();
+        if(dir===1 && cur===ss.length-1){ htClose(); return; }
+        cur = Math.max(0, Math.min(cur+dir, ss.length-1));
+        htShow(cur);
+      };
+      function htShow(n){
+        var ss = slides();
+        ss.forEach(function(s,i){ s.classList.toggle('ht-active', i===n); });
+        var total = ss.length;
+        document.getElementById('ht-counter').textContent = (n+1)+' / '+total;
+        document.getElementById('ht-prev-btn').disabled = n===0;
+        document.getElementById('ht-prev-btn').style.opacity = n===0 ? '.35' : '1';
+        document.getElementById('ht-next-btn').textContent = n===total-1 ? 'Done ✓' : 'Next →';
+        document.getElementById('ht-progress-bar').style.width = ((n+1)/total*100)+'%';
+      }
+      document.addEventListener('keydown', function(e){
+        if(document.getElementById('ht-overlay').style.display==='flex'){
+          if(e.key==='ArrowRight') htNav(1);
+          if(e.key==='ArrowLeft')  htNav(-1);
+          if(e.key==='Escape')     htClose();
+        }
+      });
+    })();
+    </script>
 </body>
 </html>

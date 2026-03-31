@@ -1,6 +1,64 @@
 {% extends 'base.html' %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">📊</div>
+  <div class="ht-label">Dashboard — How-To Guide</div>
+  <h2>Your Inventory Command Center</h2>
+  <p>The Dashboard is the home base of the app. From here you can see all your products, check stats, and access every feature the app offers.</p>
+  <div class="ht-tip">Use the navigation bar at the top to jump to any section of the app.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📈</div>
+  <div class="ht-label">Stats Grid</div>
+  <h2>Reading Your Stats</h2>
+  <p>The four stat boxes at the top give you an instant snapshot of your inventory:</p>
+  <div class="ht-grid">
+    <div class="ht-grid-item"><strong>Total Items</strong><span>Everything in inventory</span></div>
+    <div class="ht-grid-item"><strong>Available</strong><span>Items still for sale</span></div>
+    <div class="ht-grid-item"><strong>Sold</strong><span>Items marked as sold</span></div>
+    <div class="ht-grid-item"><strong>Total Value</strong><span>Sum of all sale prices</span></div>
+  </div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🛍️</div>
+  <div class="ht-label">Products</div>
+  <h2>Browsing Your Products</h2>
+  <p>Each product card shows the photo, title, SKU, price, and status. Use the buttons on every card to take action:</p>
+  <div class="ht-grid">
+    <div class="ht-grid-item"><strong>View</strong><span>See all product details</span></div>
+    <div class="ht-grid-item"><strong>Edit</strong><span>Update info or price</span></div>
+    <div class="ht-grid-item"><strong>Edit Image</strong><span>Rotate or crop photos</span></div>
+    <div class="ht-grid-item"><strong>Add New Product</strong><span>Top-right of product list</span></div>
+  </div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🔒</div>
+  <div class="ht-label">Admin Controls</div>
+  <h2>Admin Control Panel</h2>
+  <p>If you're logged in as <strong>admin</strong>, a row of admin buttons appears above the stats:</p>
+  <ul>
+    <li>👥 <strong>Manage Users</strong> — approve or remove staff accounts</li>
+    <li>💾 <strong>Backups</strong> — save or restore your inventory</li>
+    <li>📥 <strong>Export CSV</strong> — download your full inventory</li>
+    <li>⬛ <strong>Export for Square</strong> — export in Square's format</li>
+    <li>📥 <strong>Import from Square</strong> — bring in Square products</li>
+  </ul>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🔥</div>
+  <div class="ht-label">Seasonal Sale</div>
+  <h2>Sale &amp; Approval Alerts</h2>
+  <p>Two types of banners may appear below the nav bar:</p>
+  <ul>
+    <li>🔥 <strong>Sale Active banner</strong> — shows when a seasonal discount is running. Click "Manage Sale" to change it.</li>
+    <li>⏳ <strong>Pending Approval banner</strong> — alerts you when new users are waiting. Click "Review Now" to go to User Management.</li>
+  </ul>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div class="dashboard">
     <h1 style="text-align:center;">{{ store_name or 'LibertyE' }} — Inventory Dashboard</h1>
 

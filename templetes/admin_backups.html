@@ -1,6 +1,60 @@
 {% extends 'base.html' %}
 {% block title %}Backups | Liberty Emporium{% endblock %}
+
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">💾</div>
+  <div class="ht-label">Backups — How-To Guide</div>
+  <h2>Protecting Your Inventory Data</h2>
+  <p>The Backups page lets you save snapshots of your full inventory. If something ever goes wrong, you can restore any previous backup in one click. Up to <strong>20 backups</strong> are kept at all times.</p>
+  <div class="ht-tip">🔒 Only the admin account can access Backups.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🤖</div>
+  <div class="ht-label">Auto Backups</div>
+  <h2>Automatic Backups</h2>
+  <p>The app automatically creates a backup every time you <strong>save or edit a product</strong>. You don't need to do anything — it happens in the background.</p>
+  <p style="margin-top:8px;">Each backup file shows the <strong>date, time, and file size</strong> so you can identify when it was created.</p>
+  <div class="ht-tip">Once 20 backups exist, the oldest one is automatically deleted to make room for the new one.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📦</div>
+  <div class="ht-label">Manual Backup</div>
+  <h2>Creating a Manual Backup</h2>
+  <ol>
+    <li>Click the <strong>"📦 Create Backup Now"</strong> button in the top-right corner.</li>
+    <li>A new backup snapshot is created immediately.</li>
+    <li>It appears at the top of the backup list.</li>
+  </ol>
+  <div class="ht-tip">Create a manual backup before making large changes — like importing from Square or bulk edits.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⬇️</div>
+  <div class="ht-label">Download a Backup</div>
+  <h2>Downloading a Backup File</h2>
+  <ol>
+    <li>Find the backup you want in the list.</li>
+    <li>Click <strong>"⬇️ Download"</strong> next to it.</li>
+    <li>The backup CSV file is saved to your computer.</li>
+  </ol>
+  <p style="margin-top:8px; color:#555; font-size:0.9rem;">Downloaded backups are standard CSV files you can open in Excel or Google Sheets.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">♻️</div>
+  <div class="ht-label">Restore a Backup</div>
+  <h2>Restoring from a Backup</h2>
+  <ol>
+    <li>Find the backup you want to restore.</li>
+    <li>Click <strong>"♻️ Restore"</strong> next to it.</li>
+    <li>A confirmation dialog appears — click OK to proceed.</li>
+    <li>Your entire inventory is replaced with the data from that backup.</li>
+  </ol>
+  <div class="ht-warn">⚠️ Restoring a backup <strong>overwrites</strong> your current inventory. Create a backup first if you're unsure.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:800px; margin:0 auto;">
     <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
