@@ -210,12 +210,14 @@ def ctx():
 # ── Context processor ─────────────────────────────────────────────────────────
 @app.context_processor
 def inject_globals():
+    is_admin = session.get('username') == ADMIN_USER
     return dict(
         store_name=STORE_NAME,
         demo_mode=DEMO_MODE,
         demo_contact_email=CONTACT_EMAIL,
         stats=get_stats(),
         sale_state=load_sale(),
+        user_role='admin' if is_admin else 'guest',
     )
 
 # ── Auth Routes ───────────────────────────────────────────────────────────────
