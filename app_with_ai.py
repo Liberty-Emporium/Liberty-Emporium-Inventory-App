@@ -35,11 +35,16 @@ def fix_image_orientation(img):
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
-INVENTORY_FILE = os.path.join(BASE_DIR, 'inventory.csv')
-UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
-BACKUP_FOLDER  = os.path.join(BASE_DIR, 'backups')
-ADS_FOLDER     = os.path.join(BASE_DIR, 'ads')
-MUSIC_FOLDER   = os.path.join(BASE_DIR, 'music')
+
+# Use persistent storage on Railway (/data is the mounted persistent disk)
+# Falls back to local directories if not running on Railway
+DATA_DIR = os.environ.get('RAILWAY_DATA_DIR', '/data' if os.path.exists('/data') else BASE_DIR)
+
+INVENTORY_FILE = os.path.join(BASE_DIR, 'inventory.csv')  # Stays in app directory
+UPLOAD_FOLDER  = os.path.join(DATA_DIR, 'uploads')
+BACKUP_FOLDER  = os.path.join(DATA_DIR, 'backups')
+ADS_FOLDER     = os.path.join(DATA_DIR, 'ads')
+MUSIC_FOLDER   = os.path.join(DATA_DIR, 'music')
 USERS_FILE     = os.path.join(BASE_DIR, 'users.json')
 PENDING_FILE   = os.path.join(BASE_DIR, 'pending_users.json')
 SALE_FILE      = os.path.join(BASE_DIR, 'sale_state.json')

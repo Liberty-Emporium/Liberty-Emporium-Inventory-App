@@ -1,3 +1,6 @@
 [build.nixpacks]
 providers = ["python"]
 packages = ["ffmpeg"]
+
+[volumes]
+"/data" = "liberty_emporium_data"
