@@ -682,248 +682,248 @@ def generate_video_ad():
     tmp_files = []   # track temp files to clean up
     
     try:
-            # Save uploaded music to a temp file if provided
-            if music_file_upload:
-                tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
-                music_file_upload.save(tmp_music.name)
-                tmp_files.append(tmp_music.name)
-                if os.path.getsize(tmp_music.name) > 20 * 1024 * 1024:
-                    return jsonify({'error': 'Uploaded MP3 must be under 20 MB.'})
-                music_path = tmp_music.name
+        # Save uploaded music to a temp file if provided
+        if music_file_upload:
+            tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
+            music_file_upload.save(tmp_music.name)
+            tmp_files.append(tmp_music.name)
+            if os.path.getsize(tmp_music.name) > 20 * 1024 * 1024:
+                return jsonify({'error': 'Uploaded MP3 must be under 20 MB.'})
+            music_path = tmp_music.name
+        else:
+            music_path = os.path.join(MUSIC_FOLDER, os.path.basename(music_track_name))
+            if not os.path.exists(music_path):
+                return jsonify({'error': f'Music track not found: {music_track_name}'})
+
+        # Save uploaded logo to a temp file if provided
+        logo_path = None
+        logo_file_upload = request.files.get('logo_file')
+        if logo_file_upload:
+            tmp_logo = tempfile.NamedTemporaryFile(suffix=os.path.splitext(logo_file_upload.filename)[1], delete=False)
+            logo_file_upload.save(tmp_logo.name)
+            tmp_files.append(tmp_logo.name)
+            if os.path.getsize(tmp_logo.name) > 5 * 1024 * 1024:
+                return jsonify({'error': 'Logo must be under 5 MB.'})
+            logo_path = tmp_logo.name
+
+        W, H = video_size
+
+        for p in products:
+            sku   = p.get('sku', 'UNKNOWN')
+            title = p.get('title', 'Untitled')
+            price = p.get('price', '0.00')
+            image_url = p.get('image', '')
+
+            # ── Build frame image with Pillow ─────────────────────────────────
+            from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+            import io as _io
+
+            frame = _Img.new('RGB', (W, H), color=tuple(int(template_config['bg_dark'].lstrip('#')[i:i+2], 16) for i in (0, 2, 4)))
+
+            # Calculate layout based on aspect ratio
+            is_vertical = H > W
+            if is_vertical:
+                # Vertical layout (TikTok, Instagram Reels)
+                img_height = int(H * 0.6)
+                img_width = int(W)
+                text_y_start = img_height + int(H * 0.08)
+                overlay_height = H - img_height
             else:
-                music_path = os.path.join(MUSIC_FOLDER, os.path.basename(music_track_name))
-                if not os.path.exists(music_path):
-                    return jsonify({'error': f'Music track not found: {music_track_name}'})
+                # Horizontal layout (YouTube, Facebook, Square)
+                img_height = H
+                img_width = int(W * 0.65)
+                text_y_start = int(H * 0.2)
+                overlay_width = W - img_width
 
-            # Save uploaded logo to a temp file if provided
-            logo_path = None
-            logo_file_upload = request.files.get('logo_file')
-            if logo_file_upload:
-                tmp_logo = tempfile.NamedTemporaryFile(suffix=os.path.splitext(logo_file_upload.filename)[1], delete=False)
-                logo_file_upload.save(tmp_logo.name)
-                tmp_files.append(tmp_logo.name)
-                if os.path.getsize(tmp_logo.name) > 5 * 1024 * 1024:
-                    return jsonify({'error': 'Logo must be under 5 MB.'})
-                logo_path = tmp_logo.name
-
-            W, H = video_size
-
-            for p in products:
-                sku   = p.get('sku', 'UNKNOWN')
-                title = p.get('title', 'Untitled')
-                price = p.get('price', '0.00')
-                image_url = p.get('image', '')
-
-                # ── Build frame image with Pillow ─────────────────────────────────
-                from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
-                import io as _io
-
-                frame = _Img.new('RGB', (W, H), color=tuple(int(template_config['bg_dark'].lstrip('#')[i:i+2], 16) for i in (0, 2, 4)))
-
-                # Calculate layout based on aspect ratio
-                is_vertical = H > W
-                if is_vertical:
-                    # Vertical layout (TikTok, Instagram Reels)
-                    img_height = int(H * 0.6)
-                    img_width = int(W)
-                    text_y_start = img_height + int(H * 0.08)
-                    overlay_height = H - img_height
-                else:
-                    # Horizontal layout (YouTube, Facebook, Square)
-                    img_height = H
-                    img_width = int(W * 0.65)
-                    text_y_start = int(H * 0.2)
-                    overlay_width = W - img_width
-
-                # Paste product image if available
-                if image_url:
-                    img_filename = image_url.split('/')[-1]
-                    img_path = os.path.join(UPLOAD_FOLDER, img_filename)
-                    if os.path.exists(img_path):
-                        try:
-                            prod_img = _Img.open(img_path)
-                            prod_img = fix_image_orientation(prod_img)
-                            prod_img = prod_img.convert('RGB')
-                            prod_img.thumbnail((img_width, img_height), _Img.LANCZOS)
-                            if is_vertical:
-                                frame.paste(prod_img, (0, 0))
-                            else:
-                                frame.paste(prod_img, (0, (H - prod_img.height) // 2))
-                        except Exception:
-                            pass
-
-                # Add dark overlay for text (for horizontal: right side, for vertical: bottom)
-                if is_vertical:
-                    overlay = _Img.new('RGBA', (W, overlay_height), (0, 0, 0, 0))
-                    _Draw.Draw(overlay).rectangle([(0, 0), (W, overlay_height)], fill=(int(template_config['bg_dark'].lstrip('#')[0:2], 16), int(template_config['bg_dark'].lstrip('#')[2:4], 16), int(template_config['bg_dark'].lstrip('#')[4:6], 16), 230))
-                    frame.paste(_Img.new('RGB', (W, overlay_height), color=tuple(int(template_config['bg_dark'].lstrip('#')[i:i+2], 16) for i in (0, 2, 4))), (0, img_height))
-                else:
-                    overlay = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
-                    _Draw.Draw(overlay).rectangle([(img_width, 0), (W, H)], fill=(int(template_config['bg_dark'].lstrip('#')[0:2], 16), int(template_config['bg_dark'].lstrip('#')[2:4], 16), int(template_config['bg_dark'].lstrip('#')[4:6], 16), 230))
-                    frame = _Img.alpha_composite(frame.convert('RGBA'), overlay).convert('RGB')
-
-                draw = _Draw.Draw(frame)
-
-                # Font sizing based on video size
-                font_title_size = max(28, int(W * 0.022))
-                font_price_size = max(42, int(W * 0.033))
-                font_small_size = max(16, int(W * 0.014))
-                font_cta_size = max(14, int(W * 0.010))
-
-                try:
-                    font_title = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', font_title_size)
-                    font_price = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', font_price_size)
-                    font_small = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', font_small_size)
-                    font_cta = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', font_cta_size)
-                except Exception:
-                    font_title = _Font.load_default()
-                    font_price = font_title
-                    font_small = font_title
-                    font_cta = font_title
-
-                # Parse template accent color
-                accent_color = tuple(int(template_config['accent'].lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
-                text_color = (255, 255, 255)
-
-                if is_vertical:
-                    # Vertical text layout
-                    text_x = int(W * 0.05)
-                    y = text_y_start
-                else:
-                    # Horizontal text layout on the right side
-                    text_x = img_width + int((W - img_width) * 0.05)
-                    y = text_y_start
-
-                # Wrap title
-                lines = textwrap.wrap(title, width=15 if is_vertical else 20)
-                for line in lines[:2]:
-                    draw.text((text_x, y), line, font=font_title, fill=accent_color)
-                    y += font_title_size + 8
-
-                # Price
-                y += int(font_title_size * 0.3)
-                draw.text((text_x, y), f'${price}', font=font_price, fill=text_color)
-                y += font_price_size + 12
-
-                # ── Product Description ───────────────────────────────────────────
-                if description:
-                    desc_lines = textwrap.wrap(description, width=18 if is_vertical else 24)
-                    for desc_line in desc_lines[:3]:  # Limit to 3 lines
-                        draw.text((text_x, y), desc_line, font=font_small, fill=(200, 200, 220))
-                        y += font_small_size + 5
-                    y += int(font_small_size * 0.5)  # Extra spacing after description
-
-                # ── Custom CTA text ───────────────────────────────────────────────
-                if cta_text:
-                    cta_lines = textwrap.wrap(cta_text, width=15 if is_vertical else 20)
-                    for cta_line in cta_lines[:2]:
-                        draw.text((text_x, y), cta_line, font=font_cta, fill=accent_color)
-                        y += font_cta_size + 6
-
-                # Store name and tagline footer
-                y = H - (font_small_size * 2 + 12)
-                draw.text((text_x, y), 'Liberty Emporium', font=font_small, fill=(160, 160, 200))
-                footer_text = tagline or '125 W Swannanoa Ave'
-                draw.text((text_x, y + font_small_size + 4), footer_text, font=font_small, fill=(120, 120, 160))
-
-                # ── Add watermark/logo if provided ───────────────────────────────
-                if logo_path and os.path.exists(logo_path):
+            # Paste product image if available
+            if image_url:
+                img_filename = image_url.split('/')[-1]
+                img_path = os.path.join(UPLOAD_FOLDER, img_filename)
+                if os.path.exists(img_path):
                     try:
-                        logo_img = _Img.open(logo_path)
-                        logo_img = fix_image_orientation(logo_img)
-                        logo_img = logo_img.convert('RGBA')
-                        
-                        # Determine logo size based on size setting
-                        size_map = {'small': 60, 'medium': 90, 'large': 120}
-                        target_size = size_map.get(logo_size, 90)
-                        
-                        # Scale relative to video size
-                        target_size = int(target_size * (W / 1280.0))
-                        
-                        # Maintain aspect ratio
-                        logo_img.thumbnail((target_size, target_size), _Img.LANCZOS)
-                        
-                        # Calculate position based on logo_position setting
-                        padding = int(W * 0.015)
-                        pos_map = {
-                            'top-left': (padding, padding),
-                            'top-right': (W - logo_img.width - padding, padding),
-                            'bottom-left': (padding, H - logo_img.height - padding),
-                            'bottom-right': (W - logo_img.width - padding, H - logo_img.height - padding)
-                        }
-                        pos = pos_map.get(logo_position, pos_map['top-right'])
-                        
-                        # Paste logo onto frame
-                        frame = frame.convert('RGBA')
-                        frame.paste(logo_img, pos, logo_img)
-                        frame = frame.convert('RGB')
-                    except Exception as logo_err:
-                        pass
-
-                # Save frame to temp file
-                tmp_frame = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
-                frame.save(tmp_frame.name, 'JPEG', quality=92)
-                tmp_files.append(tmp_frame.name)
-
-                # ── Run ffmpeg ────────────────────────────────────────────────────
-                ts       = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-                template_suffix = f"_{template}" if template != 'default' else ''
-                format_suffix = f"_{format_str.replace('x', 'x')}" if format_str != '1920x1080' else ''
-                out_name = f'video_ad_{sku}{template_suffix}{format_suffix}_{ts}.mp4'
-                out_path = os.path.join(ADS_FOLDER, out_name)
-
-                if style == 'kenburns':
-                    vf = f"zoompan=z='min(zoom+0.0015,1.5)':d={duration * 25}:s={W}x{H},fps=25"
-                    cmd = [
-                        ffmpeg_path, '-y',
-                        '-loop', '1', '-i', tmp_frame.name,
-                        '-i', music_path,
-                        '-vf', vf,
-                        '-c:v', 'libx264', '-c:a', 'aac',
-                        '-t', str(duration),
-                        '-pix_fmt', 'yuv420p',
-                        '-shortest',
-                        out_path
-                    ]
-                else:  # slideshow (default)
-                    cmd = [
-                        ffmpeg_path, '-y',
-                        '-loop', '1', '-i', tmp_frame.name,
-                        '-i', music_path,
-                        '-tune', 'stillimage', '-c:v', 'libx264',
-                        '-c:a', 'aac',
-                        '-t', str(duration),
-                        '-pix_fmt', 'yuv420p',
-                        '-shortest',
-                        out_path
-                    ]
-
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-                if result.returncode != 0:
-                    return jsonify({'error': f'ffmpeg failed: {result.stderr[-500:]}'})
-
-                generated.append({'filename': out_name, 'product_title': title})
-
-            # Return success
-            return jsonify({'success': True, 'files': generated})
-
-        except Exception as e:
-            # Catch any unexpected errors and return JSON instead of error page
-            import traceback
-            error_msg = f"{str(e)}\n{traceback.format_exc()}"
-            app.logger.error(f"Video generation error: {error_msg}")
-            return jsonify({'error': f'Video generation failed: {str(e)}'}), 500
-        
-        finally:
-            # Clean up temp files
-            try:
-                for f in tmp_files if 'tmp_files' in locals() else []:
-                    try:
-                        os.unlink(f)
+                        prod_img = _Img.open(img_path)
+                        prod_img = fix_image_orientation(prod_img)
+                        prod_img = prod_img.convert('RGB')
+                        prod_img.thumbnail((img_width, img_height), _Img.LANCZOS)
+                        if is_vertical:
+                            frame.paste(prod_img, (0, 0))
+                        else:
+                            frame.paste(prod_img, (0, (H - prod_img.height) // 2))
                     except Exception:
                         pass
+
+            # Add dark overlay for text (for horizontal: right side, for vertical: bottom)
+            if is_vertical:
+                overlay = _Img.new('RGBA', (W, overlay_height), (0, 0, 0, 0))
+                _Draw.Draw(overlay).rectangle([(0, 0), (W, overlay_height)], fill=(int(template_config['bg_dark'].lstrip('#')[0:2], 16), int(template_config['bg_dark'].lstrip('#')[2:4], 16), int(template_config['bg_dark'].lstrip('#')[4:6], 16), 230))
+                frame.paste(_Img.new('RGB', (W, overlay_height), color=tuple(int(template_config['bg_dark'].lstrip('#')[i:i+2], 16) for i in (0, 2, 4))), (0, img_height))
+            else:
+                overlay = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
+                _Draw.Draw(overlay).rectangle([(img_width, 0), (W, H)], fill=(int(template_config['bg_dark'].lstrip('#')[0:2], 16), int(template_config['bg_dark'].lstrip('#')[2:4], 16), int(template_config['bg_dark'].lstrip('#')[4:6], 16), 230))
+                frame = _Img.alpha_composite(frame.convert('RGBA'), overlay).convert('RGB')
+
+            draw = _Draw.Draw(frame)
+
+            # Font sizing based on video size
+            font_title_size = max(28, int(W * 0.022))
+            font_price_size = max(42, int(W * 0.033))
+            font_small_size = max(16, int(W * 0.014))
+            font_cta_size = max(14, int(W * 0.010))
+
+            try:
+                font_title = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', font_title_size)
+                font_price = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', font_price_size)
+                font_small = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', font_small_size)
+                font_cta = _Font.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', font_cta_size)
             except Exception:
-                pass
+                font_title = _Font.load_default()
+                font_price = font_title
+                font_small = font_title
+                font_cta = font_title
+
+            # Parse template accent color
+            accent_color = tuple(int(template_config['accent'].lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+            text_color = (255, 255, 255)
+
+            if is_vertical:
+                # Vertical text layout
+                text_x = int(W * 0.05)
+                y = text_y_start
+            else:
+                # Horizontal text layout on the right side
+                text_x = img_width + int((W - img_width) * 0.05)
+                y = text_y_start
+
+            # Wrap title
+            lines = textwrap.wrap(title, width=15 if is_vertical else 20)
+            for line in lines[:2]:
+                draw.text((text_x, y), line, font=font_title, fill=accent_color)
+                y += font_title_size + 8
+
+            # Price
+            y += int(font_title_size * 0.3)
+            draw.text((text_x, y), f'${price}', font=font_price, fill=text_color)
+            y += font_price_size + 12
+
+            # ── Product Description ───────────────────────────────────────────
+            if description:
+                desc_lines = textwrap.wrap(description, width=18 if is_vertical else 24)
+                for desc_line in desc_lines[:3]:  # Limit to 3 lines
+                    draw.text((text_x, y), desc_line, font=font_small, fill=(200, 200, 220))
+                    y += font_small_size + 5
+                y += int(font_small_size * 0.5)  # Extra spacing after description
+
+            # ── Custom CTA text ───────────────────────────────────────────────
+            if cta_text:
+                cta_lines = textwrap.wrap(cta_text, width=15 if is_vertical else 20)
+                for cta_line in cta_lines[:2]:
+                    draw.text((text_x, y), cta_line, font=font_cta, fill=accent_color)
+                    y += font_cta_size + 6
+
+            # Store name and tagline footer
+            y = H - (font_small_size * 2 + 12)
+            draw.text((text_x, y), 'Liberty Emporium', font=font_small, fill=(160, 160, 200))
+            footer_text = tagline or '125 W Swannanoa Ave'
+            draw.text((text_x, y + font_small_size + 4), footer_text, font=font_small, fill=(120, 120, 160))
+
+            # ── Add watermark/logo if provided ───────────────────────────────
+            if logo_path and os.path.exists(logo_path):
+                try:
+                    logo_img = _Img.open(logo_path)
+                    logo_img = fix_image_orientation(logo_img)
+                    logo_img = logo_img.convert('RGBA')
+                    
+                    # Determine logo size based on size setting
+                    size_map = {'small': 60, 'medium': 90, 'large': 120}
+                    target_size = size_map.get(logo_size, 90)
+                    
+                    # Scale relative to video size
+                    target_size = int(target_size * (W / 1280.0))
+                    
+                    # Maintain aspect ratio
+                    logo_img.thumbnail((target_size, target_size), _Img.LANCZOS)
+                    
+                    # Calculate position based on logo_position setting
+                    padding = int(W * 0.015)
+                    pos_map = {
+                        'top-left': (padding, padding),
+                        'top-right': (W - logo_img.width - padding, padding),
+                        'bottom-left': (padding, H - logo_img.height - padding),
+                        'bottom-right': (W - logo_img.width - padding, H - logo_img.height - padding)
+                    }
+                    pos = pos_map.get(logo_position, pos_map['top-right'])
+                    
+                    # Paste logo onto frame
+                    frame = frame.convert('RGBA')
+                    frame.paste(logo_img, pos, logo_img)
+                    frame = frame.convert('RGB')
+                except Exception as logo_err:
+                    pass
+
+            # Save frame to temp file
+            tmp_frame = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+            frame.save(tmp_frame.name, 'JPEG', quality=92)
+            tmp_files.append(tmp_frame.name)
+
+            # ── Run ffmpeg ────────────────────────────────────────────────────
+            ts       = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            template_suffix = f"_{template}" if template != 'default' else ''
+            format_suffix = f"_{format_str.replace('x', 'x')}" if format_str != '1920x1080' else ''
+            out_name = f'video_ad_{sku}{template_suffix}{format_suffix}_{ts}.mp4'
+            out_path = os.path.join(ADS_FOLDER, out_name)
+
+            if style == 'kenburns':
+                vf = f"zoompan=z='min(zoom+0.0015,1.5)':d={duration * 25}:s={W}x{H},fps=25"
+                cmd = [
+                    ffmpeg_path, '-y',
+                    '-loop', '1', '-i', tmp_frame.name,
+                    '-i', music_path,
+                    '-vf', vf,
+                    '-c:v', 'libx264', '-c:a', 'aac',
+                    '-t', str(duration),
+                    '-pix_fmt', 'yuv420p',
+                    '-shortest',
+                    out_path
+                ]
+            else:  # slideshow (default)
+                cmd = [
+                    ffmpeg_path, '-y',
+                    '-loop', '1', '-i', tmp_frame.name,
+                    '-i', music_path,
+                    '-tune', 'stillimage', '-c:v', 'libx264',
+                    '-c:a', 'aac',
+                    '-t', str(duration),
+                    '-pix_fmt', 'yuv420p',
+                    '-shortest',
+                    out_path
+                ]
+
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            if result.returncode != 0:
+                return jsonify({'error': f'ffmpeg failed: {result.stderr[-500:]}'})
+
+            generated.append({'filename': out_name, 'product_title': title})
+
+        # Return success
+        return jsonify({'success': True, 'files': generated})
+
+    except Exception as e:
+        # Catch any unexpected errors and return JSON instead of error page
+        import traceback
+        error_msg = f"{str(e)}\n{traceback.format_exc()}"
+        app.logger.error(f"Video generation error: {error_msg}")
+        return jsonify({'error': f'Video generation failed: {str(e)}'}), 500
+
+    finally:
+        # Clean up temp files
+        try:
+            for f in tmp_files if 'tmp_files' in locals() else []:
+                try:
+                    os.unlink(f)
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
 # ── Listing Generator ─────────────────────────────────────────────────────────
 @app.route('/listing-generator')
