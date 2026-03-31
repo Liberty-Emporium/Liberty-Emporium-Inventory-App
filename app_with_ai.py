@@ -651,6 +651,25 @@ def list_music():
 def serve_music(filename):
     return send_from_directory(MUSIC_FOLDER, filename)
 
+@app.route('/upload-music-temp', methods=['POST'])
+@login_required
+def upload_music_temp():
+    """Receives a music file upload and stores it in a temp location.
+    Returns a token the client passes back to /generate-video-ad."""
+    import tempfile as _tf
+    f = request.files.get('music_file')
+    if not f:
+        return jsonify({'error': 'No file provided.'}), 400
+    if f.content_length and f.content_length > 20 * 1024 * 1024:
+        return jsonify({'error': 'File must be under 20 MB.'}), 400
+    tmp = _tf.NamedTemporaryFile(suffix='.mp3', delete=False, dir=os.path.join(DATA_DIR, 'uploads'))
+    f.save(tmp.name)
+    if os.path.getsize(tmp.name) > 20 * 1024 * 1024:
+        os.unlink(tmp.name)
+        return jsonify({'error': 'File must be under 20 MB.'}), 400
+    token = os.path.basename(tmp.name)
+    return jsonify({'token': token})
+
 @app.route('/generate-video-ad', methods=['POST'])
 @login_required
 def generate_video_ad():
@@ -695,22 +714,29 @@ def generate_video_ad():
         # Determine music path
         music_file_upload = request.files.get('music_file')
         music_track_name  = request.form.get('music_track', '').strip()
+        music_token       = request.form.get('music_token', '').strip()
 
         if not products:
             return jsonify({'error': 'No products provided.'})
-        if not music_file_upload and not music_track_name:
+        if not music_file_upload and not music_track_name and not music_token:
             return jsonify({'error': 'No music track selected.'})
 
         # Find ffmpeg — works on both apt (/usr/bin) and nixpacks installs
         ffmpeg_path = _shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
         if not os.path.exists(ffmpeg_path):
-            return jsonify({'error': f'ffmpeg not found on this server (searched PATH + /usr/bin/ffmpeg).'})
+            return jsonify({'error': 'ffmpeg not found on this server.'})
 
         generated = []
         tmp_files = []
 
-        # Save uploaded music to a temp file if provided
-        if music_file_upload:
+        # Resolve music path
+        if music_token:
+            # Pre-uploaded via /upload-music-temp
+            music_path = os.path.join(DATA_DIR, 'uploads', os.path.basename(music_token))
+            if not os.path.exists(music_path):
+                return jsonify({'error': 'Music upload expired or not found. Please re-upload.'})
+            tmp_files.append(music_path)  # clean up after generation
+        elif music_file_upload:
             tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
             music_file_upload.save(tmp_music.name)
             tmp_files.append(tmp_music.name)

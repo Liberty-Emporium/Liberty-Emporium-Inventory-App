@@ -1477,17 +1477,11 @@ function vsGenerate() {
     });
   });
 
-  // Check if generating multiple formats (holiday preset)
-  const formats = vsSelectedFormat === 'all' 
+  const formats = vsSelectedFormat === 'all'
     ? ['1920x1080', '1080x1350', '1080x1920', '1200x628', '1080x1080']
     : [vsSelectedFormat];
 
   const duration = document.getElementById('vsDurationSlider').value;
-  
-  // For multi-format, extend duration for progress
-  const totalGenerations = products.length * formats.length;
-  const estimatedTime = totalGenerations * 45; // rough estimate in seconds
-  
   const ctaText = document.getElementById('vsCtaText').value.trim();
   const tagline = document.getElementById('vsTagline').value.trim();
   const logoPosition = document.getElementById('vsLogoPosition').value;
@@ -1495,28 +1489,45 @@ function vsGenerate() {
 
   const btn = document.getElementById('vsGenerateBtn');
   btn.disabled = true;
-  
+
   document.getElementById('loadingOverlay').classList.add('active');
-  document.getElementById('loadingText').textContent = formats.length > 1 
-    ? `Creating ${formats.length} video formats...` 
+  document.getElementById('loadingText').textContent = formats.length > 1
+    ? `Creating ${formats.length} video formats...`
     : 'Creating video ad...';
-  document.getElementById('loadingDetail').textContent = 'Initializing...';
-  
+  document.getElementById('loadingDetail').textContent = 'Uploading music...';
+  document.getElementById('loadingBar').style.width = '5%';
+
   let progressCount = 0;
-  const progressInterval = setInterval(() => {
-    progressCount += Math.random() * 15;
-    if (progressCount > 90) progressCount = 90;
-    document.getElementById('loadingBar').style.width = progressCount + '%';
-    
-    const stage = Math.floor((progressCount / 90) * 3);
-    const stages = ['Initializing...', 'Processing frames...', 'Encoding videos...'];
-    document.getElementById('loadingDetail').textContent = stages[stage] || 'Finishing up...';
-  }, 800);
+  let progressInterval = null;
+
+  // If user uploaded their own file, pre-upload it first so the generate
+  // request contains only small JSON (avoids Railway's 30s upload timeout)
+  const getMusicToken = () => {
+    if (!vsUploadedFile) return Promise.resolve(null);
+    const fd = new FormData();
+    fd.append('music_file', vsUploadedFile);
+    return fetch('/upload-music-temp', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        return data.token;
+      });
+  };
+
+  getMusicToken().then(musicToken => {
+    document.getElementById('loadingDetail').textContent = 'Initializing...';
+    progressInterval = setInterval(() => {
+      progressCount += Math.random() * 15;
+      if (progressCount > 90) progressCount = 90;
+      document.getElementById('loadingBar').style.width = progressCount + '%';
+      const stage = Math.floor((progressCount / 90) * 3);
+      const stages = ['Initializing...', 'Processing frames...', 'Encoding videos...'];
+      document.getElementById('loadingDetail').textContent = stages[stage] || 'Finishing up...';
+    }, 800);
 
   // Generate all format versions
   const generateFormat = (formatIdx) => {
     if (formatIdx >= formats.length) {
-      // All formats done
       clearInterval(progressInterval);
       document.getElementById('loadingBar').style.width = '100%';
       document.getElementById('loadingDetail').textContent = 'Complete!';
@@ -1533,13 +1544,13 @@ function vsGenerate() {
     formData.append('tagline', tagline);
     formData.append('logo_position', logoPosition);
     formData.append('logo_size', logoSize);
-    
-    if (vsUploadedFile) {
-      formData.append('music_file', vsUploadedFile);
+
+    if (musicToken) {
+      formData.append('music_token', musicToken);
     } else {
       formData.append('music_track', vsSelectedTrack);
     }
-    
+
     if (vsLogoFile) {
       formData.append('logo_file', vsLogoFile);
     }
@@ -1581,7 +1592,6 @@ function vsGenerate() {
       document.getElementById('loadingOverlay').classList.remove('active');
       btn.disabled = false;
       btn.innerHTML = '🎬 Create Video Ad';
-      
       if (window.vsAllResults && window.vsAllResults.length > 0) {
         vsShowResults(window.vsAllResults);
         window.vsAllResults = [];
@@ -1594,6 +1604,11 @@ function vsGenerate() {
       btn.innerHTML = '🎬 Create Video Ad';
       vsShowError('Error: ' + (e.message || e));
     });
+  }).catch(e => {
+    document.getElementById('loadingOverlay').classList.remove('active');
+    btn.disabled = false;
+    vsShowError('Music upload failed: ' + (e.message || e));
+  });
 }
 
 function vsShowResults(files) {
