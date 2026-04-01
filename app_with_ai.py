@@ -659,18 +659,24 @@ def upload_music_temp():
     """Receives a music file upload and stores it in a temp location.
     Returns a token the client passes back to /generate-video-ad."""
     import tempfile as _tf
-    f = request.files.get('music_file')
-    if not f:
-        return jsonify({'error': 'No file provided.'}), 400
-    if f.content_length and f.content_length > 20 * 1024 * 1024:
-        return jsonify({'error': 'File must be under 20 MB.'}), 400
-    tmp = _tf.NamedTemporaryFile(suffix='.mp3', delete=False, dir=os.path.join(DATA_DIR, 'uploads'))
-    f.save(tmp.name)
-    if os.path.getsize(tmp.name) > 20 * 1024 * 1024:
-        os.unlink(tmp.name)
-        return jsonify({'error': 'File must be under 20 MB.'}), 400
-    token = os.path.basename(tmp.name)
-    return jsonify({'token': token})
+    try:
+        f = request.files.get('music_file')
+        if not f:
+            return jsonify({'error': 'No file provided.'}), 400
+        if f.content_length and f.content_length > 20 * 1024 * 1024:
+            return jsonify({'error': 'File must be under 20 MB.'}), 400
+        upload_dir = os.path.join(DATA_DIR, 'uploads')
+        os.makedirs(upload_dir, exist_ok=True)
+        tmp = _tf.NamedTemporaryFile(suffix='.mp3', delete=False, dir=upload_dir)
+        f.save(tmp.name)
+        if os.path.getsize(tmp.name) > 20 * 1024 * 1024:
+            os.unlink(tmp.name)
+            return jsonify({'error': 'File must be under 20 MB.'}), 400
+        token = os.path.basename(tmp.name)
+        return jsonify({'token': token})
+    except Exception as e:
+        app.logger.error(f"Music upload error: {e}")
+        return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
 def _draw_text_layer(W, H, store_name, title, price, description, cta_text, tagline,
                      font_bold_path, font_reg_path, template_config):

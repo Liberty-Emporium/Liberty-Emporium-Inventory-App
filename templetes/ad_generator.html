@@ -1507,7 +1507,15 @@ function vsGenerate() {
     const fd = new FormData();
     fd.append('music_file', vsUploadedFile);
     return fetch('/upload-music-temp', { method: 'POST', body: fd })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) {
+          return r.text().then(t => {
+            try { const j = JSON.parse(t); throw new Error(j.error || `HTTP ${r.status}`); }
+            catch(e2) { if (e2.message.startsWith('HTTP')) throw e2; throw new Error(`Upload error (${r.status})`); }
+          });
+        }
+        return r.json();
+      })
       .then(data => {
         if (data.error) throw new Error(data.error);
         return data.token;
