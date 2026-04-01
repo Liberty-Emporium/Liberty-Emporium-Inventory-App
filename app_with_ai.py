@@ -220,6 +220,11 @@ def inject_globals():
         user_role='admin' if is_admin else 'guest',
     )
 
+# ── Health check (no login required, for Railway) ─────────────────────────────
+@app.route('/healthz')
+def healthz():
+    return 'ok', 200
+
 # ── Auth Routes ───────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET','POST'])
 def login():
