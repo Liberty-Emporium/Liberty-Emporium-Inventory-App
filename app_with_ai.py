@@ -211,12 +211,20 @@ def ctx():
 @app.context_processor
 def inject_globals():
     is_admin = session.get('username') == ADMIN_USER
+    try:
+        stats = get_stats()
+    except Exception:
+        stats = {'total': 0, 'available': 0, 'sold': 0, 'reserved': 0, 'total_value': 0, 'pending_users': 0}
+    try:
+        sale_state = load_sale()
+    except Exception:
+        sale_state = {'active': False}
     return dict(
         store_name=STORE_NAME,
         demo_mode=DEMO_MODE,
         demo_contact_email=CONTACT_EMAIL,
-        stats=get_stats(),
-        sale_state=load_sale(),
+        stats=stats,
+        sale_state=sale_state,
         user_role='admin' if is_admin else 'guest',
     )
 
@@ -224,6 +232,15 @@ def inject_globals():
 @app.route('/healthz')
 def healthz():
     return 'ok', 200
+
+@app.route('/ping')
+def ping():
+    """Deeper check — exercises data loading without login."""
+    try:
+        n = len(load_inventory())
+        return f'ok inventory={n}', 200
+    except Exception as e:
+        return f'error: {e}', 500
 
 # ── Auth Routes ───────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET','POST'])
