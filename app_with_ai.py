@@ -681,13 +681,12 @@ def _draw_text_layer(W, H, store_name, title, price, description, cta_text, tagl
     layer = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
     draw  = _Draw.Draw(layer)
 
-    # Scale fonts by the SHORTER dimension so landscape formats don't overflow
-    D = min(W, H)
-    sz_store = max(18, int(D * 0.016))
-    sz_title = max(48, int(D * 0.048))
-    sz_price = max(64, int(D * 0.072))
-    sz_desc  = max(20, int(D * 0.020))
-    sz_cta   = max(24, int(D * 0.026))
+    # Scale fonts by width for visual impact — hard clip prevents overflow
+    sz_store = max(18, int(W * 0.016))
+    sz_title = max(48, int(W * 0.048))
+    sz_price = max(64, int(W * 0.072))
+    sz_desc  = max(20, int(W * 0.020))
+    sz_cta   = max(24, int(W * 0.026))
 
     try:
         f_store = _Font.truetype(font_reg_path,  sz_store)
@@ -709,35 +708,40 @@ def _draw_text_layer(W, H, store_name, title, price, description, cta_text, tagl
     desc_c = (220, 220, 235, 255)
     shadow = (0, 0, 0, 160)
 
+    # Hard clip: never draw text below this line
+    bottom_limit = H - int(H * 0.02)
+
     def _txt(pos, text, font, fill):
-        """Draw text with a drop shadow for readability on any background."""
+        """Draw text with drop shadow. Silently skips if below bottom_limit."""
+        if pos[1] + font.size > bottom_limit:
+            return
         sx = max(1, font.size // 30)
         sy = max(1, font.size // 30)
         draw.text((pos[0] + sx, pos[1] + sy), text, font=font, fill=shadow)
         draw.text(pos, text, font=font, fill=fill)
 
-    grad_top = int(H * 0.56)   # matches gradient start in bg layer (H - 0.45H = 0.55H)
+    grad_top = int(H * 0.50)   # gradient covers bottom 50% — enough room for big text
     x = int(W * 0.05)
-    y = grad_top + int(H * 0.025)
+    y = grad_top + int(H * 0.020)
 
     _txt((x, y), store_name, f_store, dimmed)
-    y += sz_store + max(6, int(sz_store * 0.5))
+    y += sz_store + max(6, int(sz_store * 0.4))
 
     chars_t = max(10, int((W * 0.88) / (sz_title * 0.58)))
     for line in _tw.wrap(title, width=chars_t)[:2]:
         _txt((x, y), line, f_title, accent)
         y += sz_title + max(4, int(sz_title * 0.08))
-    y += max(4, int(sz_title * 0.12))
+    y += max(4, int(sz_title * 0.10))
 
     _txt((x, y), f'${price}', f_price, white)
-    y += sz_price + max(8, int(sz_price * 0.15))
+    y += sz_price + max(6, int(sz_price * 0.12))
 
     if description:
         chars_d = max(15, int((W * 0.88) / (sz_desc * 0.58)))
-        for line in _tw.wrap(description, width=chars_d)[:2]:
+        for line in _tw.wrap(description, width=chars_d)[:1]:  # 1 line only
             _txt((x, y), line, f_desc, desc_c)
             y += sz_desc + max(4, int(sz_desc * 0.2))
-        y += max(4, int(sz_desc * 0.3))
+        y += max(4, int(sz_desc * 0.2))
 
     if cta_text:
         chars_c = max(10, int((W * 0.88) / (sz_cta * 0.58)))
@@ -885,7 +889,7 @@ def generate_video_ad():
 
             # Dark gradient overlay: always black-based so text is readable on any template
             # (template bg_dark can be light, e.g. spring = #f5f5f5)
-            grad_h = int(H * 0.45)
+            grad_h = int(H * 0.50)
             grad_y = H - grad_h
             grad_img = _Img.new('RGBA', (W, grad_h), (0, 0, 0, 0))
             grad_draw = _Draw.Draw(grad_img)
