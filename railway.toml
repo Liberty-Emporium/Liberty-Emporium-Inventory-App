@@ -6,6 +6,6 @@ packages = ["ffmpeg"]
 NIXPACKS_PYTHON_VERSION = "3.11"
 
 [deploy]
-startCommand = "sh -c 'gunicorn app_with_ai:app --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --worker-class gthread --threads 4 --capture-output --log-level debug --error-logfile - --access-logfile -'"
+startCommand = "sh start.sh"
 healthcheckPath = "/healthz"
 

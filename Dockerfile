@@ -31,4 +31,6 @@ ENV RAILWAY_DATA_DIR=/data
 EXPOSE 5000
 
 # Explicitly invoke sh so $PORT is expanded before gunicorn sees it
-CMD ["/bin/sh", "-c", "gunicorn app_with_ai:app --bind 0.0.0.0:${PORT:-5000} --timeout 300 --workers 1 --worker-class gthread --threads 4 --capture-output --log-level debug --error-logfile - --access-logfile -"]
+COPY start.sh .
+RUN chmod +x start.sh
+CMD ["sh", "start.sh"]
