@@ -7,70 +7,52 @@
   <div class="row mb-4">
     <div class="col">
       <h1>🎬 Ad Vault</h1>
-      <p class="text-muted">All generated video ads are stored here for download and management.</p>
+      <p class="text-muted">All generated video ads are stored here.</p>
     </div>
+    {% if videos %}
+    <div class="col-auto align-self-center">
+      <span class="text-muted">{{ videos|length }} video(s) &nbsp;·&nbsp; {{ videos|map(attribute='size_mb')|sum|round(2) }} MB total</span>
+    </div>
+    {% endif %}
   </div>
 
   {% if videos %}
-    <div class="row mb-3">
-      <div class="col">
-        <p><strong>{{ videos|length }}</strong> video(s) stored</p>
-      </div>
-    </div>
-
-    <!-- Video Grid -->
-    <div class="table-responsive">
-      <table class="table table-hover table-striped">
-        <thead class="table-dark">
-          <tr>
-            <th>Video Name</th>
-            <th>SKU</th>
-            <th>Size</th>
-            <th>Created</th>
-            <th class="text-end">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for video in videos %}
-            <tr>
-              <td>
-                <small class="text-monospace">{{ video.display_name }}</small>
-              </td>
-              <td>
-                <span class="badge bg-primary">{{ video.sku }}</span>
-              </td>
-              <td>{{ video.size_mb }} MB</td>
-              <td>{{ video.mod_date }}</td>
-              <td class="text-end">
-                <!-- Download Button -->
-                <a href="/download-ad/{{ video.filename }}" class="btn btn-sm btn-success" title="Download this video">
-                  ⬇️ Download
-                </a>
-                
-                <!-- Delete Button -->
-                <button class="btn btn-sm btn-danger ms-1" onclick="deleteVideo('{{ video.filename }}')" title="Delete this video">
-                  🗑️ Delete
-                </button>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Storage Summary -->
-    <div class="card mt-4 bg-light">
-      <div class="card-body">
-        <h6 class="card-title">📊 Storage Summary</h6>
-        <p class="card-text mb-0">
-          Total videos: <strong>{{ videos|length }}</strong> | 
-          Total size: <strong>{{ videos|map(attribute='size_mb')|sum|round(2) }} MB</strong>
-        </p>
-      </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+      {% for video in videos %}
+        <div class="col" id="card-{{ loop.index }}">
+          <div class="card h-100 shadow-sm">
+            <!-- Inline video player -->
+            <video class="card-img-top" controls preload="none"
+                   style="background:#000; max-height:240px; object-fit:contain;">
+              <source src="/ads/{{ video.filename }}" type="video/mp4">
+              Your browser does not support video playback.
+            </video>
+            <div class="card-body pb-2">
+              <p class="card-title mb-1 fw-semibold text-truncate" title="{{ video.display_name }}">
+                {{ video.display_name }}
+              </p>
+              <p class="card-text mb-0">
+                <span class="badge bg-primary me-1">{{ video.sku }}</span>
+                <small class="text-muted">{{ video.size_mb }} MB &nbsp;·&nbsp; {{ video.mod_date }}</small>
+              </p>
+            </div>
+            <div class="card-footer d-flex gap-2 bg-white border-top-0 pt-0">
+              <a href="/download-ad/{{ video.filename }}"
+                 class="btn btn-sm btn-success flex-fill" title="Download">
+                ⬇️ Download
+              </a>
+              <button class="btn btn-sm btn-danger flex-fill"
+                      onclick="deleteVideo('{{ video.filename }}', 'card-{{ loop.index }}')"
+                      title="Delete">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
 
   {% else %}
-    <!-- Empty State -->
     <div class="alert alert-info text-center py-5">
       <h3>📭 No videos yet</h3>
       <p>Make some videos in the <a href="/ads">Video Studio</a> and they'll appear here!</p>
@@ -78,60 +60,26 @@
     </div>
   {% endif %}
 
-  <!-- Back to Dashboard -->
   <div class="mt-4">
     <a href="/" class="btn btn-outline-secondary">← Back to Dashboard</a>
   </div>
 </div>
 
-<style>
-  .table-responsive {
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-
-  .text-monospace {
-    font-family: 'Courier New', monospace;
-    color: #666;
-  }
-
-  .btn-sm {
-    padding: 0.35rem 0.65rem;
-    font-size: 0.85rem;
-  }
-
-  .card {
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-
-  .text-end {
-    white-space: nowrap;
-  }
-</style>
-
 <script>
-  function deleteVideo(filename) {
-    if (!confirm(`Delete "${filename}"? This action cannot be undone.`)) {
-      return;
-    }
+  function deleteVideo(filename, cardId) {
+    if (!confirm(`Delete "${filename}"? This cannot be undone.`)) return;
 
-    fetch(`/ad-vault/delete/${filename}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    })
-      .then(response => response.json())
+    fetch(`/ad-vault/delete/${filename}`, { method: 'POST' })
+      .then(r => r.json())
       .then(data => {
         if (data.success) {
-          alert('Video deleted successfully!');
-          location.reload();
+          const card = document.getElementById(cardId);
+          if (card) card.remove();
         } else {
-          alert(`Error: ${data.error}`);
+          alert('Error: ' + data.error);
         }
       })
-      .catch(error => alert(`Error: ${error}`));
+      .catch(e => alert('Error: ' + e));
   }
 </script>
 {% endblock %}
