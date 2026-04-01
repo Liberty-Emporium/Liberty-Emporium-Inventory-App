@@ -853,27 +853,33 @@ def generate_video_ad():
 
         W, H = video_size
 
+        from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+
+        def _hex_rgb(h):
+            h = h.lstrip('#')
+            return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+        bg_dark_rgb = _hex_rgb(template_config['bg_dark'])
+        font_bold   = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+        font_reg    = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+
+        # ── Build one bg+text image pair per product ──────────────────────────
+        bg_files   = []   # paths to bg JPEG files
+        text_files = []   # paths to text PNG files
+        titles     = []
+
         for p in products:
             sku         = p.get('sku', 'UNKNOWN')
             title       = p.get('title', 'Untitled')
             price       = p.get('price', '0.00')
             description = p.get('description', '')
             image_url   = p.get('image', '')
-
-            # ── Build frame images with Pillow ────────────────────────────────
-            from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
-            import io as _io
-
-            def _hex_rgb(h):
-                h = h.lstrip('#')
-                return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-
-            bg_dark_rgb = _hex_rgb(template_config['bg_dark'])
+            titles.append(title)
 
             # Start with solid bg_dark fill
             bg_frame = _Img.new('RGB', (W, H), color=bg_dark_rgb)
 
-            # Cover-crop product photo to fill entire frame
+            # Contain product photo: full product always visible, letterboxed with bg_dark
             if image_url:
                 img_filename = image_url.split('/')[-1]
                 img_path = os.path.join(UPLOAD_FOLDER, img_filename)
@@ -882,22 +888,20 @@ def generate_video_ad():
                         prod_img = _Img.open(img_path)
                         prod_img = fix_image_orientation(prod_img)
                         prod_img = prod_img.convert('RGB')
-                        scale = max(W / prod_img.width, H / prod_img.height)
+                        scale = min(W / prod_img.width, H / prod_img.height)
                         new_w = int(prod_img.width * scale)
                         new_h = int(prod_img.height * scale)
                         prod_img = prod_img.resize((new_w, new_h), _Img.LANCZOS)
-                        cx = (new_w - W) // 2
-                        cy = (new_h - H) // 2
-                        prod_img = prod_img.crop((cx, cy, cx + W, cy + H))
-                        bg_frame.paste(prod_img, (0, 0))
+                        px = (W - new_w) // 2
+                        py = (H - new_h) // 2
+                        bg_frame.paste(prod_img, (px, py))
                     except Exception:
                         pass
 
-            # Dark gradient overlay: always black-based so text is readable on any template
-            # (template bg_dark can be light, e.g. spring = #f5f5f5)
+            # Dark gradient overlay: bottom 50%, always black-based
             grad_h = int(H * 0.50)
             grad_y = H - grad_h
-            grad_img = _Img.new('RGBA', (W, grad_h), (0, 0, 0, 0))
+            grad_img  = _Img.new('RGBA', (W, grad_h), (0, 0, 0, 0))
             grad_draw = _Draw.Draw(grad_img)
             for row in range(grad_h):
                 alpha = int(240 * row / grad_h)
@@ -929,9 +933,7 @@ def generate_video_ad():
                 except Exception:
                     pass
 
-            # Text layer: transparent RGBA PNG with all text, no background
-            font_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-            font_reg  = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+            # Text layer: transparent RGBA PNG, text only
             text_layer = _draw_text_layer(
                 W, H,
                 store_name='Liberty Emporium',
@@ -944,58 +946,70 @@ def generate_video_ad():
                 template_config=template_config,
             )
 
-            # Save bg.jpg (no text) and text.png (text only, RGBA)
             tmp_bg   = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
             tmp_text = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-            bg_frame.save(tmp_bg.name,    'JPEG', quality=92)
+            bg_frame.save(tmp_bg.name,     'JPEG', quality=92)
             text_layer.save(tmp_text.name, 'PNG')
             tmp_files.extend([tmp_bg.name, tmp_text.name])
+            bg_files.append(tmp_bg.name)
+            text_files.append(tmp_text.name)
 
-            # ── Run ffmpeg ────────────────────────────────────────────────────
-            ts           = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-            template_sfx = f'_{template}' if template != 'default' else ''
-            format_sfx   = f'_{format_str}' if format_str != '1920x1080' else ''
-            out_name     = f'video_ad_{sku}{template_sfx}{format_sfx}_{ts}.mp4'
-            out_path     = os.path.join(ADS_FOLDER, out_name)
+        # ── Run ONE ffmpeg for all products cycling through ───────────────────
+        n      = len(bg_files)
+        t_per  = round(duration / n, 3)
 
-            # Text fades in: invisible for first 1s, fades over 0.8s
+        ts           = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        template_sfx = f'_{template}' if template != 'default' else ''
+        format_sfx   = f'_{format_str}' if format_str != '1920x1080' else ''
+        sku_str      = products[0].get('sku', 'UNKNOWN') if len(products) == 1 else f"{n}products"
+        out_name     = f'video_ad_{sku_str}{template_sfx}{format_sfx}_{ts}.mp4'
+        out_path     = os.path.join(ADS_FOLDER, out_name)
+
+        # Build input list: N bg images, N text images, 1 music track
+        cmd = [ffmpeg_path, '-y']
+        for bf in bg_files:
+            cmd += ['-loop', '1', '-framerate', '25', '-t', str(t_per), '-i', bf]
+        for tf in text_files:
+            cmd += ['-loop', '1', '-framerate', '25', '-t', str(t_per), '-i', tf]
+        cmd += ['-i', music_path]
+
+        # Filter complex: per-segment bg+text overlay, then concat all segments
+        parts = []
+        for i in range(n):
             if style == 'kenburns':
-                zoom_d = duration * 25
-                fc = (
-                    f"[0:v]zoompan=z='min(zoom+0.0015,1.5)':d={zoom_d}:s={W}x{H},fps=25[bg];"
-                    f"[1:v]fade=in:st=1:d=0.8:alpha=1[txt];"
-                    f"[bg][txt]overlay=0:0[outv]"
+                zoom_d = int(t_per * 25)
+                parts.append(
+                    f"[{i}:v]zoompan=z='min(zoom+0.0015,1.5)':d={zoom_d}:s={W}x{H},fps=25[bg{i}]"
                 )
-            else:  # slideshow
-                fc = (
-                    "[1:v]fade=in:st=1:d=0.8:alpha=1[txt];"
-                    "[0:v][txt]overlay=0:0[outv]"
-                )
+            else:
+                parts.append(f"[{i}:v]fps=25[bg{i}]")
+            parts.append(f"[{n+i}:v]fade=in:st=1:d=0.8:alpha=1[txt{i}]")
+            parts.append(f"[bg{i}][txt{i}]overlay=0:0[ov{i}]")
 
-            cmd = [
-                ffmpeg_path, '-y',
-                '-loop', '1', '-framerate', '25', '-i', tmp_bg.name,
-                '-loop', '1', '-framerate', '25', '-i', tmp_text.name,
-                '-i', music_path,
-                '-filter_complex', fc,
-                '-map', '[outv]', '-map', '2:a',
-                '-c:v', 'libx264', '-c:a', 'aac',
-                '-t', str(duration),
-                '-pix_fmt', 'yuv420p',
-                '-shortest',
-                out_path,
-            ]
+        concat_in = ''.join(f"[ov{i}]" for i in range(n))
+        parts.append(f"{concat_in}concat=n={n}:v=1:a=0[outv]")
+        fc = ';'.join(parts)
 
-            try:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
-            except subprocess.TimeoutExpired:
-                return jsonify({'error': 'Video generation timed out (try a shorter duration or smaller format).'})
-            if result.returncode != 0:
-                return jsonify({'error': f'ffmpeg failed: {result.stderr[-500:]}'})
+        cmd += [
+            '-filter_complex', fc,
+            '-map', '[outv]', '-map', f'{2*n}:a',
+            '-c:v', 'libx264', '-c:a', 'aac',
+            '-t', str(duration),
+            '-pix_fmt', 'yuv420p',
+            '-shortest',
+            out_path,
+        ]
 
-            generated.append({'filename': out_name, 'product_title': title})
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        except subprocess.TimeoutExpired:
+            return jsonify({'error': 'Video generation timed out (try a shorter duration or smaller format).'})
+        if result.returncode != 0:
+            return jsonify({'error': f'ffmpeg failed: {result.stderr[-800:]}'})
 
-        # ── Return all generated files (outside for loop) ──────────────────────
+        generated.append({'filename': out_name, 'product_title': ' · '.join(titles)})
+
+        # ── Return all generated files ─────────────────────────────────────────
         return jsonify({'success': True, 'files': generated})
 
     except Exception as e:
