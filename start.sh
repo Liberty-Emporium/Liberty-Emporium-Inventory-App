@@ -7,4 +7,8 @@ exec gunicorn app_with_ai:app \
   --timeout 300 \
   --workers 1 \
   --worker-class gthread \
-  --threads 4
+  --threads 4 \
+  --capture-output \
+  --log-level debug \
+  --error-logfile - \
+  --access-logfile -
