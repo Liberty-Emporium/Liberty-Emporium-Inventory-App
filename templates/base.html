@@ -144,6 +144,9 @@
                 <a href="{{ url_for('listing_generator') }}">Listing Generator</a>
                 {% if session.get('username') == 'admin' %}
                 <a href="{{ url_for('seasonal_sale') }}">Seasonal Sale</a>
+                <a href="{{ url_for('admin_users') }}">👥 Users</a>
+                <a href="{{ url_for('admin_backups') }}">💾 Backups</a>
+                <a href="{{ url_for('admin_branding') }}">🎨 Branding</a>
                 {% endif %}
                 {% endif %}
             </div>
