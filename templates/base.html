@@ -136,18 +136,9 @@
             </a>
 
             <div class="nav-links" id="navLinks">
-                <a href="{{ url_for('dashboard') }}">Dashboard</a>
                 {% if not session.get('is_guest') %}
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
                 <a href="{{ url_for('new_product') }}">Add Product</a>
-                <a href="{{ url_for('ad_generator') }}">Ad Generator</a>
-                <a href="{{ url_for('ad_vault') }}">🎬 Ad Vault</a>
-                <a href="{{ url_for('listing_generator') }}">Listing Generator</a>
-                {% if session.get('username') == 'admin' %}
-                <a href="{{ url_for('seasonal_sale') }}">Seasonal Sale</a>
-                <a href="{{ url_for('admin_users') }}">👥 Users</a>
-                <a href="{{ url_for('admin_backups') }}">💾 Backups</a>
-                <a href="{{ url_for('admin_branding') }}">🎨 Branding</a>
-                {% endif %}
                 {% endif %}
             </div>
 
