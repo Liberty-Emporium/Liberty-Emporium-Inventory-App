@@ -363,8 +363,16 @@ def signup():
                 return redirect(url_for('login'))
     return render_template('signup.html', **ctx())
 
-# ── Dashboard ─────────────────────────────────────────────────────────────────
+# ── Sales Landing Page ────────────────────────────────────────────────────────
 @app.route('/')
+def sales_page():
+    """Public sales/landing page - shown when not logged in"""
+    if session.get('logged_in'):
+        return redirect(url_for('dashboard'))
+    return render_template('sales_page.html', **ctx())
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+@app.route('/dashboard')
 @login_required
 def dashboard():
     products = load_inventory()
@@ -1577,6 +1585,12 @@ def price_tag(sku):
     return render_template('price_tag.html', product=product, **ctx())
 
 # ── Store Configuration (white-label admin) ───────────────────────────────────
+@app.route('/')
+def sales_page():
+    if session.get('logged_in'):
+        return redirect(url_for('dashboard'))
+    return render_template('sales_page.html', **ctx()), 200
+
 @app.route('/admin/branding', methods=['GET','POST'])
 @login_required
 @admin_required

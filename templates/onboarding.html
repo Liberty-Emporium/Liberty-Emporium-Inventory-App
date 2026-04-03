@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}Welcome! Set Up Your Store{% endblock %}
+{% block content %}
+<style>
+  .onboarding-container {
+    max-width: 500px; margin: 3rem auto; padding: 0 1rem;
+  }
+  .step-indicator {
+    display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 2rem;
+  }
+  .step-dot {
+    width: 12px; height: 12px; border-radius: 50%; background: #ddd; transition: background 0.3s;
+  }
+  .step-dot.active { background: {{ store_config.accent_color }}; }
+  .step-dot.done { background: #27ae60; }
+  .onboarding-step {
+    display: none; background: white; padding: 2rem; border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .onboarding-step.active { display: block; }
+  .step-title {
+    font-size: 1.4rem; margin-bottom: 0.5rem; color: {{ store_config.primary_color }};
+  }
+  .step-desc { color: #666; margin-bottom: 1.5rem; }
+  .step-nav {
+    display: flex; justify-content: space-between; margin-top: 1.5rem;
+  }
+  .step-btn {
+    padding: 0.7rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+  }
+  .step-btn.next { background: {{ store_config.accent_color }}; color: white; }
+  .step-btn.prev { background: #eee; color: #666; }
+  .preview-box {
+    background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem;
+    text-align: center;
+  }
+  .preview-store-name {
+    font-size: 1.5rem; font-weight: 700; color: {{ store_config.primary_color }};
+  }
+  .color-preview {
+    display: flex; gap: 0.5rem; margin-top: 0.5rem;
+  }
+  .color-swatch {
+    width: 40px; height: 40px; border-radius: 8px;
+  }
+</style>
+
+<div class="onboarding-container">
+  <h1 style="text-align:center; margin-bottom:0.5rem;">Welcome! 🎉</h1>
+  <p style="text-align:center; color:#666; margin-bottom:2rem;">Let's set up your store in under 2 minutes.</p>
+
+  <div class="step-indicator">
+    <div class="step-dot active" data-step="1"></div>
+    <div class="step-dot" data-step="2"></div>
+    <div class="step-dot" data-step="3"></div>
+    <div class="step-dot" data-step="4"></div>
+  </div>
+
+  <form method="POST" action="{{ url_for('onboarding') }}">
+    <!-- Step 1: Store Name -->
+    <div class="onboarding-step active" data-step="1">
+      <div class="step-title">What's Your Store Name?</div>
+      <div class="step-desc">This will appear everywhere in the app — header, ads, price tags, and more.</div>
+      <div class="form-group">
+        <label for="store_name">Store Name</label>
+        <input type="text" id="store_name" name="store_name"
+               value="{{ config.store_name }}"
+               required autofocus
+               placeholder="e.g., Bob's Thrift & Treasures"
+               style="width:100%; padding:0.85rem; border:2px solid #ddd; border-radius:8px; font-size:1.1rem;">
+      </div>
+      <div class="preview-box" id="name-preview">
+        <div class="preview-store-name">{{ config.logo_emoji }} {{ config.store_name }}</div>
+      </div>
+      <div class="step-nav">
+        <div></div>
+        <button type="button" class="step-btn next" onclick="nextStep(1)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Tagline & Contact -->
+    <div class="onboarding-step" data-step="2">
+      <div class="step-title">Tell Us More</div>
+      <div class="step-desc">A tagline helps customers understand what your store does.</div>
+      <div class="form-group">
+        <label for="tagline">Tagline</label>
+        <input type="text" id="tagline" name="tagline"
+               value="{{ config.tagline }}"
+               placeholder="e.g., Quality Pre-Owned Treasures"
+               style="width:100%; padding:0.85rem; border:2px solid #ddd; border-radius:8px; font-size:1rem;">
+      </div>
+      <div class="form-group" style="margin-top:1rem;">
+        <label for="contact_email">Contact Email</label>
+        <input type="email" id="contact_email" name="contact_email"
+               value="{{ config.contact_email }}"
+               style="width:100%; padding:0.85rem; border:2px solid #ddd; border-radius:8px; font-size:1rem;">
+      </div>
+      <div class="step-nav">
+        <button type="button" class="step-btn prev" onclick="prevStep(2)">← Back</button>
+        <button type="button" class="step-btn next" onclick="nextStep(2)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Colors -->
+    <div class="onboarding-step" data-step="3">
+      <div class="step-title">Pick Your Colors</div>
+      <div class="step-desc">Choose colors that match your store's branding.</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label for="primary_color">Primary Color</label>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <input type="color" id="primary_color" name="primary_color"
+                   value="{{ config.primary_color }}"
+                   style="width:50px; height:45px; border:none; cursor:pointer; border-radius:8px;">
+            <span id="primary-label" style="font-family:monospace; font-size:0.85rem;">{{ config.primary_color }}</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="accent_color">Accent Color</label>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <input type="color" id="accent_color" name="accent_color"
+                   value="{{ config.accent_color }}"
+                   style="width:50px; height:45px; border:none; cursor:pointer; border-radius:8px;">
+            <span id="accent-label" style="font-family:monospace; font-size:0.85rem;">{{ config.accent_color }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="color-preview" id="color-preview">
+        <div class="color-swatch" style="background:{{ config.primary_color }}"></div>
+        <div class="color-swatch" style="background:{{ config.accent_color }}"></div>
+      </div>
+      <div class="step-nav">
+        <button type="button" class="step-btn prev" onclick="prevStep(3)">← Back</button>
+        <button type="button" class="step-btn next" onclick="nextStep(3)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Done! -->
+    <div class="onboarding-step" data-step="4">
+      <div class="step-title">You're All Set! 🚀</div>
+      <div class="step-desc">Your store is configured and ready to go. Here's a preview:</div>
+      <div class="preview-box">
+        <div class="preview-store-name" id="final-preview-name">{{ config.logo_emoji }} {{ config.store_name }}</div>
+        <p id="final-preview-tagline" style="color:#666; margin-top:0.5rem;">{{ config.tagline }}</p>
+      </div>
+      <p style="margin-top:1.5rem; color:#555; font-size:0.9rem;">
+        You can always change these settings later from the Dashboard.
+      </p>
+      <div class="step-nav">
+        <button type="button" class="step-btn prev" onclick="prevStep(4)">← Back</button>
+        <button type="submit" class="step-btn next" style="background:#27ae60;">Launch My Store 🚀</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  let currentStep = 1;
+  function showStep(n) {
+    document.querySelectorAll('.onboarding-step').forEach(function(s) {
+      s.classList.remove('active');
+    });
+    document.querySelector('.onboarding-step[data-step="' + n + '"]').classList.add('active');
+    document.querySelectorAll('.step-dot').forEach(function(d, i) {
+      d.classList.remove('active', 'done');
+      if (i + 1 === n) d.classList.add('active');
+      if (i + 1 < n) d.classList.add('done');
+    });
+    currentStep = n;
+  }
+  function nextStep(from) {
+    // Live update preview on step 1
+    if (from === 1) {
+      var name = document.getElementById('store_name').value;
+      document.getElementById('name-preview').querySelector('.preview-store-name').textContent = '🏪 ' + (name || 'Your Store');
+    }
+    showStep(from + 1);
+    // Update final preview
+    if (from + 1 === 4) {
+      document.getElementById('final-preview-name').textContent = document.getElementById('store_name').value;
+      document.getElementById('final-preview-tagline').textContent = document.getElementById('tagline').value;
+    }
+  }
+  function prevStep(from) { showStep(from - 1); }
+  // Color label updates
+  document.getElementById('primary_color').addEventListener('input', function() {
+    document.getElementById('primary-label').textContent = this.value;
+  });
+  document.getElementById('accent_color').addEventListener('input', function() {
+    document.getElementById('accent-label').textContent = this.value;
+  });
+</script>
+{% endblock %}

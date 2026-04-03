@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}{{ store_config.store_name }} — RetailTrack Inventory Management{% endblock %}
+{% block content %}
+<style>
+  .sales-page { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .hero {
+    background: linear-gradient(135deg, {{ store_config.primary_color }} 0%, {{ store_config.accent_color }} 100%);
+    color: white; padding: 4rem 2rem; text-align: center;
+  }
+  .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+  .hero p { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 2rem; }
+  .hero-cta {
+    display: inline-block; padding: 1rem 2.5rem; background: white;
+    color: {{ store_config.primary_color }}; font-weight: 700; font-size: 1.1rem;
+    border-radius: 50px; text-decoration: none; margin: 0.5rem;
+    transition: transform 0.2s;
+  }
+  .hero-cta:hover { transform: scale(1.05); }
+  .hero-cta.outline { background: transparent; color: white; border: 2px solid white; }
+  .features { padding: 4rem 2rem; max-width: 1000px; margin: 0 auto; }
+  .features h2 { text-align: center; font-size: 2rem; margin-bottom: 3rem; color: {{ store_config.primary_color }}; }
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+  .feature-card {
+    background: white; padding: 2rem; border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center;
+    transition: transform 0.2s;
+  }
+  .feature-card:hover { transform: translateY(-5px); }
+  .feature-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .feature-card h3 { color: {{ store_config.primary_color }}; margin-bottom: 0.5rem; }
+  .feature-card p { color: #666; line-height: 1.6; }
+  .pricing { padding: 4rem 2rem; background: #f8f9fa; text-align: center; }
+  .pricing h2 { font-size: 2rem; margin-bottom: 1rem; }
+  .pricing-sub { color: #666; margin-bottom: 3rem; }
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; max-width: 900px; margin: 0 auto; }
+  .price-card {
+    background: white; padding: 2.5rem 2rem; border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative;
+  }
+  .price-card.featured { border: 3px solid {{ store_config.accent_color }}; }
+  .price-card.featured::before {
+    content: "Most Popular"; position: absolute; top: -12px; left: 50%;
+    transform: translateX(-50%); background: {{ store_config.accent_color }};
+    color: white; padding: 0.3rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+  }
+  .price-tier { font-size: 1.2rem; color: #666; margin-bottom: 0.5rem; }
+  .price-amount { font-size: 3rem; font-weight: 800; color: {{ store_config.primary_color }}; }
+  .price-amount span { font-size: 1rem; font-weight: 400; }
+  .price-features { list-style: none; padding: 0; margin: 1.5rem 0; }
+  .price-features li { padding: 0.5rem 0; color: #555; border-bottom: 1px solid #eee; }
+  .price-features li:last-child { border: none; }
+  .price-btn {
+    display: block; padding: 0.8rem; background: {{ store_config.accent_color }};
+    color: white; border-radius: 8px; text-decoration: none; font-weight: 600;
+    transition: opacity 0.2s;
+  }
+  .price-btn:hover { opacity: 0.9; }
+  .testimonial { padding: 4rem 2rem; max-width: 700px; margin: 0 auto; text-align: center; }
+  .testimonial blockquote { font-size: 1.3rem; font-style: italic; color: #555; margin-bottom: 1rem; }
+  .testimonial cite { color: #888; }
+  .cta-final { padding: 4rem 2rem; background: {{ store_config.primary_color }}; color: white; text-align: center; }
+  .cta-final h2 { font-size: 2rem; margin-bottom: 1rem; }
+  .cta-final p { margin-bottom: 2rem; opacity: 0.9; }
+  @media (max-width: 768px) {
+    .hero { padding: 3rem 1rem; }
+    .hero h1 { font-size: 1.8rem; }
+    .hero p { font-size: 1rem; }
+    .features, .pricing, .cta-final { padding: 2rem 1rem; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="sales-page">
+  <!-- Hero -->
+  <section class="hero">
+    <h1>{{ store_config.logo_emoji }} {{ store_config.store_name }}</h1>
+    <p>The inventory management app built for thrift stores, antique shops, & consignment sellers. Track products, generate ads, and sell more.</p>
+    <a href="mailto:{{ store_config.contact_email }}" class="hero-cta">Contact Jay for a Demo</a>
+    <a href="{{ url_for('login') }}" class="hero-cta outline">Try Live Demo</a>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <h2>Everything You Need to Run Your Store</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>Smart Inventory</h3>
+        <p>Add, edit, and track every item. Categories, conditions, locations, and profit margins built in.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>AI Photo Analysis</h3>
+        <p>Snap a photo and AI fills in title, description, category, and even suggests a price.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <h3>Ad Generator</h3>
+        <p>Create beautiful HTML ads with your store branding. Generate video ads in seconds.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>Multi-Platform Listings</h3>
+        <p>One-click listing generation for Facebook Marketplace, Craigslist, and Instagram.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3>Square Integration</h3>
+        <p>Import and export inventory with Square. Perfect for stores already using Square POS.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏷️</div>
+        <h3>Price Tags</h3>
+        <p>Print professional price tags with QR codes. Customers scan to see details on their phone.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Dashboard & Analytics</h3>
+        <p>See total inventory value, available vs sold items, and profit at a glance.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Multi-User Access</h3>
+        <p>Add team members with admin approval. Employees can manage inventory without full access.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Auto Backups</h3>
+        <p>Every change is backed up automatically. Restore any previous state with one click.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing">
+    <h2>Simple, Transparent Pricing</h2>
+    <p class="pricing-sub">One-time purchase. No monthly fees. Yours forever.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Starter</div>
+        <div class="price-amount">$299</div>
+        <ul class="price-features">
+          <li>Full inventory management</li>
+          <li>AI photo analysis</li>
+          <li>Ad & listing generators</li>
+          <li>Single device</li>
+          <li>Basic support</li>
+        </ul>
+        <a href="mailto:{{ store_config.contact_email }}" class="price-btn">Get Started</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Professional</div>
+        <div class="price-amount">$499</div>
+        <ul class="price-features">
+          <li>Everything in Starter</li>
+          <li>Multi-device sync</li>
+          <li>Square integration</li>
+          <li>Custom branding</li>
+          <li>Priority email support</li>
+        </ul>
+        <a href="mailto:{{ store_config.contact_email }}" class="price-btn">Get Professional</a>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-amount">$799</div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Multiple locations</li>
+          <li>API access</li>
+          <li>Custom features built for you</li>
+          <li>Dedicated support</li>
+        </ul>
+        <a href="mailto:{{ store_config.contact_email }}" class="price-btn">Contact Jay</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonial -->
+  <section class="testimonial">
+    <blockquote>"This app transformed how I run my thrift store. I went from pen-and-paper to professional inventory in one afternoon."</blockquote>
+    <cite>— Thrift Store Owner</cite>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="cta-final">
+    <h2>{{ store_config.logo_emoji }} Ready to Transform Your Store?</h2>
+    <p>Try the live demo now, or contact Jay to get this app set up for your business.</p>
+    <a href="{{ url_for('login') }}" class="hero-cta">Try Live Demo</a>
+    <a href="mailto:{{ store_config.contact_email }}" class="hero-cta outline">Contact Jay</a>
+  </section>
+</div>
+{% endblock %}
