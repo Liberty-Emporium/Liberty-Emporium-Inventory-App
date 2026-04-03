@@ -1,84 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ store_config.store_name }} — RetailTrack Inventory Management{% endblock %}
 {% block content %}
-<!-- Top Navigation Bar -->
-<nav class="sales-nav" id="salesNav">
-  <div class="sales-nav-inner">
-    <a href="#" class="sales-nav-logo">{{ store_config.logo_emoji }} {{ store_config.store_name }}</a>
-    <div class="sales-nav-links">
-      <a href="#features">Features</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#testimonial">Testimonials</a>
-      <a href="{{ url_for('contact') }}">Contact</a>
-      <a href="{{ url_for('login') }}" class="sales-nav-cta">Try Live Demo</a>
-    </div>
-    <button class="sales-hamburger" onclick="toggleSalesMenu()">☰</button>
-  </div>
-  <div class="sales-nav-mobile" id="salesMobileMenu">
-    <a href="#features" onclick="closeSalesMenu()">Features</a>
-    <a href="#pricing" onclick="closeSalesMenu()">Pricing</a>
-    <a href="#testimonial" onclick="closeSalesMenu()">Testimonials</a>
-    <a href="{{ url_for('contact') }}" onclick="closeSalesMenu()">Contact</a>
-    <a href="{{ url_for('login') }}" onclick="closeSalesMenu()">Try Live Demo</a>
-  </div>
-</nav>
-
 <style>
-  /* ── Sales Nav Bar ── */
-  .sales-nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
-    background: rgba(26, 74, 66, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    transition: box-shadow .3s;
-  }
-  .sales-nav.scrolled {
-    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-  }
-  .sales-nav-inner {
-    max-width: 1200px; margin: 0 auto;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0.75rem 1.5rem;
-  }
-  .sales-nav-logo {
-    color: #ecf0f1; font-size: 1rem; font-weight: 600;
-    text-decoration: none; letter-spacing: 0.3px;
-  }
-  .sales-nav-logo:hover { color: #fff; }
-  .sales-nav-links {
-    display: flex; align-items: center; gap: 0.25rem;
-  }
-  .sales-nav-links a {
-    color: #b0bec5; text-decoration: none; font-size: 0.9rem;
-    padding: 0.5rem 0.9rem; border-radius: 6px;
-    transition: all .2s;
-  }
-  .sales-nav-links a:hover { color: #fff; background: rgba(255,255,255,0.1); }
-  .sales-nav-cta {
-    background: #56c7b6 !important; color: #1a4a42 !important; font-weight: 700 !important;
-    margin-left: 0.5rem;
-  }
-  .sales-nav-cta:hover { background: #7ddfcf !important; }
-  .sales-hamburger {
-    display: none; background: none; border: none; color: #ecf0f1;
-    font-size: 1.5rem; cursor: pointer; padding: 0.25rem;
-  }
-  .sales-nav-mobile {
-    display: none; flex-direction: column;
-    background: #1a4a42; padding: 0.5rem 0;
-  }
-  .sales-nav-mobile.open { display: flex; }
-  .sales-nav-mobile a {
-    color: #b0bec5; text-decoration: none; padding: 0.85rem 1.5rem;
-    font-size: 0.95rem; transition: all .2s;
-  }
-  .sales-nav-mobile a:hover { color: #fff; background: rgba(255,255,255,0.05); }
-
-  @media (max-width: 768px) {
-    .sales-nav-links { display: none; }
-    .sales-hamburger { display: block; }
-  }
-
   .sales-page { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
   .hero {
     background: linear-gradient(135deg, {{ store_config.primary_color }} 0%, {{ store_config.accent_color }} 100%);
@@ -138,13 +61,6 @@
   .cta-final { padding: 4rem 2rem; background: {{ store_config.primary_color }}; color: white; text-align: center; }
   .cta-final h2 { font-size: 2rem; margin-bottom: 1rem; }
   .cta-final p { margin-bottom: 2rem; opacity: 0.9; }
-
-  /* Push hero below fixed nav */
-  .sales-page > .hero { margin-top: 56px; }
-
-  /* Smooth anchor scrolling */
-  html { scroll-behavior: smooth; }
-
   @media (max-width: 768px) {
     .hero { padding: 3rem 1rem; }
     .hero h1 { font-size: 1.8rem; }
@@ -274,21 +190,4 @@
     <a href="mailto:{{ store_config.contact_email }}" class="hero-cta outline">Contact Jay</a>
   </section>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  // Hamburger toggle
-  function toggleSalesMenu() {
-    document.getElementById('salesMobileMenu').classList.toggle('open');
-  }
-  function closeSalesMenu() {
-    document.getElementById('salesMobileMenu').classList.remove('open');
-  }
-  // Scroll shadow on nav
-  window.addEventListener('scroll', function() {
-    var nav = document.getElementById('salesNav');
-    if (nav) nav.classList.toggle('scrolled', window.scrollY > 10);
-  });
-</script>
 {% endblock %}
