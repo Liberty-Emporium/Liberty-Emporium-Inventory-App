@@ -1036,8 +1036,7 @@ def generate_video_ad():
 
     except Exception as e:
         import traceback
-        app.logger.error(f"Video generation error: {str(e)}
-{traceback.format_exc()}")
+        app.logger.error(f"Video generation error: {str(e)}\n" + traceback.format_exc())
         return jsonify({'error': f'Video generation failed: {str(e)}'}), 500
 
     finally:
