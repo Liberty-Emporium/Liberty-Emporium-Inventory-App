@@ -1,11 +1,10 @@
 [build.nixpacks]
 providers = ["python"]
-packages = ["ffmpeg"]
+packages = []
 
 [build.nixpacks.env]
 NIXPACKS_PYTHON_VERSION = "3.11"
 
 [deploy]
 startCommand = "sh start.sh"
-healthcheckPath = "/healthz"
-
+healthcheckPort = 8080
