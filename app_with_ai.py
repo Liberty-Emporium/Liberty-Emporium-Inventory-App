@@ -546,8 +546,7 @@ def ai_analyze():
             result = _json.loads(resp.read())
         text = result['content'][0]['text'].strip()
         if text.startswith('```'):
-            text = text.split('
-', 1)[1].rsplit('```', 1)[0].strip()
+            text = text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
         parsed = _json.loads(text)
         # Attach token usage so the frontend can calculate cost
         usage = result.get('usage', {})
