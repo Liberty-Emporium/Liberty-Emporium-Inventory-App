@@ -77,6 +77,7 @@
       #ht-next-btn { background:#2e7d6e; color:#fff; }
       #ht-next-btn:hover { background:#245f55; }
       #ht-counter { font-size:0.8rem; color:#aaa; }
+      /* How-To trigger button */
       .ht-open-btn {
         background:#2e7d6e; color:#fff; border:none;
         border-radius:8px; padding:0.42rem 0.95rem;
@@ -90,214 +91,103 @@
         max-width:860px; margin:0 auto 0.7rem auto;
         display:flex; justify-content:flex-end;
       }
-
-      /* ── Sidebar Layout ───────────────────────────── */
-      body.has-sidebar {
-        display: flex;
-        min-height: 100vh;
-        margin: 0;
-      }
-      .sidebar {
-        width: 250px;
-        background: #2c3e50;
-        color: white;
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        overflow-y: auto;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        flex-shrink: 0;
-      }
-      .sidebar-logo {
-        padding: 1.5rem 1.25rem 1rem;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-      }
-      .sidebar-logo .logo-text {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #ecf0f1;
-        text-decoration: none;
-      }
-      .sidebar-logo .logo-sub {
-        font-size: 0.75rem;
-        opacity: 0.7;
-        color: #bdc3c7;
-      }
-      .sidebar-nav { padding: 0.5rem 0; flex: 1; }
-      .sidebar-section {
-        padding: 0.75rem 1.25rem 0.4rem;
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: #7f8c8d;
-      }
-      .sidebar-nav a {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        color: #888;
-        text-decoration: none;
-        padding: 0.7rem 1.25rem;
-        font-size: 0.9rem;
-        transition: all 0.2s;
-        border-left: 3px solid transparent;
-      }
-      .sidebar-nav a:hover {
-        color: white;
-        background: rgba(255,255,255,0.08);
-        border-left-color: #3498db;
-      }
-      .sidebar-nav a.active {
-        color: white;
-        background: rgba(52,152,219,0.2);
-        border-left-color: #3498db;
-      }
-      .sidebar-footer {
-        padding: 1rem 1.25rem;
-        border-top: 1px solid rgba(255,255,255,0.1);
-      }
-      .sidebar-footer a {
-        color: #ecf0f1;
-        text-decoration: none;
-        font-size: 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-        padding: 0.5rem 0;
-        background: rgba(255,255,255,0.08);
-        border-radius: 6px;
-        justify-content: center;
-      }
-      .sidebar-footer a:hover { background: rgba(255,255,255,0.15); }
-      .sidebar-footer .user-info {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: #bdc3c7;
-        font-size: 0.85rem;
-      }
-      .sidebar-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 999;
-      }
-      .sidebar-open .sidebar-overlay { display: block !important; }
-      .hamburger {
-        display: none;
-        font-size: 1.5rem;
-        background: none;
-        border: none;
-        color: #ecf0f1;
-        cursor: pointer;
-        padding: 0.3rem 0.5rem;
-      }
-      .content-area {
-        margin-left: 250px;
-        flex: 1;
-        width: calc(100% - 250px);
-        padding-top: 0;
-      }
-
-      @media (max-width: 768px) {
-        .sidebar {
-          transform: translateX(-100%);
-          transition: transform 0.3s ease;
-        }
-        .sidebar-open .sidebar { transform: translateX(0); }
-        .content-area {
-          margin-left: 0;
-          width: 100%;
-        }
-        .hamburger { display: block; }
-        .mobile-bar {
-          display: flex !important;
-          align-items: center;
-          padding: 0.8rem 1rem;
-          background: #2c3e50;
-          justify-content: space-between;
-        }
-      }
-      @media (min-width: 769px) {
-        .mobile-bar { display: none !important; }
-      }
     </style>
 </head>
-<body class="{% if session.get('logged_in') %}has-sidebar{% endif %}">
+<body>
 
+    <!-- ── DEMO BANNER ───────────────────────────────────────────────── -->
     {% if demo_mode %}
-    <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed); color:white; padding:0.6rem 1.5rem; text-align:center; font-size:0.9rem; font-weight:600; {% if session.get('logged_in') %}margin-left:250px;{% endif %}">
+    <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed); color:white; padding:0.6rem 1.5rem; text-align:center; font-size:0.9rem; font-weight:600; z-index:200; position:relative;">
         🚀 <strong>LIVE DEMO</strong> &mdash; This is a fully working demo of RetailTrack.
         Want this for your store?
-        <a href="mailto:{{ demo_contact_email }}" style="color:#fbbf24; text-decoration:underline;">Contact Jay &rarr;</a>
+        <a href="mailto:{{ demo_contact_email }}" style="color:#fbbf24; text-decoration:underline; margin-left:0.4rem;">Contact Jay &rarr;</a>
     </div>
     {% endif %}
+    <!-- ──────────────────────────────────────────────────────────────── -->
 
-    <!-- Mobile top bar -->
-    <div class="mobile-bar">
-        <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
-        <span style="color:white; font-size:0.9rem;">{{ store_config.logo_emoji }} {{ store_config.store_name }}</span>
-        <a href="{{ url_for('logout') if session.get('logged_in') else url_for('login') }}" style="color:#bdc3c7; text-decoration:none; font-size:0.85rem;">
-            {% if session.get('logged_in') %}🚪{% else %}🔑{% endif %}
-        </a>
-    </div>
+    <style>
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0.4rem;
+        }
+        .hamburger span {
+            display: block;
+            width: 26px;
+            height: 3px;
+            background: #ecf0f1;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    </style>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    {% if session.get('logged_in') %}
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-logo">
-            <a href="{{ url_for('dashboard') }}" class="logo-text" style="text-decoration:none;">
-                {{ store_config.logo_emoji }} {{ store_config.store_name }}
+    <header style="position:relative;">
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="logo" style="font-size:0.78rem; line-height:1.3; max-width:220px;">
+              {{ store_config.logo_emoji }} {{ store_config.store_name }}<br>
+              <span style="font-size:0.7rem; opacity:0.75; font-weight:400;">{{ store_config.tagline }}</span>
             </a>
-            <div class="logo-sub">{{ store_config.tagline }}</div>
-        </div>
-        <nav class="sidebar-nav">
-            <div class="sidebar-section">Inventory</div>
-            <a href="{{ url_for('dashboard') }}">📊 Dashboard</a>
-            <a href="{{ url_for('new_product') }}">➕ Add Product</a>
 
-            <div class="sidebar-section">Marketing</div>
-            <a href="{{ url_for('ad_generator') }}">📝 Ad Generator</a>
-            <a href="{{ url_for('ad_vault') }}">🎬 Ad Vault</a>
-            <a href="{{ url_for('listing_generator') }}">📋 Listing Generator</a>
-            <a href="{{ url_for('seasonal_sale') }}">🔥 Seasonal Sale</a>
-
-            <div class="sidebar-section">Import/Export</div>
-            <a href="{{ url_for('export_inventory') }}">📥 Export CSV</a>
-            <a href="{{ url_for('export_square') }}">⬛ Export for Square</a>
-            <a href="{{ url_for('import_square') }}">📥 Import from Square</a>
-
-            <div class="sidebar-section">Admin</div>
-            <a href="{{ url_for('admin_users') }}">👥 Manage Users</a>
-            <a href="{{ url_for('admin_backups') }}">💾 Backups</a>
-            <a href="{{ url_for('admin_branding') }}">🎨 Store Branding</a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <span>{{ session.get('username') }} · {{ stats.get('total', 0) }} items</span>
+            <div class="nav-links" id="navLinks">
+                {% if not session.get('is_guest') %}
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('new_product') }}">Add Product</a>
+                <a href="{{ url_for('ad_generator') }}">Ad Generator</a>
+                <a href="{{ url_for('ad_vault') }}">Ad Vault</a>
+                <a href="{{ url_for('listing_generator') }}">Listings</a>
+                {% endif %}
+                {% if session.get('username') == 'admin' %}
+                <a href="{{ url_for('seasonal_sale') }}">Sale</a>
+                {% endif %}
             </div>
-            <a href="{{ url_for('logout') }}">🚪 Logout</a>
-        </div>
-    </aside>
+
+            <div class="nav-right" style="display:flex; align-items:center; gap:1rem;">
+                <div class="stats-badge">
+                    {% if stats %}{{ stats.get('total', 0) }}{% else %}0{% endif %} Items
+                </div>
+                {% if session.get('logged_in') %}
+                <span style="color:#bdc3c7; font-size:0.8rem;">{{ session.get('username') }}</span>
+                <a href="{{ url_for('logout') }}"
+                   style="color:#ecf0f1; font-size:0.85rem; text-decoration:none; background:rgba(255,255,255,0.15); padding:0.4rem 0.8rem; border-radius:4px;">
+                    🚪 Logout
+                </a>
+                {% endif %}
+                <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('open');
+            document.getElementById('hamburger').classList.toggle('open');
+        }
+        // Close menu when a link is clicked
+        document.querySelectorAll('#navLinks a').forEach(a => {
+            a.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('open');
+                document.getElementById('hamburger').classList.remove('open');
+            });
+        });
+    </script>
+
+    {% if session.get('is_guest') %}
+    <div style="background:#fff8e1; border-bottom:2px solid #ffe082; padding:0.6rem 2rem; text-align:center; font-size:0.95rem; color:#7c5a00;">
+        👁️ You are browsing as a <strong>Guest</strong> — view only.
+        <a href="{{ url_for('logout') }}" style="color:#2e7d6e; font-weight:600;">Log out</a>
+    </div>
     {% endif %}
 
-    <div class="{% if session.get('logged_in') %}content-area{% endif %}">
     <main>
-        {% if session.get('is_guest') %}
-        <div style="background:#fff8e1; border-bottom:2px solid #ffe082; padding:0.6rem 2rem; text-align:center; font-size:0.95rem; color:#7c5a00;">
-            👁️ You are browsing as a <strong>Guest</strong> — view only.
-            <a href="{{ url_for('logout') }}" style="color:#2e7d6e; font-weight:600;">Log out</a>
-        </div>
-        {% endif %}
-
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-messages">
@@ -311,37 +201,24 @@
         {% block content %}{% endblock %}
     </main>
 
-    {% if not session.get('is_guest') and not session.get('logged_in') %}
     <footer>
-        <p>Your Store Could Look Like This &mdash; Powered by
+        <p>
+            Your Store Could Look Like This &mdash; Powered by
             <a href="mailto:{{ demo_contact_email }}" style="color:#3498db;">Liberty Emporium Programs</a>
             &mdash; Want this for your store?
             <a href="mailto:{{ demo_contact_email }}" style="color:#3498db;">Contact Jay</a>
         </p>
     </footer>
-    {% endif %}
-    </div>
-
-    <script>
-        function toggleSidebar() {
-            document.body.classList.toggle('sidebar-open');
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.sidebar-nav a').forEach(function(a) {
-                a.addEventListener('click', function() {
-                    document.body.classList.remove('sidebar-open');
-                });
-            });
-        });
-    </script>
-
     {% block extra_js %}{% endblock %}
 
+    <!-- ── How-To Modal Engine ── -->
     <div id="ht-overlay" onclick="htCloseIfBackdrop(event)">
       <div id="ht-box">
         <div id="ht-progress-wrap"><div id="ht-progress-bar" style="width:0%"></div></div>
         <button id="ht-close" onclick="htClose()">✕</button>
-        <div id="ht-slides-wrap">{% block howto_slides %}{% endblock %}</div>
+        <div id="ht-slides-wrap">
+          {% block howto_slides %}{% endblock %}
+        </div>
         <div id="ht-nav">
           <button class="ht-btn" id="ht-prev-btn" onclick="htNav(-1)" disabled>← Prev</button>
           <span id="ht-counter"></span>
@@ -349,19 +226,24 @@
         </div>
       </div>
     </div>
+
     <script>
     (function(){
       var cur = 0;
       function slides(){ return document.querySelectorAll('.ht-slide'); }
+
+      // Show trigger button only if slides exist
       window.addEventListener('DOMContentLoaded', function(){
         if(slides().length === 0){
           document.querySelectorAll('.ht-open-btn').forEach(function(b){ b.style.display='none'; });
         }
       });
+
       window.htOpen = function(){
         var ss = slides();
         if(!ss.length) return;
-        cur = 0; htShow(0);
+        cur = 0;
+        htShow(0);
         document.getElementById('ht-overlay').style.display='flex';
         document.body.style.overflow='hidden';
       };
@@ -391,8 +273,8 @@
       document.addEventListener('keydown', function(e){
         if(document.getElementById('ht-overlay').style.display==='flex'){
           if(e.key==='ArrowRight') htNav(1);
-          if(e.key==='ArrowLeft') htNav(-1);
-          if(e.key==='Escape') htClose();
+          if(e.key==='ArrowLeft')  htNav(-1);
+          if(e.key==='Escape')     htClose();
         }
       });
     })();

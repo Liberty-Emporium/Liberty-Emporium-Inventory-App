@@ -1,19 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Login | {{ store_name }} Demo{% endblock %}
-{% block extra_css %}
-<style>
-  /* Force full-screen centered layout — no sidebar */
-  body { display: flex !important; flex-direction: column !important; min-height: 100vh !important; margin: 0 !important; background: #f5f5f5 !important; }
-  aside.sidebar { display: none !important; }
-  .mobile-bar { display: none !important; }
-  .content-area { margin-left: 0 !important; width: 100% !important; }
-  main > .login-centered { display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; flex: 1; }
-  .login-centered > div { max-width: 420px; width: 100%; }
-</style>
-{% endblock %}
 {% block content %}
-<div class="login-centered">
-<div>
+<div style="max-width:420px; margin:3rem auto;">
 
     <!-- Demo credentials box -->
     <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed); color:white; padding:1.25rem 1.5rem; border-radius:12px; margin-bottom:1.5rem; text-align:center;">
@@ -85,6 +73,5 @@
             Contact Jay &rarr;
         </a>
     </div>
-</div>
 </div>
 {% endblock %}
