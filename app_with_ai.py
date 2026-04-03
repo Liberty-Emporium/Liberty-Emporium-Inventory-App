@@ -82,10 +82,63 @@ if DATA_DIR != BASE_DIR:
             shutil.copy2(_src, _dst)
             print(f"[STARTUP] Seeded {_fname} -> {_dst}", flush=True)
 
+# ── Store Configuration (white-label) ─────────────────────────────────────────
+STORE_CONFIG_FILE = os.path.join(DATA_DIR, 'store_config.json')
+
+DEFAULT_STORE_CONFIG = {
+    'store_name': 'Liberty Emporium & Thrift',
+    'tagline': 'Inventory Management',
+    'contact_email': 'alexanderjay70@gmail.com',
+    'jay_email': 'alexanderjay70@gmail.com',
+    'primary_color': '#2c3e50',
+    'secondary_color': '#27ae60',
+    'accent_color': '#4f46e5',
+    'logo_url': '',  # empty = use emoji fallback
+    'logo_emoji': '🏪',
+    'store_description': 'RetailTrack — A beautiful inventory management app for your store.',
+    # Pricing tiers (customizable per demo instance)
+    'pricing': {
+        'starter': {'name': 'Starter', 'price': 299, 'features': [
+            'Full inventory management', 'AI photo analysis',
+            'Ad & listing generators', 'Single device']},
+        'pro': {'name': 'Pro', 'price': 499, 'features': [
+            'Everything in Starter', 'Multi-device sync',
+            'Square integration', 'Email support', 'Custom branding']},
+        'enterprise': {'name': 'Enterprise', 'price': 799, 'features': [
+            'Everything in Pro', 'Multiple locations',
+            'API access', 'Priority support', 'Custom features']},
+    },
+    # Whether first-run onboarding has been completed
+    'onboarding_done': False,
+}
+
+def load_store_config():
+    """Load store configuration, returning defaults if file doesn't exist."""
+    if os.path.exists(STORE_CONFIG_FILE):
+        try:
+            with open(STORE_CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+            # Merge with defaults to ensure all keys exist
+            for key, val in DEFAULT_STORE_CONFIG.items():
+                if key not in config:
+                    config[key] = val
+            return config
+        except Exception:
+            pass
+    # Save defaults if config doesn't exist
+    save_store_config(DEFAULT_STORE_CONFIG.copy())
+    return DEFAULT_STORE_CONFIG.copy()
+
+def save_store_config(config):
+    """Persist store configuration."""
+    with open(STORE_CONFIG_FILE, 'w') as f:
+        json.dump(config, f, indent=2)
+
 # ── Config ────────────────────────────────────────────────────────────────────
-STORE_NAME    = 'Liberty Emporium & Thrift'
+_store_cfg = load_store_config()
+STORE_NAME    = _store_cfg['store_name']
 DEMO_MODE     = os.environ.get('DEMO_MODE', 'false').lower() == 'true'
-CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'alexanderjay70@gmail.com')
+CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', _store_cfg['contact_email'])
 ALLOWED_EXT   = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
 MAX_BACKUPS   = 20
 
@@ -96,7 +149,7 @@ STATUSES   = ['Available','Sold','Reserved','Pending']
 
 ADMIN_USER  = 'admin'
 ADMIN_PASS  = os.environ.get('ADMIN_PASSWORD', 'admin123')
-ADMIN_EMAIL = 'alexanderjay70@gmail.com'
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', _store_cfg.get('jay_email', 'alexanderjay70@gmail.com'))
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def allowed_file(filename):
@@ -205,6 +258,7 @@ def ctx():
         stats=get_stats(),
         demo_username=ADMIN_USER,
         demo_password=ADMIN_PASS,
+        store_config=load_store_config(),
     )
 
 # ── Context processor ─────────────────────────────────────────────────────────
@@ -226,6 +280,7 @@ def inject_globals():
         stats=stats,
         sale_state=sale_state,
         user_role='admin' if is_admin else 'guest',
+        store_config=load_store_config(),
     )
 
 # ── Health check (no login required, for Railway) ─────────────────────────────
@@ -1520,6 +1575,47 @@ def price_tag(sku):
         flash('Product not found.', 'error')
         return redirect(url_for('dashboard'))
     return render_template('price_tag.html', product=product, **ctx())
+
+# ── Store Configuration (white-label admin) ───────────────────────────────────
+@app.route('/admin/branding', methods=['GET','POST'])
+@login_required
+@admin_required
+def admin_branding():
+    cfg = load_store_config()
+    if request.method == 'POST':
+        cfg['store_name']   = request.form.get('store_name', cfg['store_name']).strip()
+        cfg['tagline']      = request.form.get('tagline', cfg['tagline']).strip()
+        cfg['contact_email'] = request.form.get('contact_email', cfg['contact_email']).strip()
+        cfg['store_description'] = request.form.get('store_description', cfg['store_description']).strip()
+        cfg['primary_color']   = request.form.get('primary_color', cfg['primary_color']).strip()
+        cfg['secondary_color'] = request.form.get('secondary_color', cfg['secondary_color']).strip()
+        cfg['accent_color']    = request.form.get('accent_color', cfg['accent_color']).strip()
+        cfg['logo_emoji']      = request.form.get('logo_emoji', cfg['logo_emoji']).strip()
+        save_store_config(cfg)
+        flash('Store branding updated! Refresh to see changes.', 'success')
+        return redirect(url_for('admin_branding'))
+    return render_template('admin_branding.html', config=cfg, **ctx())
+
+# ── Onboarding Wizard ────────────────────────────────────────────────────────
+@app.route('/onboarding', methods=['GET','POST'])
+def onboarding():
+    cfg = load_store_config()
+    # If onboarding already done and user is logged in, redirect to dashboard
+    if cfg.get('onboarding_done') and session.get('logged_in'):
+        return redirect(url_for('dashboard'))
+    if request.method == 'POST':
+        # Save onboarding responses
+        cfg['store_name']   = request.form.get('store_name', cfg['store_name']).strip()
+        cfg['tagline']      = request.form.get('tagline', cfg['tagline']).strip()
+        cfg['contact_email'] = request.form.get('contact_email', cfg['contact_email']).strip()
+        cfg['primary_color']   = request.form.get('primary_color', cfg['primary_color']).strip()
+        cfg['accent_color']    = request.form.get('accent_color', cfg['accent_color']).strip()
+        cfg['logo_emoji']      = request.form.get('logo_emoji', cfg['logo_emoji']).strip()
+        cfg['onboarding_done'] = True
+        save_store_config(cfg)
+        flash(f"Welcome to {cfg['store_name']}! Your store is ready to go. 🎉", 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('onboarding.html', config=cfg, **ctx())
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
