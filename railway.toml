@@ -6,7 +6,6 @@ packages = ["ffmpeg"]
 NIXPACKS_PYTHON_VERSION = "3.11"
 
 [deploy]
-startCommand = "sh start.sh"
-healthcheckPort = 8080
 healthcheckPath = "/healthz"
-healthcheckTimeout = 120
+healthcheckTimeout = 30
+restartPolicyType = "ALWAYS"
