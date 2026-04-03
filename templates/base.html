@@ -287,35 +287,26 @@
                 </a>
                 <div class="logo-sub">{{ store_config.tagline }}</div>
             </div>
-            {% if not session.get('is_guest') %}
             <nav class="sidebar-nav">
                 <div class="sidebar-section">Inventory</div>
-                <a href="{{ url_for('dashboard') }}" {% if request.path == '/dashboard' %}class="active"{% endif %}>📊 Dashboard</a>
-                <a href="{{ url_for('new_product') }}" {% if request.path == '/new' %}class="active"{% endif %}>➕ Add Product</a>
-                {% if session.get('username') == 'admin' %}
-                <a href="{{ url_for('admin_users') }}">👥 Manage Users</a>
-                <a href="{{ url_for('admin_backups') }}">💾 Backups</a>
-                {% endif %}
+                <a href="{{ url_for('dashboard') }}{% if request.path == '/dashboard' %}" class="active"{% else %}"{% endif %}>📊 Dashboard</a>
+                <a href="{{ url_for('new_product') }}{% if request.path == '/new' %}" class="active"{% else %}"{% endif %}>➕ Add Product</a>
 
                 <div class="sidebar-section">Marketing</div>
                 <a href="{{ url_for('ad_generator') }}">📝 Ad Generator</a>
                 <a href="{{ url_for('ad_vault') }}">🎬 Ad Vault</a>
                 <a href="{{ url_for('listing_generator') }}">📋 Listing Generator</a>
-                {% if session.get('username') == 'admin' %}
                 <a href="{{ url_for('seasonal_sale') }}">🔥 Seasonal Sale</a>
-                {% endif %}
 
                 <div class="sidebar-section">Import/Export</div>
                 <a href="{{ url_for('export_inventory') }}">📥 Export CSV</a>
                 <a href="{{ url_for('export_square') }}">⬛ Export for Square</a>
                 <a href="{{ url_for('import_square') }}">📥 Import from Square</a>
+
                 <div class="sidebar-section">Admin</div>
                 <a href="{{ url_for('admin_users') }}">👥 Manage Users</a>
                 <a href="{{ url_for('admin_backups') }}">💾 Backups</a>
-                {% if session.get('username') == 'admin' %}
-                <div class="sidebar-section">Settings</div>
                 <a href="{{ url_for('admin_branding') }}">🎨 Store Branding</a>
-                {% endif %}
             </nav>
             {% else %}
             <nav class="sidebar-nav">
