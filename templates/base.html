@@ -7,6 +7,119 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% block extra_css %}{% endblock %}
     <style>
+      /* ── Top Navbar (no sidebar) ── */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { min-height: 100vh; display: flex; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+      .topnav {
+        background: #2c3e50;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem;
+        height: 56px;
+        position: sticky;
+        top: 0;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        flex-wrap: wrap;
+      }
+      .topnav-logo {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #ecf0f1;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .topnav-logo:hover { color: #fff; }
+      .topnav-links {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        flex-wrap: wrap;
+      }
+      .topnav-links a {
+        color: #b0bec5;
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        transition: all .2s;
+        white-space: nowrap;
+      }
+      .topnav-links a:hover {
+        color: #fff;
+        background: rgba(255,255,255,0.08);
+      }
+      .topnav-links a.active-link {
+        color: #fff;
+        background: rgba(52,152,219,0.25);
+        border-radius: 4px;
+      }
+      .topnav-section {
+        color: #576574;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        display: inline-block;
+        padding: 0.5rem 0.3rem 0.5rem 0.2rem;
+        margin-left: 0.25rem;
+      }
+      .topnav-user {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        white-space: nowrap;
+      }
+      .topnav-user span {
+        color: #7f8c8d;
+        font-size: 0.85rem;
+      }
+      .topnav-user a {
+        color: #bdc3c7;
+        text-decoration: none;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 4px;
+        transition: all .2s;
+      }
+      .topnav-user a:hover {
+        color: #fff;
+        background: rgba(255,255,255,0.08);
+      }
+      .topnav-hamburger {
+        display: none;
+        background: none;
+        border: none;
+        color: #ecf0f1;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.25rem;
+      }
+
+      .main-content {
+        flex: 1;
+        width: 100%;
+      }
+
+      @media (max-width: 900px) {
+        .topnav-links { display: none; }
+        .topnav-links.open {
+          display: flex;
+          flex-direction: column;
+          background: #2c3e50;
+          width: 100%;
+          padding: 0.5rem 0;
+        }
+        .topnav-section {
+          padding: 0.3rem 1rem;
+          margin-left: 0;
+          margin-top: 0.35rem;
+        }
+        .topnav-hamburger { display: block; }
+      }
+
       /* ── How-To Modal (shared) ── */
       #ht-overlay {
         display:none; position:fixed; inset:0;
@@ -90,207 +203,60 @@
         max-width:860px; margin:0 auto 0.7rem auto;
         display:flex; justify-content:flex-end;
       }
-
-      /* ── Sidebar Layout ───────────────────────────── */
-      body.has-sidebar {
-        display: flex;
-        min-height: 100vh;
-        margin: 0;
-      }
-      .sidebar {
-        width: 250px;
-        background: #2c3e50;
-        color: white;
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        overflow-y: auto;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        flex-shrink: 0;
-      }
-      .sidebar-logo {
-        padding: 1.5rem 1.25rem 1rem;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-      }
-      .sidebar-logo .logo-text {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #ecf0f1;
-        text-decoration: none;
-      }
-      .sidebar-logo .logo-sub {
-        font-size: 0.75rem;
-        opacity: 0.7;
-        color: #bdc3c7;
-      }
-      .sidebar-nav { padding: 0.5rem 0; flex: 1; }
-      .sidebar-section {
-        padding: 0.75rem 1.25rem 0.4rem;
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: #7f8c8d;
-      }
-      .sidebar-nav a {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        color: #888;
-        text-decoration: none;
-        padding: 0.7rem 1.25rem;
-        font-size: 0.9rem;
-        transition: all 0.2s;
-        border-left: 3px solid transparent;
-      }
-      .sidebar-nav a:hover {
-        color: white;
-        background: rgba(255,255,255,0.08);
-        border-left-color: #3498db;
-      }
-      .sidebar-nav a.active {
-        color: white;
-        background: rgba(52,152,219,0.2);
-        border-left-color: #3498db;
-      }
-      .sidebar-footer {
-        padding: 1rem 1.25rem;
-        border-top: 1px solid rgba(255,255,255,0.1);
-      }
-      .sidebar-footer a {
-        color: #ecf0f1;
-        text-decoration: none;
-        font-size: 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-        padding: 0.5rem 0;
-        background: rgba(255,255,255,0.08);
-        border-radius: 6px;
-        justify-content: center;
-      }
-      .sidebar-footer a:hover { background: rgba(255,255,255,0.15); }
-      .sidebar-footer .user-info {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: #bdc3c7;
-        font-size: 0.85rem;
-      }
-      .sidebar-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 999;
-      }
-      .sidebar-open .sidebar-overlay { display: block !important; }
-      .hamburger {
-        display: none;
-        font-size: 1.5rem;
-        background: none;
-        border: none;
-        color: #ecf0f1;
-        cursor: pointer;
-        padding: 0.3rem 0.5rem;
-      }
-      .content-area {
-        margin-left: 250px;
-        flex: 1;
-        width: calc(100% - 250px);
-        padding-top: 0;
-      }
-
-      @media (max-width: 768px) {
-        .sidebar {
-          transform: translateX(-100%);
-          transition: transform 0.3s ease;
-        }
-        .sidebar-open .sidebar { transform: translateX(0); }
-        .content-area {
-          margin-left: 0;
-          width: 100%;
-        }
-        .hamburger { display: block; }
-        .mobile-bar {
-          display: flex !important;
-          align-items: center;
-          padding: 0.8rem 1rem;
-          background: #2c3e50;
-          justify-content: space-between;
-        }
-      }
-      @media (min-width: 769px) {
-        .mobile-bar { display: none !important; }
-      }
     </style>
 </head>
-<body class="{% if session.get('logged_in') %}has-sidebar{% endif %}">
+<body>
 
+    <!-- Demo Banner -->
     {% if demo_mode %}
-    <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed); color:white; padding:0.6rem 1.5rem; text-align:center; font-size:0.9rem; font-weight:600; {% if session.get('logged_in') %}margin-left:250px;{% endif %}">
+    <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed); color:white; padding:0.6rem 1.5rem; text-align:center; font-size:0.9rem; font-weight:600;">
         🚀 <strong>LIVE DEMO</strong> &mdash; This is a fully working demo of RetailTrack.
         Want this for your store?
         <a href="mailto:{{ demo_contact_email }}" style="color:#fbbf24; text-decoration:underline;">Contact Jay &rarr;</a>
     </div>
     {% endif %}
 
-    <!-- Mobile top bar -->
-    <div class="mobile-bar">
-        <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
-        <span style="color:white; font-size:0.9rem;">{{ store_config.logo_emoji }} {{ store_config.store_name }}</span>
-        <a href="{{ url_for('logout') if session.get('logged_in') else url_for('login') }}" style="color:#bdc3c7; text-decoration:none; font-size:0.85rem;">
-            {% if session.get('logged_in') %}🚪{% else %}🔑{% endif %}
+    <!-- Top Navigation Bar -->
+    <nav class="topnav">
+        <a href="{{ url_for('dashboard') if session.get('logged_in') else '/' }}" class="topnav-logo">
+            {{ store_config.logo_emoji }} {{ store_config.store_name }}
         </a>
-    </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    {% if session.get('logged_in') %}
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-logo">
-            <a href="{{ url_for('dashboard') }}" class="logo-text" style="text-decoration:none;">
-                {{ store_config.logo_emoji }} {{ store_config.store_name }}
-            </a>
-            <div class="logo-sub">{{ store_config.tagline }}</div>
-        </div>
-        <nav class="sidebar-nav">
-            <div class="sidebar-section">Inventory</div>
+        {% if session.get('logged_in') %}
+        <div class="topnav-links" id="topnavLinks">
+            <span class="topnav-section">Inventory</span>
             <a href="{{ url_for('dashboard') }}">📊 Dashboard</a>
             <a href="{{ url_for('new_product') }}">➕ Add Product</a>
-
-            <div class="sidebar-section">Marketing</div>
-            <a href="{{ url_for('ad_generator') }}">📝 Ad Generator</a>
-            <a href="{{ url_for('ad_vault') }}">🎬 Ad Vault</a>
-            <a href="{{ url_for('listing_generator') }}">📋 Listing Generator</a>
-            <a href="{{ url_for('seasonal_sale') }}">🔥 Seasonal Sale</a>
-
-            <div class="sidebar-section">Import/Export</div>
-            <a href="{{ url_for('export_inventory') }}">📥 Export CSV</a>
-            <a href="{{ url_for('export_square') }}">⬛ Export for Square</a>
-            <a href="{{ url_for('import_square') }}">📥 Import from Square</a>
-
-            <div class="sidebar-section">Admin</div>
-            <a href="{{ url_for('admin_users') }}">👥 Manage Users</a>
+            <span class="topnav-section">Marketing</span>
+            <a href="{{ url_for('ad_generator') }}">📝 Ads</a>
+            <a href="{{ url_for('ad_vault') }}">🎬 Vault</a>
+            <a href="{{ url_for('listing_generator') }}">📋 Listings</a>
+            <a href="{{ url_for('seasonal_sale') }}">🔥 Sale</a>
+            <span class="topnav-section">Import/Export</span>
+            <a href="{{ url_for('export_inventory') }}">📥 CSV</a>
+            <a href="{{ url_for('export_square') }}">⬛ Square</a>
+            <a href="{{ url_for('import_square') }}">📤 Import</a>
+            <span class="topnav-section">Admin</span>
+            <a href="{{ url_for('admin_users') }}">👥 Users</a>
             <a href="{{ url_for('admin_backups') }}">💾 Backups</a>
-            <a href="{{ url_for('admin_branding') }}">🎨 Store Branding</a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <span>{{ session.get('username') }} · {{ stats.get('total', 0) }} items</span>
-            </div>
-            <a href="{{ url_for('logout') }}">🚪 Logout</a>
+            <a href="{{ url_for('admin_branding') }}">🎨 Branding</a>
         </div>
-    </aside>
-    {% endif %}
+        {% endif %}
 
-    <div class="{% if session.get('logged_in') %}content-area{% endif %}">
-    <main>
+        <div class="topnav-user">
+            {% if session.get('logged_in') %}
+            <span>{{ session.get('username') }} · {{ stats.get('total', 0) }} items</span>
+            <a href="{{ url_for('logout') }}">🚪 Logout</a>
+            {% else %}
+            <a href="{{ url_for('login') }}">🔑 Login</a>
+            {% endif %}
+            {% if session.get('logged_in') %}
+            <button class="topnav-hamburger" onclick="toggleTopNav()">☰</button>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="main-content">
         {% if session.get('is_guest') %}
         <div style="background:#fff8e1; border-bottom:2px solid #ffe082; padding:0.6rem 2rem; text-align:center; font-size:0.95rem; color:#7c5a00;">
             👁️ You are browsing as a <strong>Guest</strong> — view only.
@@ -309,7 +275,7 @@
         {% endwith %}
 
         {% block content %}{% endblock %}
-    </main>
+    </div>
 
     {% if not session.get('is_guest') and not session.get('logged_in') %}
     <footer>
@@ -320,22 +286,14 @@
         </p>
     </footer>
     {% endif %}
-    </div>
-
-    <script>
-        function toggleSidebar() {
-            document.body.classList.toggle('sidebar-open');
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.sidebar-nav a').forEach(function(a) {
-                a.addEventListener('click', function() {
-                    document.body.classList.remove('sidebar-open');
-                });
-            });
-        });
-    </script>
 
     {% block extra_js %}{% endblock %}
+
+    <script>
+        function toggleTopNav() {
+            document.getElementById('topnavLinks').classList.toggle('open');
+        }
+    </script>
 
     <div id="ht-overlay" onclick="htCloseIfBackdrop(event)">
       <div id="ht-box">
