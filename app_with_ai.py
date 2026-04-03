@@ -300,6 +300,9 @@ def ping():
 # ── Auth Routes ───────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET','POST'])
 def login():
+    # Already logged in? Redirect to dashboard
+    if session.get('logged_in') and not session.get('is_guest'):
+        return redirect(url_for('dashboard'))
     if request.method == 'POST':
         username = request.form.get('username','').strip()
         password = request.form.get('password','')
