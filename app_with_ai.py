@@ -1072,50 +1072,35 @@ def generate_listing():
 
     platform_prompts = {
         'facebook': (
-            f'Write a Facebook Marketplace listing for this thrift store item.
-'
-            f'Item: {title}
-Price: ${price}
-Condition: {condition}
-Category: {category}
-Description: {desc}
-'
-            f'Store: {store_info}
-
-'
-            f'Return JSON only with keys: title, price, condition, description, location.
-'
+            f'Write a Facebook Marketplace listing for this thrift store item. '
+            f'Item: {title} '
+            f'Price: ${price} '
+            f'Condition: {condition} '
+            f'Category: {category} '
+            f'Description: {desc} '
+            f'Store: {store_info} '
+            f'Return JSON only with keys: title, price, condition, description, location. '
             f'Make the description engaging and friendly, 3-5 sentences.'
         ),
         'craigslist': (
-            f'Write a Craigslist listing for this thrift store item.
-'
-            f'Item: {title}
-Price: ${price}
-Condition: {condition}
-Category: {category}
-Description: {desc}
-'
-            f'Store: {store_info}
-
-'
-            f'Return JSON only with keys: title, price, condition, description, location.
-'
+            f'Write a Craigslist listing for this thrift store item. '
+            f'Item: {title} '
+            f'Price: ${price} '
+            f'Condition: {condition} '
+            f'Category: {category} '
+            f'Description: {desc} '
+            f'Store: {store_info} '
+            f'Return JSON only with keys: title, price, condition, description, location. '
             f'Keep it straightforward and factual.'
         ),
         'instagram': (
-            f'Write an Instagram caption for this thrift store item.
-'
-            f'Item: {title}
-Price: ${price}
-Condition: {condition}
-Description: {desc}
-'
-            f'Store: {store_info}
-
-'
-            f'Return JSON only with keys: title, price, condition, description, location.
-'
+            f'Write an Instagram caption for this thrift store item. '
+            f'Item: {title} '
+            f'Price: ${price} '
+            f'Condition: {condition} '
+            f'Description: {desc} '
+            f'Store: {store_info} '
+            f'Return JSON only with keys: title, price, condition, description, location. '
             f'Make description fun with emojis and relevant hashtags.'
         ),
     }
@@ -1123,9 +1108,7 @@ Description: {desc}
     prompt = platform_prompts.get(platform, platform_prompts['facebook'])
 
     if not api_key:
-        fallback_desc = desc + '
-
-' + store_info
+        fallback_desc = desc + '\n\n' + store_info
         return jsonify({'title': title, 'price': '$' + price, 'condition': condition,
                         'description': fallback_desc, 'location': 'Liberty, NC 27298'})
     try:
@@ -1149,8 +1132,7 @@ Description: {desc}
             result = _json.loads(resp.read())
         text = result['content'][0]['text'].strip()
         if text.startswith('```'):
-            text = text.split('
-', 1)[1].rsplit('```', 1)[0].strip()
+            text = text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
         return jsonify(_json.loads(text))
     except Exception as e:
         return jsonify({'error': str(e)})
