@@ -131,8 +131,8 @@
     <header style="position:relative;">
         <nav>
             <a href="{{ url_for('dashboard') }}" class="logo" style="font-size:0.78rem; line-height:1.3; max-width:220px;">
-              This Could Be Your Store App.<br>
-              <span style="font-size:0.7rem; opacity:0.75; font-weight:400;">Jay Can Customize It For You</span>
+              {{ store_config.logo_emoji }} {{ store_config.store_name }}<br>
+              <span style="font-size:0.7rem; opacity:0.75; font-weight:400;">{{ store_config.tagline }}</span>
             </a>
 
             <div class="nav-links" id="navLinks">
