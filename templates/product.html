@@ -137,6 +137,14 @@
             </div>
             {% endif %}
 
+            <!-- ── QR Code ──────────────────────────────────────────── -->
+            <div class="qr-section" style="background:white; border:2px dashed #b8ddd7; border-radius:12px; padding:1.25rem; margin-top:1.25rem; text-align:center;">
+                <h3 style="margin-bottom:0.5rem; color:#2e7d6e; font-size:1rem;">📱 Scan to View on Phone</h3>
+                <p style="color:#6b9e95; font-size:0.82rem; margin-bottom:0.75rem;">Scan this QR code to open this listing on your phone</p>
+                <div id="qr-code-container" style="display:inline-block; padding:8px; background:white; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08);"></div>
+            </div>
+            <!-- ────────────────────────────────────────────────────── -->
+
             <!-- ── Share Buttons ─────────────────────────────────────── -->
             <div class="share-section">
                 <h3>📣 Share This Item</h3>
@@ -271,6 +279,21 @@ function copyLink() {
         prompt('Copy this link:', productUrl);
     });
 }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function() {
+    var productUrl = window.location.protocol + '//' + window.location.host + '/product/{{ product.SKU }}';
+    new QRCode(document.getElementById('qr-code-container'), {
+        text: productUrl,
+        width: 128,
+        height: 128,
+        colorDark: '#2c3e50',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
+})();
 </script>
 
 {% endblock %}
