@@ -18,7 +18,7 @@ try:
 except ImportError:
     pass
 
-app = Flask(__name__, template_folder='templetes')
+app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
 
 # ── Helper: Fix EXIF orientation ──────────────────────────────────────────────
@@ -546,7 +546,8 @@ def ai_analyze():
             result = _json.loads(resp.read())
         text = result['content'][0]['text'].strip()
         if text.startswith('```'):
-            text = text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
+            text = text.split('
+', 1)[1].rsplit('```', 1)[0].strip()
         parsed = _json.loads(text)
         # Attach token usage so the frontend can calculate cost
         usage = result.get('usage', {})
@@ -1036,7 +1037,8 @@ def generate_video_ad():
 
     except Exception as e:
         import traceback
-        app.logger.error(f"Video generation error: {str(e)}\n{traceback.format_exc()}")
+        app.logger.error(f"Video generation error: {str(e)}
+{traceback.format_exc()}")
         return jsonify({'error': f'Video generation failed: {str(e)}'}), 500
 
     finally:
@@ -1072,24 +1074,50 @@ def generate_listing():
 
     platform_prompts = {
         'facebook': (
-            f'Write a Facebook Marketplace listing for this thrift store item.\n'
-            f'Item: {title}\nPrice: ${price}\nCondition: {condition}\nCategory: {category}\nDescription: {desc}\n'
-            f'Store: {store_info}\n\n'
-            f'Return JSON only with keys: title, price, condition, description, location.\n'
+            f'Write a Facebook Marketplace listing for this thrift store item.
+'
+            f'Item: {title}
+Price: ${price}
+Condition: {condition}
+Category: {category}
+Description: {desc}
+'
+            f'Store: {store_info}
+
+'
+            f'Return JSON only with keys: title, price, condition, description, location.
+'
             f'Make the description engaging and friendly, 3-5 sentences.'
         ),
         'craigslist': (
-            f'Write a Craigslist listing for this thrift store item.\n'
-            f'Item: {title}\nPrice: ${price}\nCondition: {condition}\nCategory: {category}\nDescription: {desc}\n'
-            f'Store: {store_info}\n\n'
-            f'Return JSON only with keys: title, price, condition, description, location.\n'
+            f'Write a Craigslist listing for this thrift store item.
+'
+            f'Item: {title}
+Price: ${price}
+Condition: {condition}
+Category: {category}
+Description: {desc}
+'
+            f'Store: {store_info}
+
+'
+            f'Return JSON only with keys: title, price, condition, description, location.
+'
             f'Keep it straightforward and factual.'
         ),
         'instagram': (
-            f'Write an Instagram caption for this thrift store item.\n'
-            f'Item: {title}\nPrice: ${price}\nCondition: {condition}\nDescription: {desc}\n'
-            f'Store: {store_info}\n\n'
-            f'Return JSON only with keys: title, price, condition, description, location.\n'
+            f'Write an Instagram caption for this thrift store item.
+'
+            f'Item: {title}
+Price: ${price}
+Condition: {condition}
+Description: {desc}
+'
+            f'Store: {store_info}
+
+'
+            f'Return JSON only with keys: title, price, condition, description, location.
+'
             f'Make description fun with emojis and relevant hashtags.'
         ),
     }
@@ -1097,7 +1125,9 @@ def generate_listing():
     prompt = platform_prompts.get(platform, platform_prompts['facebook'])
 
     if not api_key:
-        fallback_desc = desc + '\n\n' + store_info
+        fallback_desc = desc + '
+
+' + store_info
         return jsonify({'title': title, 'price': '$' + price, 'condition': condition,
                         'description': fallback_desc, 'location': 'Liberty, NC 27298'})
     try:
@@ -1121,7 +1151,8 @@ def generate_listing():
             result = _json.loads(resp.read())
         text = result['content'][0]['text'].strip()
         if text.startswith('```'):
-            text = text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
+            text = text.split('
+', 1)[1].rsplit('```', 1)[0].strip()
         return jsonify(_json.loads(text))
     except Exception as e:
         return jsonify({'error': str(e)})
