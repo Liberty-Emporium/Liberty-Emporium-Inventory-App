@@ -27,8 +27,8 @@ RUN mkdir -p /data/ads /data/uploads /data/backups /data/music && \
 # Set environment variable for persistent storage
 ENV RAILWAY_DATA_DIR=/data
 
-# Expose port
-EXPOSE 5000
+# Expose port (Railway uses $PORT, usually 8080)
+EXPOSE 8080
 
 # Explicitly invoke sh so $PORT is expanded before gunicorn sees it
 COPY start.sh .
