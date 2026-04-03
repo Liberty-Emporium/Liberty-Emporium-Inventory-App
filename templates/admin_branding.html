@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Store Branding | {{ store_name }}{% endblock %}
+{% block content %}
+<div style="max-width:600px; margin:2rem auto; padding:0 1rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:0.5rem;">
+        <h1 style="font-size:1.4rem;">🎨 Store Branding</h1>
+        <a href="{{ url_for('dashboard') }}" style="color:#2e7d6e; text-decoration:none;">← Back to Dashboard</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" style="background:white; padding:2rem; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+        <h3 style="color:#2c3e50; margin-bottom:1rem;">Store Identity</h3>
+        
+        <div class="form-group">
+            <label for="store_name">Store Name</label>
+            <input type="text" id="store_name" name="store_name" value="{{ config.store_name }}"
+                   style="width:100%; padding:0.75rem; border:1px solid #ddd; border-radius:6px;" required>
+        </div>
+
+        <div class="form-group" style="margin-top:1rem;">
+            <label for="tagline">Tagline / Subtitle</label>
+            <input type="text" id="tagline" name="tagline" value="{{ config.tagline }}"
+                   style="width:100%; padding:0.75rem; border:1px solid #ddd; border-radius:6px;">
+        </div>
+
+        <div class="form-group" style="margin-top:1rem;">
+            <label for="logo_emoji">🏪 Logo Emoji</label>
+            <input type="text" id="logo_emoji" name="logo_emoji" value="{{ config.logo_emoji }}"
+                   style="width:100%; padding:0.75rem; border:1px solid #ddd; border-radius:6px; font-size:1.5rem; max-width:100px;">
+            <small style="color:#888;">Pick an emoji that represents your store</small>
+        </div>
+
+        <h3 style="color:#2c3e50; margin:1.5rem 0 1rem;">Colors</h3>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+                <label for="primary_color">Primary Color</label>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <input type="color" id="primary_color" name="primary_color" value="{{ config.primary_color }}"
+                           style="width:50px; height:45px; border:none; cursor:pointer; border-radius:6px;">
+                    <span id="primary-label" style="font-family:monospace; font-size:0.85rem; color:#666;">{{ config.primary_color }}</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="accent_color">Accent Color</label>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <input type="color" id="accent_color" name="accent_color" value="{{ config.accent_color }}"
+                           style="width:50px; height:45px; border:none; cursor:pointer; border-radius:6px;">
+                    <span id="accent-label" style="font-family:monospace; font-size:0.85rem; color:#666;">{{ config.accent_color }}</span>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="color:#2c3e50; margin:1.5rem 0 1rem;">Contact</h3>
+
+        <div class="form-group">
+            <label for="contact_email">Contact Email (shown on sales page)</label>
+            <input type="email" id="contact_email" name="contact_email" value="{{ config.contact_email }}"
+                   style="width:100%; padding:0.75rem; border:1px solid #ddd; border-radius:6px;">
+        </div>
+
+        <button type="submit" style="margin-top:1.5rem; width:100%; padding:0.85rem; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; transition:opacity 0.2s;">
+            💾 Save Branding
+        </button>
+    </form>
+
+    <!-- Live Preview -->
+    <div style="margin-top:1.5rem; padding:1.5rem; background:white; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+        <h3 style="color:#2c3e50; margin-bottom:1rem;">📱 Live Preview — Header</h3>
+        <div id="preview-bar" style="background:#2c3e50; color:white; padding:1rem 1.5rem; border-radius:8px; display:flex; align-items:center; gap:1rem;">
+            <span id="preview-emoji" style="font-size:1.8rem;">🏪</span>
+            <div>
+                <div id="preview-name" style="font-weight:700; font-size:1.1rem;">{{ config.store_name }}</div>
+                <div id="preview-tagline" style="opacity:0.75; font-size:0.85rem;">{{ config.tagline }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:1.5rem; padding:1rem; background:#f0f7f4; border-radius:8px; font-size:0.85rem; color:#555;">
+        <strong>💡 Tip:</strong> These settings control what customers see — your store name, logo, and colors appear everywhere: 
+        the header, page titles, generated ads, and the sales landing page.
+    </div>
+</div>
+
+<script>
+  // Live preview updates
+  function updatePreview() {
+    document.getElementById('preview-emoji').textContent = document.getElementById('logo_emoji').value || '🏪';
+    document.getElementById('preview-name').textContent = document.getElementById('store_name').value;
+    document.getElementById('preview-tagline').textContent = document.getElementById('tagline').value;
+    document.getElementById('preview-bar').style.background = document.getElementById('primary_color').value;
+    document.getElementById('primary-label').textContent = document.getElementById('primary_color').value;
+    document.getElementById('accent-label').textContent = document.getElementById('accent_color').value;
+  }
+  ['store_name', 'tagline', 'logo_emoji', 'primary_color', 'accent_color'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', updatePreview);
+  });
+</script>
+{% endblock %}
