@@ -881,89 +881,77 @@ def _draw_text_layer(W, H, store_name, title, price, description, cta_text, tagl
 # ── AI Voiceover for Video Ads ────────────────────────────────────────────────
 
 def _build_humanlike_script(product, store_name, index):
-    """Build a natural-sounding, conversational ad script for one product."""
+    """Build a natural-sounding, conversational ad script for one product.
+    
+    Uses light SSML — only pauses for pacing. No pitch warping or rate shifting.
+    Let the neural voice do its thing naturally.
+    """
     title = product.get('title', 'this item')
     price = product.get('price', '0.00')
     desc = product.get('description', '')
     condition = product.get('condition', '')
     category = product.get('category', '')
     
-    # Build natural scripts — varied phrasing, contractions, conversational
-    intro_scripts = [
-        # SSML with pauses, emphasis, and natural pacing
-        f"""<speak>
-<prosody rate="medium" pitch="+1st">Welcome to <emphasis level="moderate">{store_name}</emphasis>.</prosody>
-<break time="500ms"/>
-<prosody rate="slow" pitch="+2st">We've got something special today.</prosody>
-<break time="300ms"/>
-</speak>""",
-        f"""<speak>
-<prosody rate="medium">Hey there, welcome to <emphasis level="moderate">{store_name}</emphasis>!</prosody>
-<break time="400ms"/>
-<prosody pitch="+3st">Let me show you what we've got.</prosody>
-<break time="300ms"/>
-</speak>""",
+    # Clean condition for speech
+    cond = condition.lower() if condition else ''
+    cond = cond.replace('new', 'brand new').replace('good', 'good shape').replace('like new', 'almost new')
+    
+    # Conversational product descriptions
+    product_lines = [
+        f"Take a look at this <emphasis level='moderate'>{title}</emphasis>.<break time='300ms'/>",
+        f"Check this out — <emphasis level='moderate'>{title}</emphasis>.<break time='300ms'/>",
+        f"Now this one's really nice — <emphasis level='moderate'>{title}</emphasis>.<break time='300ms'/>",
     ]
     
-    product_scripts = [
-        f"""<speak>
-<prosody rate="medium" pitch="+1st">Take a look at this</prosody>
-<prosody rate="slow"><emphasis level="strong">{title}</emphasis>.</prosody>
-<break time="250ms"/>
-''' + (f'<prosody rate="medium">{desc}</prosody><break time="300ms"/>' if desc and len(desc) < 150 else '') + f'''
-''' + (f'<prosody rate="slow" pitch="+2st">It\'s in {condition.lower()} condition' if condition else '') + f'''
-</prosody>
-<break time="200ms"/>
-<prosody rate="slow" pitch="+3st"><emphasis level="strong">Only {price} dollars.</emphasis></prosody>
-</speak>""",
-        f"""<speak>
-<prosody rate="medium">Check this out — <emphasis level="moderate">{title}</emphasis>.</prosody>
-<break time="300ms"/>
-''' + (f'<prosody rate="medium">{desc[:80]}</prosody><break time="250ms"/>' if desc else '') + f'''
-''' + (f'<prosody rate="medium">{condition} condition' if condition else '') + f'''
-</prosody>
-<break time="200ms"/>
-<prosody rate="slow" pitch="+2st">Just <emphasis level="strong">{price} dollars</emphasis>.</prosody>
-</speak>""",
-        f"""<speak>
-<prosody rate="medium" pitch="+1st">Now this one's really nice — </prosody>
-<prosody rate="slow"><emphasis level="strong">{title}</emphasis>.</prosody>
-<break time="350ms"/>
-''' + (f'<prosody rate="medium">{desc[:100]}</prosody><break time="300ms"/>' if desc else '') + f'''
-''' + (f'<prosody pitch="+2st">{condition} quality' if condition else '') + f'''
-</prosody>
-<break time="200ms"/>
-<prosody rate="slow" pitch="+3st"><emphasis level="strong">Only {price}.</emphasis> You don't wanna miss this one.</prosody>
-</speak>""",
+    # Build script piece by piece
+    # Only include description if it exists and is short
+    desc_text = ""
+    if desc:
+        # Truncate and clean
+        clean_desc = desc.strip().rstrip('.')
+        if len(clean_desc) > 100:
+            clean_desc = clean_desc[:97] + "..."
+        desc_text = f"<break time='200ms'/>{clean_desc}."
+    
+    # Condition
+    cond_text = ""
+    if cond:
+        cond_text = f"<break time='200ms'/>It's in {cond} condition."
+    
+    # Price
+    # Make price sound natural
+    try:
+        price_num = float(price)
+        if price_num == int(price_num):
+            price_speech = f"${int(price_num)}"
+        else:
+            price_speech = f"${price_num:.2f}"
+    except:
+        price_speech = f"${price}"
+    
+    price_text = f"<break time='250ms'/>Only <emphasis level='strong'>{price_speech}</emphasis>."
+    
+    # Assemble
+    intro = [
+        f"<speak>Welcome to <emphasis level='moderate'>{store_name}</emphasis>.<break time='400ms'/>We've got something special today.<break time='300ms'/>",
+        f"<speak>Hey there, welcome to <emphasis level='moderate'>{store_name}</emphasis>!<break time='300ms'/>Let me show you what we've got.<break time='200ms'/>",
     ]
     
-    outro_scripts = [
-        f"""<speak>
-<break time="400ms"/>
-<prosody rate="medium" pitch="+2st">That's what's waiting for you at <emphasis level="moderate">{store_name}</emphasis>.</prosody>
-<break time="300ms"/>
-<prosody rate="slow">Come see us today.</prosody>
-</speak>""",
-        f"""<speak>
-<break time="400ms"/>
-<prosody rate="medium">Stop by <emphasis level="moderate">{store_name}</emphasis> and grab these deals while they last.</prosody>
-<break time="200ms"/>
-<prosody rate="slow" pitch="+1st">See you soon!</prosody>
-</speak>""",
+    outro = [
+        f"<break time='500ms'/>That's what's waiting for you at <emphasis level='moderate'>{store_name}</emphasis>.<break time='300ms'/>Come see us today.</speak>",
+        f"<break time='500ms'/>Stop by <emphasis level='moderate'>{store_name}</emphasis> and grab these deals while they last.<break time='200ms'/>See you soon!</speak>",
     ]
     
-    # Pick the intro for product 0, product scripts vary by index
-    if index >= len(product_scripts) - 1:
-        # Last product — use product script + outro
-        return product_scripts[index % len(product_scripts)] + outro_scripts[index % len(outro_scripts)]
-    elif index == 0:
-        # First product — intro + product script
-        return intro_scripts[index % len(intro_scripts)] + product_scripts[0]
+    line = product_lines[index % len(product_lines)]
+    
+    # First product gets intro, last gets outro
+    if index == 0:
+        return intro[0] + line + desc_text + cond_text + price_text
     else:
-        return product_scripts[index % len(product_scripts)]
+        return line + desc_text + cond_text + price_text + (outro[index % len(outro)] if index > 0 else "")
 
 
-def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en-US-BrianNeural'):
+def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en-US-ChristopherNeural'):
     """Generate a natural-sounding voiceover for one product using Edge TTS.
     
     Uses SSML for human-like pacing, emphasis, and pauses.
