@@ -1545,8 +1545,14 @@ def generate_video_ad():
         # Add store branding watermark (top-left, subtle)
         if store_display:
             brand_y = 10
+            # Escape special characters for ffmpeg drawtext fontfile (colon and backslash)
+            font_bold_escaped = font_bold.replace('\\', '\\\\').replace(':', '\\:')
+            
+            # Escape single quotes in store display text for ffmpeg filter
+            escaped_display = store_display.replace("\\", "\\\\").replace("'", "\\\\'")
+
             parts.append(
-                f"[final]drawtext=text='{store_display}':fontfile={font_bold}:fontsize={max(18, int(W*0.018))}:fontcolor=0x{template_config['accent'].lstrip('#')}@0.85:x=20:y={brand_y}:box=1:boxcolor=0x000000@0.45:boxborderw=6[branded]"
+                f"[final]drawtext=text='{escaped_display}':fontfile='{font_bold_escaped}':fontsize={max(18, int(W*0.018))}:fontcolor=0x{template_config['accent'].lstrip('#')}@0.85:x=20:y={brand_y}:box=1:boxcolor=0x000000@0.45:boxborderw=6[branded]"
             )
             map_label = '[branded]'
         else:
@@ -1554,33 +1560,31 @@ def generate_video_ad():
 
         fc = ';'.join(parts)
 
-        cmd += ['-filter_complex', fc, '-map', map_label]
-        
         # Handle audio: voiceover, music, both, or neither
         if audio_inputs == 0:
-            cmd += ['-an']  # no audio
+            # No audio sources
+            fc_final = fc
+            audio_args = ['-an']  # no audio track
         elif audio_inputs == 1:
             # Single audio source — direct map
             first_audio_idx = music_and_vo_start
-            cmd += ['-map', f'{first_audio_idx}:a', '-c:a', 'aac', '-b:a', '128k', '-shortest']
+            fc_final = fc
+            audio_args = ['-map', f'{first_audio_idx}:a', '-c:a', 'aac', '-b:a', '128k', '-shortest']
         else:
-            # Multiple audio sources — mix them
+            # Multiple audio sources — mix them into one
             mix_inputs = ''
             for i in range(audio_inputs):
                 mix_inputs += f'[{music_and_vo_start + i}:a]'
-            mix_parts = mix_inputs + f'amix=inputs={audio_inputs}:duration=longest:dropout_transition=0[mixed_a]'
-            fc += ';' + mix_parts
-            cmd += ['-filter_complex', fc, '-map', map_label, '-map', '[mixed_a]', '-c:a', 'aac', '-b:a', '128k', '-shortest']
-        
-        cmd += ['-c:v', 'libx264', '-preset', 'medium', '-crf', '22',
-                '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out_path]
-        
-        # Note: filter_complex must come BEFORE the map that depends on it
-        # Rebuild cmd to fix ordering
-        cmd = cmd[:cmd.index('-filter_complex')] + [
-            '-filter_complex', fc,
+            fc_final = fc + ';' + mix_inputs + f'amix=inputs={audio_inputs}:duration=longest:dropout_transition=0[mixed_a]'
+            audio_args = ['-map', '[mixed_a]', '-c:a', 'aac', '-b:a', '128k', '-shortest']
+
+        cmd += [
+            '-filter_complex', fc_final,
             '-map', map_label,
-            *[c for c in cmd[cmd.index('-filter_complex')+2:] if c not in ('-filter_complex', fc)]
+        ] + audio_args + [
+            '-c:v', 'libx264', '-preset', 'medium', '-crf', '22',
+            '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+            out_path,
         ]
 
         try:
