@@ -153,14 +153,12 @@
         
         /* ── Mobile Responsive ────────────────────────────────────── */
         @media (max-width: 768px) {
-            .hamburger span { background: #fff !important; height: 3px !important; border-radius: 2px !important; }
-            /* Hamburger */
+            /* Dark nav bg so white hamburger lines show */
+            header nav { background: #2c3e50 !important; padding: 0.6rem 0.75rem !important; border-radius: 0 !important; }
+            /* White hamburger lines */
+            .hamburger span { background: #ecf0f1 !important; height: 3px !important; border-radius: 2px !important; }
+            /* Always visible on mobile */
             .hamburger { display: flex !important; }
-            // .hamburger span { background: white !important; }
-            
-            /* Nav */
-            // .hamburger span { background: #333 !important; }
-            header nav { padding: 0.6rem 0.75rem !important; }
             .logo { font-size: 0.75rem !important; max-width: 50% !important; }
             .logo br { display: none; }
             
