@@ -783,6 +783,145 @@
 }
 
 .btn-dl-video:hover { background: #6d28d9; }
+
+/* ── Mobile Responsive ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+    * { box-sizing: border-box !important; }
+    main { padding: 0.25rem !important; }
+    
+    /* Product selection - single column */
+    .selectable-card {
+        padding: 0.75rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100px !important;
+    }
+    
+    /* Style cards - compact */
+    .style-card {
+        padding: 0.75rem 0.5rem !important;
+        min-height: 60px !important;
+    }
+    .style-card h3 {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Video Studio Panel */
+    .vs-panel {
+        padding: 0.75rem 1rem !important;
+        margin: 0.5rem 0 1rem !important;
+    }
+    .vs-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+    }
+    .vs-header h3 {
+        font-size: 1.1rem !important;
+    }
+    .vs-header p {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Template cards - horizontally scrollable */
+    .vs-template-group {
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        gap: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    .vs-template-card {
+        flex-shrink: 0 !important;
+        width: 100px !important;
+        min-width: 80px !important;
+        padding: 0.5rem 0.5rem !important;
+    }
+    
+    /* Format cards - 2x2 grid */
+    .vs-format-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.4rem !important;
+    }
+    .vs-format-card {
+        padding: 0.5rem !important;
+    }
+    
+    /* Style cards - 2x2 grid */
+    .vs-style-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.4rem !important;
+    }
+    .vs-style-card {
+        padding: 0.75rem 0.5rem !important;
+    }
+    
+    /* Music grid - horizontal scroll */
+    #vsMusicGrid {
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        gap: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    .vs-music-card {
+        flex-shrink: 0 !important;
+        width: 150px !important;
+        min-width: 140px !important;
+    }
+    
+    /* Upload zone - stacked */
+    .vs-upload-zone {
+        flex-direction: column !important;
+        text-align: center !important;
+        padding: 0.75rem !important;
+    }
+    
+    /* Controls section - stacked */
+    .vs-section-label {
+        margin-top: 1rem !important;
+    }
+    .vs-control-row {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    .vs-control-row > div {
+        width: 100% !important;
+    }
+    
+    /* Generate button - full width */
+    .btn-generate-video {
+        width: 100% !important;
+        min-height: 44px !important;
+        font-size: 1rem !important;
+        padding: 0.75rem !important;
+    }
+    
+    /* Results */
+    .vs-results {
+        padding: 0.5rem !important;
+    }
+    .vs-results h2 {
+        font-size: 1.2rem !important;
+    }
+    .vs-video-card {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    .vs-video-card video {
+        width: 100% !important;
+        max-height: 200px !important;
+    }
+    .vs-video-card-header {
+        flex-direction: column !important;
+        gap: 0.3rem !important;
+    }
+    .btn-dl-video {
+        width: 100% !important;
+        text-align: center !important;
+    }
+}
+
 </style>
 
 <div class="ad-gen-header">
