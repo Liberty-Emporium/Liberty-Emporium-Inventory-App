@@ -1151,8 +1151,16 @@
         <!-- Custom Script -->
         <div style="margin-bottom:1rem;">
           <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Custom Script (optional — leave blank for auto-generated)</label>
-          <textarea id="vsVoiceScript" rows="3" placeholder="Write your own narration script, or leave blank to auto-generate..." 
-                    style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem; font-family:inherit; resize:vertical;"></textarea>
+          <div style="position:relative;">
+            <textarea id="vsVoiceScript" rows="4" placeholder="Write your narration script, or click the mic to speak it..." 
+                      style="width:100%; padding:0.5rem 2.5rem 0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem; font-family:inherit; resize:vertical;"></textarea>
+            <button type="button" onclick="vsToggleMic()" id="vsMicBtn" title="Click to speak your script"
+                    style="position:absolute; bottom:8px; right:8px; background:none; border:none; font-size:1.3rem; cursor:pointer; padding:4px; border-radius:4px; transition:background 0.2s;"
+                    onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='none'">
+              🎤
+            </button>
+          </div>
+          <div id="vsMicStatus" style="font-size:0.7rem; color:#999; margin-top:0.25rem; min-height:1rem;"></div>
         </div>
         <!-- Preview -->
         <button type="button" onclick="vsPreviewVoice()" style="background:#e8e0d0; border:1.5px solid #4a7c59; color:#4a7c59; padding:0.5rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer;">
@@ -1809,6 +1817,74 @@ function vsPreviewVoice() {
   } else {
     status.textContent = '⚠️ Browser doesn not support speech synthesis';
   }
+}
+
+// ── Speech-to-Text (Mic) ───────────────────────────────────────────────
+let vsMicRecognition = null;
+let vsMicActive = false;
+
+function vsToggleMic() {
+  var status = document.getElementById('vsMicStatus');
+  var btn = document.getElementById('vsMicBtn');
+  var textarea = document.getElementById('vsVoiceScript');
+
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    status.textContent = '⚠️ Your browser does not support speech recognition. Try Chrome.';
+    return;
+  }
+
+  if (vsMicActive) {
+    // Stop listening
+    if (vsMicRecognition) vsMicRecognition.stop();
+    vsMicActive = false;
+    btn.style.color = '';
+    btn.title = 'Click to speak your script';
+    status.textContent = '';
+    return;
+  }
+
+  // Start listening
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  vsMicRecognition = new SR();
+  vsMicRecognition.continuous = true;
+  vsMicRecognition.interimResults = true;
+  vsMicRecognition.lang = 'en-US';
+
+  vsMicRecognition.onstart = function() {
+    vsMicActive = true;
+    btn.style.color = '#e74c3c';
+    btn.title = 'Listening... click to stop';
+    status.textContent = '🔴 Listening... speak now. Click the mic again when done.';
+  };
+
+  vsMicRecognition.onresult = function(event) {
+    var transcript = '';
+    for (var i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    if (event.results[event.results.length - 1].isFinal) {
+      // Append to existing text
+      var existing = textarea.value;
+      textarea.value = existing + (existing && !existing.endsWith('\n') && !existing.endsWith(' ') ? ' ' : '') + transcript;
+      status.textContent = '✅ Added to script! Keep speaking or click mic to stop.';
+    }
+  };
+
+  vsMicRecognition.onerror = function(event) {
+    vsMicActive = false;
+    btn.style.color = '';
+    status.textContent = '❌ Error: ' + event.error + '. Try Chrome or speak louder.';
+  };
+
+  vsMicRecognition.onend = function() {
+    vsMicActive = false;
+    btn.style.color = '';
+    if (!status.textContent.includes('Added to script')) {
+      status.textContent = '';
+    }
+  };
+
+  vsMicRecognition.start();
 }
 </script>
 {% endblock %}
