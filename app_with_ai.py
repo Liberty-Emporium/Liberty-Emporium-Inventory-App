@@ -1372,11 +1372,11 @@ def generate_video_ad():
             txt_idx = 1 + n + i
             
             # Ken Burns with varying direction per product
-            zoom_expr, _ = directions[i % len(directions)]
             if style == 'kenburns':
                 dur_frames = int(t_per * fps)
+                zoom_expr = directions[i % len(directions)][0]
                 parts.append(
-                    f"[{bg_idx}:v]zoompan=z={zoom_expr}:d={dur_frames}:s={W}x{H}:fps={fps}[kb{i}]"
+                    f"[{bg_idx}:v]zoompan={zoom_expr}:d={dur_frames}:s={W}x{H}:fps={fps}[kb{i}]"
                 )
                 bg_ref = f"kb{i}"
             else:
