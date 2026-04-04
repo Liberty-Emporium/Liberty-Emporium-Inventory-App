@@ -1325,6 +1325,10 @@ def generate_video_ad():
 
         bg_dark_rgb = _hex_rgb(template_config['bg_dark'])
         font_bold   = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+
+        # Check if fonts exist on this server (they may not on Railway without fonts-dejavu-core)
+        font_exists = os.path.exists(font_bold)
+
         font_reg    = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
         # ── Build one bg+text image pair per product ──────────────────────────
@@ -1543,19 +1547,19 @@ def generate_video_ad():
         )
 
         # Add store branding watermark (top-left, subtle)
+        # Only if DejaVu fonts exist on this server (may not on Railway)
         font_exists = os.path.exists(font_bold)
         if store_display and font_exists:
             brand_y = 10
-            # Escape special characters for ffmpeg drawtext fontfile (colon, backslash, comma)
-            font_bold_escaped = font_bold.replace('\\', '\\\\').replace(':', '\\:')
-            
-            # Escape single quotes in store display text for ffmpeg filter
-            escaped_display = store_display.replace("\\", "\\\\").replace("'", "\\\\'")
-
-            parts.append(
-                f"[final]drawtext=text='{escaped_display}':fontfile='{font_bold_escaped}':fontsize={max(18, int(W*0.018))}:fontcolor=0x{template_config['accent'].lstrip('#')}@0.85:x=20:y={brand_y}:box=1:boxcolor=0x000000@0.45:boxborderw=6[branded]"
-            )
-            map_label = '[branded]'
+            # Skip watermark if text contains chars that break ffmpeg filter chain
+            safe = all(c not in store_display for c in "'\\:[]{};")
+            if safe:
+                parts.append(
+                    f"[final]drawtext=text='{store_display}':fontfile={font_bold}:fontsize={max(18,int(W*0.018))}:fontcolor=0x{template_config['accent'].lstrip('#')}@0.85:x=20:y={brand_y}:box=1:boxcolor=0x000000@0.45:boxborderw=6[branded]"
+                )
+                map_label = '[branded]'
+            else:
+                map_label = '[final]'
         else:
             map_label = '[final]'
 
