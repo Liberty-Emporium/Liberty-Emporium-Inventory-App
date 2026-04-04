@@ -770,28 +770,31 @@ def serve_music(filename):
     return send_from_directory(MUSIC_FOLDER, filename)
 
 @app.route('/upload-music-temp', methods=['POST'])
-@login_required
 def upload_music_temp():
     """Receives a music file upload and stores it in a temp location.
     Returns a token the client passes back to /generate-video-ad."""
     import tempfile as _tf
     try:
-        f = request.files.get('music_file')
-        if not f:
+        if 'music_file' not in request.files:
             return jsonify({'error': 'No file provided.'}), 400
+        f = request.files['music_file']
+        if not f or f.filename == '':
+            return jsonify({'error': 'No file selected.'}), 400
         if f.content_length and f.content_length > 20 * 1024 * 1024:
             return jsonify({'error': 'File must be under 20 MB.'}), 400
         upload_dir = os.path.join(DATA_DIR, 'uploads')
         os.makedirs(upload_dir, exist_ok=True)
-        tmp = _tf.NamedTemporaryFile(suffix='.mp3', delete=False, dir=upload_dir)
-        f.save(tmp.name)
-        if os.path.getsize(tmp.name) > 20 * 1024 * 1024:
-            os.unlink(tmp.name)
+        # Use a unique filename based on time + random
+        import uuid, time
+        fname = f"music_{int(time.time())}_{uuid.uuid4().hex[:8]}.mp3"
+        fpath = os.path.join(upload_dir, fname)
+        f.save(fpath)
+        if os.path.getsize(fpath) > 20 * 1024 * 1024:
+            os.unlink(fpath)
             return jsonify({'error': 'File must be under 20 MB.'}), 400
-        token = os.path.basename(tmp.name)
-        return jsonify({'token': token})
+        return jsonify({'token': fname})
     except Exception as e:
-        app.logger.error(f"Music upload error: {e}")
+        app.logger.error(f"Music upload error: {e}", exc_info=True)
         return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
 def _draw_text_layer(W, H, store_name, title, price, description, cta_text, tagline,
