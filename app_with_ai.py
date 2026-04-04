@@ -21,7 +21,7 @@ except ImportError:
 # ── Stripe (payments) ──────────────────────────────────────────────────────
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
-stripe_enabled = bool(STRIPE_SECRET_KEY and not STRIPE_SECRET_KEY.startswith('pk_test_placeholder'))
+stripe_enabled = bool(STRIPE_SECRET_KEY and STRIPE_SECRET_KEY.startswith('sk_live_'))
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
