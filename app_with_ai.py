@@ -1281,24 +1281,28 @@ def generate_video_ad():
                     total_voice = sum(vd['duration'] for vd in valid_vo)
                     duration = max(duration, int(total_voice + 3))
 
-        # Resolve music path
+        # Resolve music path (now optional)
+        music_path = None
         if music_token:
             # Pre-uploaded via /upload-music-temp
             music_path = os.path.join(DATA_DIR, 'uploads', os.path.basename(music_token))
             if not os.path.exists(music_path):
-                return jsonify({'error': 'Music upload expired or not found. Please re-upload.'})
-            tmp_files.append(music_path)  # clean up after generation
+                music_path = None
+            else:
+                tmp_files.append(music_path)  # clean up after generation
         elif music_file_upload:
+            # Direct file upload
             tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
             music_file_upload.save(tmp_music.name)
             tmp_files.append(tmp_music.name)
             if os.path.getsize(tmp_music.name) > 20 * 1024 * 1024:
                 return jsonify({'error': 'Uploaded MP3 must be under 20 MB.'})
             music_path = tmp_music.name
-        else:
+        elif music_track_name and music_track_name != 'none':
+            # Built-in track
             music_path = os.path.join(MUSIC_FOLDER, os.path.basename(music_track_name))
             if not os.path.exists(music_path):
-                return jsonify({'error': f'Music track not found: {music_track_name}'})
+                music_path = None  # Fall back to no music
 
         # Save uploaded logo to a temp file if provided
         logo_path = None
@@ -1461,16 +1465,29 @@ def generate_video_ad():
              "pan right to left"),
         ]
 
-        # Build inputs: intro + N bg + N text + outro + music
+        # Build ffmpeg inputs: intro + N bg + N text + outro [+ voiceover] [+ music]
         cmd = [ffmpeg_path, '-y']
         cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(intro_dur), '-i', tmp_intro.name]
         for i in range(n):
             cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(t_per), '-i', bg_files[i]]
             cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(t_per), '-i', text_files[i]]
         cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(outro_dur), '-i', tmp_outro.name]
-        cmd += ['-i', music_path]
-
-        music_idx = 1 + 2 * n + 1  # intro + 2*N (bg+text) + outro
+        
+        audio_inputs = 0  # track how many audio inputs we add
+        
+        # Add voiceover audio if enabled
+        if enable_voiceover and voiceover_durations:
+            for vd in voiceover_durations:
+                if vd and vd.get('file'):
+                    cmd += ['-i', vd['file']]
+                    audio_inputs += 1
+        
+        # Add music if available
+        if music_path:
+            cmd += ['-i', music_path]
+            audio_inputs += 1
+        
+        music_and_vo_start = 1 + 2 * n + 1  # after intro + 2*N + outro
 
         # Build filter_complex
         parts = []
@@ -1537,15 +1554,33 @@ def generate_video_ad():
 
         fc = ';'.join(parts)
 
-        cmd += [
+        cmd += ['-filter_complex', fc, '-map', map_label]
+        
+        # Handle audio: voiceover, music, both, or neither
+        if audio_inputs == 0:
+            cmd += ['-an']  # no audio
+        elif audio_inputs == 1:
+            # Single audio source — direct map
+            first_audio_idx = music_and_vo_start
+            cmd += ['-map', f'{first_audio_idx}:a', '-c:a', 'aac', '-b:a', '128k', '-shortest']
+        else:
+            # Multiple audio sources — mix them
+            mix_inputs = ''
+            for i in range(audio_inputs):
+                mix_inputs += f'[{music_and_vo_start + i}:a]'
+            mix_parts = mix_inputs + f'amix=inputs={audio_inputs}:duration=longest:dropout_transition=0[mixed_a]'
+            fc += ';' + mix_parts
+            cmd += ['-filter_complex', fc, '-map', map_label, '-map', '[mixed_a]', '-c:a', 'aac', '-b:a', '128k', '-shortest']
+        
+        cmd += ['-c:v', 'libx264', '-preset', 'medium', '-crf', '22',
+                '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out_path]
+        
+        # Note: filter_complex must come BEFORE the map that depends on it
+        # Rebuild cmd to fix ordering
+        cmd = cmd[:cmd.index('-filter_complex')] + [
             '-filter_complex', fc,
-            '-map', map_label, '-map', f'{music_idx}:a',
-            '-c:v', 'libx264', '-preset', 'medium', '-crf', '22',
-            '-c:a', 'aac', '-b:a', '128k',
-            '-pix_fmt', 'yuv420p',
-            '-movflags', '+faststart',
-            '-shortest',
-            out_path,
+            '-map', map_label,
+            *[c for c in cmd[cmd.index('-filter_complex')+2:] if c not in ('-filter_complex', fc)]
         ]
 
         try:

@@ -1492,7 +1492,7 @@ function vsPlayPreview(btn, filename) {
 function vsUpdateGenerateBtn() {
   const hasProduct = selectedSkus.size > 0;
   const hasMusic   = vsSelectedTrack !== null || vsUploadedFile !== null;
-  document.getElementById('vsGenerateBtn').disabled = !(hasProduct && hasMusic);
+  document.getElementById('vsGenerateBtn').disabled = !hasProduct;
 }
 
 function vsShowError(msg) {
@@ -1513,7 +1513,7 @@ function vsShowToast(msg) {
 function vsGenerate() {
   vsShowError('');
   if (selectedSkus.size === 0) { vsShowError('Select at least one product above.'); return; }
-  if (!vsSelectedTrack && !vsUploadedFile) { vsShowError('Select or upload a music track.'); return; }
+  // Music is now optional
 
   const products = [];
   document.querySelectorAll('.selectable-card.selected').forEach(card => {
