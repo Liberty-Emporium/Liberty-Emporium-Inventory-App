@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get This App Now! — RetailTrack</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body { margin: 0; min-height: 100vh; background: linear-gradient(135deg, #0f172a, #1e293b); }
+        
+        .wizard-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        
+        .wizard-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .wizard-header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .wizard-header h1 {
+            margin: 0 0 0.5rem;
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        .wizard-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        /* Progress bar */
+        .wizard-progress {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 2rem 0;
+        }
+        .progress-step {
+            flex: 1;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            transition: background 0.3s;
+        }
+        .progress-step.active {
+            background: #10b981;
+        }
+        .progress-step.done {
+            background: #059669;
+        }
+        
+        /* Steps */
+        .wizard-step {
+            display: none;
+            padding: 2rem;
+            animation: fadeIn 0.3s ease;
+        }
+        .wizard-step.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .wizard-step h2 {
+            margin: 0 0 0.5rem;
+            color: #0f172a;
+            font-size: 1.4rem;
+        }
+        .wizard-step .step-subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Form elements */
+        .wizard-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+        .wizard-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .wizard-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        .wizard-input::placeholder {
+            color: #9ca3af;
+        }
+        
+        /* Color picker presets */
+        .color-options {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.15s, border-color 0.2s;
+        }
+        .color-option:hover {
+            transform: scale(1.15);
+        }
+        .color-option.selected {
+            border-color: #0f172a;
+            transform: scale(1.15);
+        }
+        
+        /* Navigation */
+        .wizard-nav {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .wizard-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .wizard-btn-back {
+            background: transparent;
+            color: #6b7280;
+        }
+        .wizard-btn-back:hover {
+            background: #e5e7eb;
+        }
+        .wizard-btn-next {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .wizard-btn-next:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        .wizard-btn-done {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 1.1rem;
+            padding: 0.85rem 2.5rem;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+        }
+        .wizard-btn-done:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+        
+        /* Loading screen */
+        .wizard-loading {
+            display: none;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .wizard-loading.active {
+            display: block;
+        }
+        .loading-spinner {
+            font-size: 3rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .loading-sub {
+            margin-top: 0.5rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        /* Success screen */
+        .wizard-success {
+            display: none;
+            padding: 2rem;
+            text-align: center;
+        }
+        .wizard-success.active {
+            display: block;
+        }
+        .success-icon {
+            font-size: 4rem;
+        }
+        .success-title {
+            margin: 1rem 0 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .success-subtitle {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        .success-url {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #059669;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            word-break: break-all;
+        }
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .pricing-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+        .pricing-card:hover, .pricing-card.popular {
+            border-color: #10b981;
+        }
+        .pricing-card.popular {
+            position: relative;
+        }
+        .pricing-card.popular::before {
+            content: 'Popular';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.8rem;
+            border-radius: 12px;
+        }
+        .pricing-card h3 {
+            margin: 0 0 0.5rem;
+            color: #0f172a;
+            font-size: 1rem;
+        }
+        .pricing-card .price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #10b981;
+            margin-bottom: 0.5rem;
+        }
+        .pricing-card .price span {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #6b7280;
+        }
+        .pricing-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+        .pricing-card ul li {
+            font-size: 0.8rem;
+            color: #6b7280;
+            padding: 0.25rem 0;
+        }
+        .pricing-card ul li::before {
+            content: '✓ ';
+            color: #10b981;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 480px) {
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+            .wizard-header h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <div class="wizard-card">
+            <!-- Header -->
+            <div class="wizard-header">
+                <h1>🚀 Get This App Now!</h1>
+                <p>Your personalized demo in 60 seconds</p>
+            </div>
+            
+            <!-- Progress steps -->
+            <div class="wizard-progress">
+                <div class="progress-step active" id="prog-1"></div>
+                <div class="progress-step" id="prog-2"></div>
+                <div class="progress-step" id="prog-3"></div>
+                <div class="progress-step" id="prog-4"></div>
+            </div>
+            
+            <!-- Step 1: Store Name -->
+            <div class="wizard-step active" id="step-1">
+                <h2>What's your store name?</h2>
+                <p class="step-subtitle">We'll brand everything with your name</p>
+                <label class="wizard-label">Store Name</label>
+                <input type="text" class="wizard-input" id="storeName" placeholder="e.g. Joe's Thrift Store" autofocus>
+                <div style="margin-top:0.5rem; font-size:0.8rem; color:#9ca3af;">
+                    Your demo URL: <strong id="urlPreview" style="color:#10b981;">/store/joes-thrift-store</strong>
+                </div>
+            </div>
+            
+            <!-- Step 2: Brand Colors -->
+            <div class="wizard-step" id="step-2">
+                <h2>Pick your brand color</h2>
+                <p class="step-subtitle">This sets the theme for your entire app</p>
+                <div class="color-options" id="colorOptions">
+                    <div class="color-option selected" data-color="#2e7d6e" style="background:#2e7d6e;" title="Forest Green"></div>
+                    <div class="color-option" data-color="#3b82f6" style="background:#3b82f6;" title="Ocean Blue"></div>
+                    <div class="color-option" data-color="#8b5cf6" style="background:#8b5cf6;" title="Royal Purple"></div>
+                    <div class="color-option" data-color="#ef4444" style="background:#ef4444;" title="Fire Red"></div>
+                    <div class="color-option" data-color="#f59e0b" style="background:#f59e0b;" title="Sunset Gold"></div>
+                    <div class="color-option" data-color="#06b6d4" style="background:#06b6d4;" title="Teal"></div>
+                    <div class="color-option" data-color="#1f2937" style="background:#1f2937;" title="Midnight"></div>
+                    <div class="color-option" data-color="#e91e63" style="background:#e91e63;" title="Rose"></div>
+                </div>
+                <label class="wizard-label" style="margin-top:1.5rem;">Custom Color</label>
+                <input type="color" class="wizard-input" id="customColor" value="#2e7d6e" style="width:60px; height:45px; padding:4px; cursor:pointer;">
+            </div>
+            
+            <!-- Step 3: Industry -->
+            <div class="wizard-step" id="step-3">
+                <h2>What do you sell?</h2>
+                <p class="step-subtitle">We'll populate sample inventory relevant to your business</p>
+                <label class="wizard-label">Industry / Category</label>
+                <select class="wizard-input" id="industry">
+                    <option value="thrift">Thrift / Resale Store</option>
+                    <option value="electronics">Electronics Store</option>
+                    <option value="furniture">Furniture Store</option>
+                    <option value="clothing">Clothing Boutique</option>
+                    <option value="antiques">Antiques & Collectibles</option>
+                    <option value="general">General Retail</option>
+                    <option value="other">Other (tell us below)</option>
+                </select>
+                <label class="wizard-label" style="margin-top:1rem;">Tagline (optional)</label>
+                <input type="text" class="wizard-input" id="tagline" placeholder="e.g. Your Neighborhood Treasure Hunter">
+            </div>
+            
+            <!-- Step 4: Contact -->
+            <div class="wizard-step" id="step-4">
+                <h2>Where should we send your demo?</h2>
+                <p class="step-subtitle">We'll email you your personalized link + pricing</p>
+                <label class="wizard-label">Your Name</label>
+                <input type="text" class="wizard-input" id="contactName" placeholder="John Doe">
+                <label class="wizard-label" style="margin-top:1rem;">Email</label>
+                <input type="email" class="wizard-input" id="contactEmail" placeholder="john@yourstore.com">
+                <label class="wizard-label" style="margin-top:1rem;">Phone (optional)</label>
+                <input type="tel" class="wizard-input" id="contactPhone" placeholder="(555) 123-4567">
+            </div>
+            
+            <!-- Loading -->
+            <div class="wizard-loading" id="wizardLoading">
+                <div class="loading-spinner">⚙️</div>
+                <div class="loading-text">Building your personalized demo...</div>
+                <div class="loading-sub" id="loadingStatus">Setting up branding</div>
+            </div>
+            
+            <!-- Success -->
+            <div class="wizard-success" id="wizardSuccess">
+                <div class="success-icon">🎉</div>
+                <div class="success-title"><span id="successStoreName"></span> is live!</div>
+                <p class="success-subtitle">Your personalized demo is ready to share</p>
+                <div class="success-url" id="successUrl"></div>
+                
+                <div>
+                    <h3 style="margin-bottom:1rem; color:#0f172a;">Choose Your Plan</h3>
+                    <div class="pricing-cards">
+                        <div class="pricing-card">
+                            <h3>Starter</h3>
+                            <div class="price">$299</div>
+                            <ul>
+                                <li>Single store</li>
+                                <li>Inventory management</li>
+                                <li>Basic listings</li>
+                                <li>Email support</li>
+                            </ul>
+                        </div>
+                        <div class="pricing-card popular">
+                            <h3>Pro</h3>
+                            <div class="price">$499</div>
+                            <ul>
+                                <li>Everything in Starter</li>
+                                <li>AI photo analysis</li>
+                                <li>Ad generator</li>
+                                <li>24/7 monitoring</li>
+                            </ul>
+                        </div>
+                        <div class="pricing-card">
+                            <h3>Enterprise</h3>
+                            <div class="price">$799</div>
+                            <ul>
+                                <li>Everything in Pro</li>
+                                <li>Custom branding</li>
+                                <li>Video ads</li>
+                                <li>Priority support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="margin-top:2rem; color:#6b7280; font-size:0.85rem;">
+                    Questions? Email <a href="mailto:leprograms@protonmail.com" style="color:#10b981; font-weight:600;">Jay at Liberty Emporium</a>
+                </p>
+            </div>
+            
+            <!-- Navigation (hidden during loading/success) -->
+            <div class="wizard-nav" id="wizardNav">
+                <button class="wizard-btn wizard-btn-back" id="btnBack" style="visibility:hidden;" onclick="prevStep()">← Back</button>
+                <button class="wizard-btn wizard-btn-next" id="btnNext" onclick="nextStep()">Next →</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ── State ──────────────────────────────────────────────────────
+        var currentStep = 1;
+        var totalSteps = 4;
+        var selectedColor = '#2e7d6e';
+        
+        // ── URL Preview ────────────────────────────────────────────────
+        var storeNameInput = document.getElementById('storeName');
+        var urlPreview = document.getElementById('urlPreview');
+        
+        storeNameInput.addEventListener('input', function() {
+            var slug = this.value.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '')
+                .trim();
+            urlPreview.textContent = '/store/' + (slug || 'your-store');
+        });
+        
+        // ── Color Picker ───────────────────────────────────────────────
+        var customColorInput = document.getElementById('customColor');
+        
+        document.querySelectorAll('.color-option').forEach(function(el) {
+            el.addEventListener('click', function() {
+                document.querySelectorAll('.color-option').forEach(function(e) { e.classList.remove('selected'); });
+                this.classList.add('selected');
+                selectedColor = this.dataset.color;
+                customColorInput.value = selectedColor;
+            });
+        });
+        
+        customColorInput.addEventListener('input', function() {
+            document.querySelectorAll('.color-option').forEach(function(e) { e.classList.remove('selected'); });
+            selectedColor = this.value;
+        });
+        
+        // ── Navigation ─────────────────────────────────────────────────
+        function showStep(step) {
+            document.querySelectorAll('.wizard-step').forEach(function(s) { s.classList.remove('active'); });
+            document.getElementById('step-' + step).classList.add('active');
+            
+            // Update progress
+            for (var i = 1; i <= totalSteps; i++) {
+                var prog = document.getElementById('prog-' + i);
+                prog.classList.remove('active', 'done');
+                if (i < step) prog.classList.add('done');
+                if (i === step) prog.classList.add('active');
+            }
+            
+            // Update buttons
+            document.getElementById('btnBack').style.visibility = step === 1 ? 'hidden' : 'visible';
+            document.getElementById('btnNext').textContent = step === totalSteps ? '🚀 Launch My Demo' : 'Next →';
+            
+            currentStep = step;
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) showStep(currentStep - 1);
+        }
+        
+        function nextStep() {
+            // Validation
+            if (currentStep === 1 && !storeNameInput.value.trim()) {
+                storeNameInput.style.borderColor = '#ef4444';
+                storeNameInput.focus();
+                setTimeout(function() { storeNameInput.style.borderColor = ''; }, 2000);
+                return;
+            }
+            
+            if (currentStep < totalSteps) {
+                showStep(currentStep + 1);
+            } else {
+                submitWizard();
+            }
+        }
+        
+        // Enter key advances
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && currentStep < totalSteps) {
+                nextStep();
+            }
+        });
+        
+        // ── Submit ─────────────────────────────────────────────────────
+        function submitWizard() {
+            // Show loading
+            document.getElementById('wizardNav').style.display = 'none';
+            document.querySelectorAll('.wizard-step').forEach(function(s) { s.classList.remove('active'); });
+            document.getElementById('wizardLoading').classList.add('active');
+            
+            var slug = document.getElementById('urlPreview').textContent.replace('/store/', '');
+            var data = {
+                store_name: storeNameInput.value.trim(),
+                slug: slug,
+                color: selectedColor,
+                industry: document.getElementById('industry').value,
+                tagline: document.getElementById('tagline').value.trim(),
+                contact_name: document.getElementById('contactName').value.trim(),
+                contact_email: document.getElementById('contactEmail').value.trim(),
+                contact_phone: document.getElementById('contactPhone').value.trim()
+            };
+            
+            // Animate loading messages
+            var statusEl = document.getElementById('loadingStatus');
+            var messages = ['Setting up branding...', 'Building your store...', 'Adding sample inventory...', 'Almost ready...'];
+            var msgIndex = 0;
+            var msgInterval = setInterval(function() {
+                if (msgIndex < messages.length) {
+                    statusEl.textContent = messages[msgIndex];
+                    msgIndex++;
+                }
+            }, 800);
+            
+            // POST to backend
+            fetch('/wizard-submit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(resp) {
+                clearInterval(msgInterval);
+                document.getElementById('wizardLoading').classList.remove('active');
+                document.getElementById('wizardSuccess').classList.add('active');
+                document.getElementById('successStoreName').textContent = data.store_name;
+                document.getElementById('successUrl').textContent = resp.url || ('/store/' + slug);
+            })
+            .catch(function() {
+                clearInterval(msgInterval);
+                statusEl.textContent = 'Error — please try again or email us';
+            });
+        }
+    </script>
+</body>
+</html>

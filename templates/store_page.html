@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ config.store_name or 'Your Store' }} — {{ tagline or 'Powered by RetailTrack' }}{% endblock %}
+
+{% block howto_slides %}
+{# Skip how-to slides on customer store pages #}
+{% endblock %}
+
+{% block content %}
+<!-- Customer branded dashboard -->
+<div style="max-width:900px; margin:0 auto; padding:2rem 1rem; text-align:center;">
+    <div style="font-size:3rem; margin-bottom:1rem;">🏪</div>
+    <h1 style="color:{{ config.primary_color or '#2e7d6e' }}; margin-bottom:0.5rem;">{{ config.store_name or 'Your Store' }}</h1>
+    {% if config.tagline %}
+    <p style="color:#6b7280; font-size:1.1rem; margin-bottom:2rem;">{{ config.tagline }}</p>
+    {% endif %}
+    
+    <div style="background:#f0fdf4; border:2px solid #bbf7d0; border-radius:16px; padding:2rem; margin-bottom:2rem;">
+        <h2 style="color:#0f172a; margin-bottom:1rem;">This is YOUR store, powered by RetailTrack</h2>
+        <p style="color:#6b7280; font-size:1rem; line-height:1.8; max-width:600px; margin:0 auto;">
+            Everything you see here can be yours. Inventory management, AI photo analysis, 
+            ad generation, listing creation — and it's all branded with <strong>{{ config.store_name or 'your store name' }}</strong>.
+        </p>
+    </div>
+    
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-bottom:2rem;">
+        <div style="background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <div style="font-size:2rem;">📦</div>
+            <h3 style="color:#0f172a; font-size:1rem;">Inventory Management</h3>
+            <p style="color:#6b7280; font-size:0.85rem;">Track every item, price, and location</p>
+        </div>
+        <div style="background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <div style="font-size:2rem;">🤖</div>
+            <h3 style="color:#0f172a; font-size:1rem;">AI Photo Analysis</h3>
+            <p style="color:#6b7280; font-size:0.85rem;">Auto-fill listings from photos</p>
+        </div>
+        <div style="background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <div style="font-size:2rem;">🎬</div>
+            <h3 style="color:#0f172a; font-size:1rem;">Video Ad Generator</h3>
+            <p style="color:#6b7280; font-size:0.85rem;">Create stunning ads in seconds</p>
+        </div>
+    </div>
+    
+    <a href="/wizard" class="btn btn-primary" style="display:inline-block; padding:1rem 3rem; font-size:1.1rem; font-weight:700;">
+        🚀 Get This for Your Store
+    </a>
+    
+    <p style="margin-top:1.5rem; color:#9ca3af; font-size:0.85rem;">
+        A demo for <strong>{{ config.contact_name or 'a potential customer' }}</strong>
+        {% if config.contact_email %} · {{ config.contact_email }}{% endif %}
+    </p>
+</div>
+
+<style>
+    .btn-primary {
+        background: {{ config.primary_color or '#2e7d6e' }} !important;
+    }
+</style>
+{% endblock %}

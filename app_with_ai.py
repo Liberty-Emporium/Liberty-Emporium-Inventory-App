@@ -1660,6 +1660,107 @@ def onboarding():
         return redirect(url_for('dashboard'))
     return render_template('onboarding.html', config=cfg, **ctx())
 
+# ── Wizard Routes ────────────────────────────────────────────────────────────
+CUSTOMERS_DIR = os.path.join(BASE_DIR, 'customers')
+os.makedirs(CUSTOMERS_DIR, exist_ok=True)
+
+def load_leads():
+    """Load all customer leads from JSON file."""
+    leads_file = os.path.join(CUSTOMERS_DIR, 'leads.json')
+    if os.path.exists(leads_file):
+        with open(leads_file) as f:
+            return json.load(f)
+    return []
+
+def save_leads(leads):
+    """Save all customer leads."""
+    leads_file = os.path.join(CUSTOMERS_DIR, 'leads.json')
+    with open(leads_file, 'w') as f:
+        json.dump(leads, f, indent=2)
+
+def slugify(text):
+    """Convert text to URL-safe slug."""
+    import re
+    slug = text.lower()
+    slug = re.sub(r'[^a-z0-9\s-]', '', slug)
+    slug = re.sub(r'\s+', '-', slug)
+    slug = re.sub(r'-+', '-', slug)
+    return slug.strip('-')
+
+@app.route('/wizard')
+def wizard():
+    """Multi-step wizard to get the app."""
+    return render_template('wizard.html')
+
+@app.route('/wizard-submit', methods=['POST'])
+def wizard_submit():
+    """Handle wizard submission — create customer store."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data'}), 400
+    
+    store_name = data.get('store_name', '').strip()
+    slug = slugify(data.get('store_name', 'unnamed-store'))
+    
+    # Ensure slug is unique
+    base_slug = slug
+    counter = 1
+    customer_file = os.path.join(CUSTOMERS_DIR, f'{slug}.json')
+    while os.path.exists(customer_file):
+        slug = f'{base_slug}-{counter}'
+        customer_file = os.path.join(CUSTOMERS_DIR, f'{slug}.json')
+        counter += 1
+    
+    # Save customer config
+    config = {
+        'store_name': store_name,
+        'slug': slug,
+        'primary_color': data.get('color', '#2e7d6e'),
+        'industry': data.get('industry', 'general'),
+        'tagline': data.get('tagline', ''),
+        'contact_name': data.get('contact_name', ''),
+        'contact_email': data.get('contact_email', ''),
+        'contact_phone': data.get('contact_phone', ''),
+        'created_at': datetime.datetime.now().isoformat(),
+    }
+    
+    with open(customer_file, 'w') as f:
+        json.dump(config, f, indent=2)
+    
+    # Add to leads
+    leads = load_leads()
+    leads.append(config)
+    save_leads(leads)
+    
+    return jsonify({'url': f'/store/{slug}'})
+
+@app.route('/store/<slug>')
+def customer_store(slug):
+    """Render a customer's branded store demo."""
+    config_file = os.path.join(CUSTOMERS_DIR, f'{slug}.json')
+    
+    # Load customer config if exists
+    config = {}
+    if os.path.exists(config_file):
+        with open(config_file) as f:
+            config = json.load(f)
+    else:
+        # Not found — redirect to wizard
+        flash('Store not found. Start your own demo!', 'info')
+        return redirect(url_for('wizard'))
+    
+    return render_template('store_page.html', config=config, tagline=config.get('tagline', ''))
+
+@app.route('/admin/leads')
+@login_required
+@admin_required
+def admin_leads():
+    """Admin page showing all customer leads."""
+    leads = load_leads()
+    # Sort newest first
+    leads.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    return render_template('admin_leads.html', leads=leads, **ctx())
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     app.run(debug=True)

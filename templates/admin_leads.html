@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin — Customer Leads{% endblock %}
+
+{% block content %}
+<div style="max-width:900px; margin:0 auto; padding:2rem 1rem;">
+    <h1 style="color:#0f172a;">📊 Customer Leads</h1>
+    <p style="color:#6b7280; margin-bottom:2rem;">People who've requested a demo of RetailTrack</p>
+    
+    {% if leads %}
+    <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <thead>
+                <tr style="background:#f0f7f4;">
+                    <th style="padding:1rem; text-align:left; color:#2e7d6e; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em;">Store</th>
+                    <th style="padding:1rem; text-align:left; color:#2e7d6e; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em;">Name</th>
+                    <th style="padding:1rem; text-align:left; color:#2e7d6e; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em;">Email</th>
+                    <th style="padding:1rem; text-align:left; color:#2e7d6e; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em;">Phone</th>
+                    <th style="padding:1rem; text-align:left; color:#2e7d6e; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em;">Date</th>
+                    <th style="padding:1rem; text-align:left; color:#2e7d6e; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em;">Industry</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads %}
+                <tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="padding:0.75rem 1rem;">
+                        <a href="/store/{{ lead.slug }}" style="color:#10b981; font-weight:600; text-decoration:none;">{{ lead.store_name }}</a>
+                    </td>
+                    <td style="padding:0.75rem 1rem; color:#374151;">{{ lead.contact_name or '—' }}</td>
+                    <td style="padding:0.75rem 1rem;">
+                        {% if lead.contact_email %}
+                        <a href="mailto:{{ lead.contact_email }}" style="color:#3b82f6; text-decoration:none;">{{ lead.contact_email }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td style="padding:0.75rem 1rem; color:#374151;">{{ lead.contact_phone or '—' }}</td>
+                    <td style="padding:0.75rem 1rem; color:#6b7280; font-size:0.85rem;">{{ lead.created_at[:10] or '—' }}</td>
+                    <td style="padding:0.75rem 1rem; color:#6b7280; font-size:0.85rem; text-transform:capitalize;">{{ lead.industry or '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <p style="margin-top:1rem; color:#6b7280;">{{ leads|length }} lead{{ 's' if leads|length != 1 else '' }} so far</p>
+    {% else %}
+    <div style="text-align:center; padding:3rem; color:#9ca3af;">
+        <div style="font-size:3rem; margin-bottom:1rem;">📭</div>
+        <p>No leads yet. Waiting for your first customer!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

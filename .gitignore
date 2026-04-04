@@ -6,3 +6,6 @@ __pycache__/
 .Python
 *.db
 *.sqlite3
+-e 
+# Customer data
+customers/
