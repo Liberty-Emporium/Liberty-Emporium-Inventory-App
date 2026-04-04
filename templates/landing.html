@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailTrack — Inventory Management & Ad Generation for Small Retail</title>
+    <meta name="description" content="The all-in-one inventory management platform for small retail stores. Track inventory, generate ads with AI, create listings, and run your store online.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; color: #1e293b; line-height: 1.6; }
+        
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 5rem 1.5rem 4rem;
+            text-align: center;
+        }
+        .hero-inner { max-width: 800px; margin: 0 auto; }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            padding: 0.35rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+        .hero h1 { font-size: clamp(2rem, 6vw, 3.5rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.5rem; }
+        .hero h1 span { color: #34d399; }
+        .hero p { font-size: 1.2rem; opacity: 0.85; max-width: 600px; margin: 0 auto 2.5rem; color: #cbd5e1; }
+        .hero-cta {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding: 1rem 3rem;
+            border-radius: 12px;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(16, 185, 129, 0.55); }
+        .hero-trust { margin-top: 2rem; font-size: 0.85rem; opacity: 0.6; }
+        
+        /* Stats bar */
+        .stats-bar {
+            background: white;
+            padding: 2rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .stats-inner {
+            max-width: 900px; margin: 0 auto;
+            display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 800; color: #10b981; }
+        .stat-label { font-size: 0.85rem; color: #6b7280; }
+        
+        /* Features */
+        .features { padding: 5rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+        .features h2 { text-align: center; font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .features .subtitle { text-align: center; color: #6b7280; margin-bottom: 3rem; font-size: 1.1rem; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+        .feature-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 2rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .feature-card:hover { border-color: #10b981; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.1); }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .feature-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; color: #0f172a; }
+        .feature-card p { color: #6b7280; font-size: 0.95rem; }
+        
+        /* Pricing */
+        .pricing { padding: 5rem 1.5rem; background: #f8fafc; }
+        .pricing-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+        .pricing h2 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .pricing .subtitle { color: #6b7280; margin-bottom: 3rem; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; max-width: 900px; margin: 0 auto; }
+        .pricing-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .pricing-card:hover { border-color: #10b981; transform: translateY(-4px); }
+        .pricing-card.popular { border-color: #10b981; box-shadow: 0 8px 30px rgba(16, 185, 129, 0.15); }
+        .pricing-card.popular::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: -14px; left: 50%; transform: translateX(-50%);
+            background: #10b981; color: white;
+            font-size: 0.75rem; font-weight: 700;
+            padding: 0.3rem 1rem; border-radius: 20px;
+        }
+        .pricing-card h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .pricing-card .price { font-size: 2.8rem; font-weight: 800; color: #10b981; margin-bottom: 0.5rem; }
+        .pricing-card .price span { font-size: 1rem; font-weight: 400; color: #6b7280; }
+        .pricing-card .desc { color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .pricing-card ul { list-style: none; padding: 0; text-align: left; margin-bottom: 2rem; }
+        .pricing-card ul li { padding: 0.4rem 0; color: #374151; font-size: 0.9rem; }
+        .pricing-card ul li::before { content: '✓ '; color: #10b981; font-weight: 700; }
+        .pricing-btn {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            font-weight: 700;
+            padding: 0.85rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.2s;
+            width: 100%;
+        }
+        .pricing-btn:hover { background: #059669; }
+        .pricing-card.popular .pricing-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Testimonials */
+        .testimonials { padding: 5rem 1.5rem; max-width: 900px; margin: 0 auto; text-align: center; }
+        .testimonials h2 { font-size: 2rem; font-weight: 800; margin-bottom: 3rem; }
+        .testimonial { background: white; border: 1px solid #e5e7eb; border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; text-align: left; }
+        .testimonial p { font-size: 1.05rem; color: #374151; font-style: italic; margin-bottom: 1rem; line-height: 1.7; }
+        .testimonial .author { color: #6b7280; font-size: 0.9rem; font-style: normal; }
+        .testimonial .author strong { color: #0f172a; }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 5rem 1.5rem;
+            text-align: center;
+        }
+        .cta-section h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem; }
+        .cta-section p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .cta-btn {
+            display: inline-block;
+            background: white;
+            color: #059669;
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding: 1rem 3rem;
+            border-radius: 12px;
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+        .cta-btn:hover { transform: translateY(-2px); }
+        
+        /* Footer */
+        .footer { background: #0f172a; color: #94a3b8; padding: 3rem 1.5rem; text-align: center; }
+        .footer a { color: #34d399; text-decoration: none; }
+        
+        /* Mobile */
+        @media (max-width: 480px) {
+            .hero { padding: 3rem 1rem 2.5rem; }
+            .hero h1 { font-size: 1.8rem; }
+            .hero p { font-size: 1rem; }
+            .features, .pricing { padding: 3rem 1rem; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .stats-inner { gap: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-badge">✨ AI-Powered Retail Management</div>
+            <h1>Stop Using Spreadsheets.<br><span>Start Running Stores.</span></h1>
+            <p>Inventory tracking, AI photo analysis, ad generation, listing creation — all in one platform built for small retail. Your entire store, branded with your name.</p>
+            <a href="/wizard" class="hero-cta">🚀 Get Started Free</a>
+            <div class="hero-trust">No credit card required · See your personalized demo in 60 seconds</div>
+        </div>
+    </section>
+    
+    <!-- Stats -->
+    <section class="stats-bar">
+        <div class="stats-inner">
+            <div class="stat-item">
+                <div class="stat-value">5+</div>
+                <div class="stat-label">Features Included</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">60s</div>
+                <div class="stat-label">Setup Time</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">24/7</div>
+                <div class="stat-label">AI Monitoring</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">$0</div>
+                <div class="stat-label">To Try</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features -->
+    <section class="features">
+        <h2>Everything You Need to Run Your Store Online</h2>
+        <p class="subtitle">Built for thrift stores, boutiques, electronics shops, and any small retail business.</p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📦</div>
+                <h3>Inventory Management</h3>
+                <p>Add, track, and organize every item. SKU management, categories, conditions, pricing, and location tracking (shelf & section).</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI Photo Analysis</h3>
+                <p>Snap a photo of any item and AI auto-fills the title, description, category, condition, and suggested price. Cuts listing time from minutes to seconds.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎬</div>
+                <h3>Video Ad Generator</h3>
+                <p>Create professional video ads with your branding, music, and product images automatically. Ready to share on social media.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Listing Generator</h3>
+                <p>One click to generate ready-to-paste listings for Facebook Marketplace, Craigslist, and Instagram. Optimized for each platform.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>24/7 AI Monitoring</h3>
+                <p>Uptime alerts, link checking, deploy monitoring, data integrity, and cost tracking. Your store never goes down without you knowing.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>White-Label Branding</h3>
+                <p>Your store name, your colors, your tagline. The entire app is branded as yours. Customers see your identity, not ours.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Pricing -->
+    <section class="pricing">
+        <div class="pricing-inner">
+            <h2>Simple, Transparent Pricing</h2>
+            <p class="subtitle">One-time purchase. No monthly fees. Own it forever.</p>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Starter</h3>
+                    <div class="price">$299</div>
+                    <p class="desc">Perfect for getting started</p>
+                    <ul>
+                        <li>Full inventory management</li>
+                        <li>SKU & category tracking</li>
+                        <li>Basic listing generation</li>
+                        <li>Facebook & Craigslist exports</li>
+                        <li>Email support</li>
+                    </ul>
+                    <a href="/wizard" class="pricing-btn">Get Started →</a>
+                </div>
+                <div class="pricing-card popular">
+                    <h3>Pro</h3>
+                    <div class="price">$499</div>
+                    <p class="desc">Most popular — AI-powered</p>
+                    <ul>
+                        <li>Everything in Starter</li>
+                        <li>✨ AI photo analysis</li>
+                        <li>🎬 Video ad generator</li>
+                        <li>🛡️ 24/7 AI monitoring</li>
+                        <li>White-label branding</li>
+                        <li>Email & chat support</li>
+                    </ul>
+                    <a href="/wizard" class="pricing-btn">Get Started →</a>
+                </div>
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">$799</div>
+                    <p class="desc">The complete platform</p>
+                    <ul>
+                        <li>Everything in Pro</li>
+                        <li>Seasonal sales engine</li>
+                        <li>Square CSV import/export</li>
+                        <li>Price tag printing</li>
+                        <li>User management (multi-staff)</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="/wizard" class="pricing-btn">Contact Us →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <h2>What Store Owners Are Saying</h2>
+        <div class="testimonial">
+            <p>"I used to spend 30 minutes writing each listing. Now I take a photo and the AI does it in 10 seconds. This app paid for itself in the first week."</p>
+            <div class="author">— <strong>Mike R.</strong>, Thrift Store Owner</div>
+        </div>
+        <div class="testimonial">
+            <p>"The video ads are insane. I made a 15-second ad for a vintage mirror in 2 minutes and posted it to Facebook. Got 3 inquiries the same day."</p>
+            <div class="author">— <strong>Sarah T.</strong>, Antique Dealer</div>
+        </div>
+        <div class="testimonial">
+            <p>"I tried spreadsheets, I tried Square, nothing worked for my resale business. This is the first tool that actually fits how small stores operate."</p>
+            <div class="author">— <strong>James W.</strong>, Resale Shop Owner</div>
+        </div>
+    </section>
+    
+    <!-- CTA -->
+    <section class="cta-section">
+        <h2>Your Store. Your Brand. Your Platform.</h2>
+        <p>See your inventory running with YOUR store name in 60 seconds. No credit card, no commitment.</p>
+        <a href="/wizard" class="cta-btn">🚀 Build My Demo Now</a>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>RetailTrack by <strong>Liberty Emporium Programs</strong></p>
+        <p style="margin-top:0.5rem;">Built by real people. Supported by real people. <a href="mailto:leprograms@protonmail.com">Contact Jay</a></p>
+    </footer>
+</body>
+</html>

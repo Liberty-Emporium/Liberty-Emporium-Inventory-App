@@ -18,6 +18,11 @@ try:
 except ImportError:
     pass
 
+# ── Stripe (payments) ──────────────────────────────────────────────────────
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+stripe_enabled = bool(STRIPE_SECRET_KEY and not STRIPE_SECRET_KEY.startswith('pk_test_placeholder'))
+
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
 
@@ -1659,6 +1664,12 @@ def onboarding():
         flash(f"Welcome to {cfg['store_name']}! Your store is ready to go. 🎉", 'success')
         return redirect(url_for('dashboard'))
     return render_template('onboarding.html', config=cfg, **ctx())
+
+# ── Landing Page ─────────────────────────────────────────────────────────────
+@app.route('/landing')
+def landing_page():
+    """Public landing page for advertising — no login needed"""
+    return render_template('landing.html')
 
 # ── Wizard Routes ────────────────────────────────────────────────────────────
 CUSTOMERS_DIR = os.path.join(BASE_DIR, 'customers')
