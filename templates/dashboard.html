@@ -107,6 +107,42 @@
         </div>
     </div>
 
+    <!-- ── AI Monitoring Badges ──────────────────────────────────────────── -->
+    <div class="monitoring-bar">
+        <div class="monitoring-title">
+            <span class="pulse-dot"></span> AI Monitoring Active
+            <span class="monitoring-subtitle">RetailTrack keeps your store running 24/7</span>
+        </div>
+        <div class="monitoring-badges">
+            <div class="monitor-badge" title="Pings your app every 15 minutes">
+                <span class="badge-icon">🛡️</span>
+                <span class="badge-label">Uptime Guard</span>
+                <span class="badge-status">15 min</span>
+            </div>
+            <div class="monitor-badge" title="Checks all links after every update">
+                <span class="badge-icon">🔗</span>
+                <span class="badge-label">Link Health</span>
+                <span class="badge-status">2 hrs</span>
+            </div>
+            <div class="monitor-badge" title="Verifies deployments go live">
+                <span class="badge-icon">🚀</span>
+                <span class="badge-label">Deploy Check</span>
+                <span class="badge-status">30 min</span>
+            </div>
+            <div class="monitor-badge" title="Ensures inventory data stays intact">
+                <span class="badge-icon">💾</span>
+                <span class="badge-label">Data Integrity</span>
+                <span class="badge-status">1 hr</span>
+            </div>
+            <div class="monitor-badge" title="Monitors server costs">
+                <span class="badge-icon">💰</span>
+                <span class="badge-label">Cost Watch</span>
+                <span class="badge-status">6 hrs</span>
+            </div>
+        </div>
+    </div>
+    <!-- ──────────────────────────────────────────────────────────────────── -->
+
     <div class="actions-bar">
         <h2>Products</h2>
         <a href="{{ url_for('new_product') }}" class="btn btn-primary">Add New Product</a>
@@ -161,4 +197,91 @@
         </div>
     {% endif %}
 </div>
+
+<style>
+    /* ── AI Monitoring Bar ───────────────────────────────────────────────── */
+    .monitoring-bar {
+        background: linear-gradient(135deg, #0f766e, #115e59);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0 1rem 0;
+        color: white;
+        box-shadow: 0 4px 16px rgba(15, 118, 110, 0.25);
+    }
+    .monitoring-title {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    .monitoring-subtitle {
+        font-weight: 400;
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+    .monitoring-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+    .monitor-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border-radius: 8px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+        transition: background 0.2s, transform 0.15s;
+        cursor: default;
+    }
+    .monitor-badge:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-1px);
+    }
+    @media (max-width: 768px) {
+        .monitor-badge {
+            padding: 0.5rem 0.7rem;
+        }
+        .monitor-badge .badge-label {
+            font-size: 0.78rem;
+        }
+        .monitor-badge .badge-status {
+            display: none;
+        }
+    }
+    .badge-icon {
+        font-size: 1.1rem;
+    }
+    .badge-label {
+        font-weight: 600;
+        font-size: 0.82rem;
+    }
+    .badge-status {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        background: rgba(255,255,255,0.2);
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+    }
+    /* Pulse animation for the green dot */
+    .pulse-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: #34d399;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+        box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+    }
+    @keyframes pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.8); opacity: 1; }
+        70%  { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); opacity: 1; }
+        100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); opacity: 1; }
+    }
+    /* ─────────────────────────────────────────────────────────────────────── */
+});
 {% endblock %}
