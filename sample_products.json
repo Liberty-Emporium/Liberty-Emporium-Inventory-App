@@ -1,254 +1,40 @@
 {
   "thrift": [
-    {
-      "SKU": "THRIFT-001",
-      "Title": "Vintage Oak Dresser - 6 Drawer",
-      "Description": "Beautiful mid-century oak dresser. All drawers slide smoothly. Minor surface wear consistent with age. Solid construction.",
-      "Price": "89.99",
-      "Category": "Furniture",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "25.00"
-    },
-    {
-      "SKU": "THRIFT-002",
-      "Title": "Floral Pattern Throw Pillows (Set of 3)",
-      "Description": "Set of three matching decorative throw pillows. Floral pattern, 18x18 inches. Covers are zippered and machine washable.",
-      "Price": "18.99",
-      "Category": "Home Decor",
-      "Condition": "New",
-      "Status": "Available",
-      "Cost Paid": "5.00"
-    },
-    {
-      "SKU": "THRIFT-003",
-      "Title": "Vintage Mirror - Ornate Gold Frame",
-      "Description": "Gorgeous ornate gold-framed mirror. 24x36 inches. Some distressing on the frame adds character. Mirror is in excellent condition.",
-      "Price": "45.00",
-      "Category": "Home Decor",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "12.00"
-    },
-    {
-      "SKU": "THRIFT-004",
-      "Title": "Women's Denim Jacket - Size M",
-      "Description": "Classic women's denim jacket, light wash. Size medium. Great condition with minimal wear. Perfect layering piece.",
-      "Price": "22.50",
-      "Category": "Clothing",
-      "Condition": "Used - Excellent",
-      "Status": "Available",
-      "Cost Paid": "4.00"
-    },
-    {
-      "SKU": "THRIFT-005",
-      "Title": "Cast Iron Dutch Oven - Number 8",
-      "Description": "Large cast iron Dutch oven, pre-seasoned. Number 8 size. Great for camping or oven cooking. Heavy duty.",
-      "Price": "35.00",
-      "Category": "Kitchen",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "8.00"
-    }
+    {"SKU": "THRIFT-001", "Title": "Antique Oak Dresser - 6 Drawer", "Description": "Solid wood dresser, all drawers slide smooth. Great condition with beautiful original finish.", "Price": "89.99", "Category": "Furniture", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "THRIFT-002", "Title": "Vintage Ceramic Lamp Set (2)", "Description": "Pair of matching ceramic table lamps with floral pattern. Both tested and working. Includes shades.", "Price": "24.99", "Category": "Home Decor", "Condition": "Used - Excellent", "Status": "Available", "Images": ""},
+    {"SKU": "THRIFT-003", "Title": "Women's Designer Handbag - Coach", "Description": "Authentic Coach leather purse. Minor wear on handles. Interior is clean with no tears.", "Price": "35.00", "Category": "Accessories", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "THRIFT-004", "Title": "Cast Iron Skillet Set (3 pieces)", "Description": "Lodge cast iron skillets 8 inch, 10 inch, and 12 inch. Well seasoned, ready to cook.", "Price": "28.00", "Category": "Kitchen", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "THRIFT-005", "Title": "Men's Levi's 501 Jeans - Size 34x32", "Description": "Classic Levi's 501 in dark wash. Excellent condition, barely worn. Authentic button fly.", "Price": "19.99", "Category": "Clothing", "Condition": "Used - Like New", "Status": "Available", "Images": ""},
+    {"SKU": "THRIFT-006", "Title": "Hardcover Book Collection - Western Novels (5)", "Description": "Five classic western novels by Louis L'Amour. All in good condition with intact dust jackets.", "Price": "12.00", "Category": "Books", "Condition": "Used - Good", "Status": "Available", "Images": ""}
   ],
   "electronics": [
-    {
-      "SKU": "ELEC-001",
-      "Title": "Samsung 55\" 4K Smart TV",
-      "Description": "Samsung 55-inch 4K UHD Smart TV with HDR. Excellent picture quality. Includes remote and stand.",
-      "Price": "249.99",
-      "Category": "TVs",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "75.00"
-    },
-    {
-      "SKU": "ELEC-002",
-      "Title": "Apple iPad Air - 64GB WiFi",
-      "Description": "Apple iPad Air 4th generation, 64GB, space gray. WiFi model. Screen is flawless. Battery holds full charge.",
-      "Price": "189.00",
-      "Category": "Tablets",
-      "Condition": "Used - Excellent",
-      "Status": "Available",
-      "Cost Paid": "60.00"
-    },
-    {
-      "SKU": "ELEC-003",
-      "Title": "Sony WH-1000XM4 Headphones",
-      "Description": "Premium noise-cancelling headphones. Bluetooth and wired. All original accessories included. Barely used.",
-      "Price": "129.99",
-      "Category": "Audio",
-      "Condition": "Used - Like New",
-      "Status": "Available",
-      "Cost Paid": "40.00"
-    },
-    {
-      "SKU": "ELEC-004",
-      "Title": "Nintendo Switch OLED - White",
-      "Description": "Nintendo Switch OLED model, white. Includes dock, Joy-Cons, and all cables. Screen protector applied.",
-      "Price": "279.99",
-      "Category": "Gaming",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "150.00"
-    },
-    {
-      "SKU": "ELEC-005",
-      "Title": "HP LaserJet Printer",
-      "Description": "HP LaserJet Pro wireless printer. Black and white. Toner is half full. Works perfectly, recently tested.",
-      "Price": "55.00",
-      "Category": "Office",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "18.00"
-    }
+    {"SKU": "ELEC-001", "Title": "Samsung 55\" 4K Smart TV", "Description": "Samsung 55-inch 4K Smart TV. Great picture, built-in apps. Includes remote and stand.", "Price": "249.99", "Category": "TVs", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "ELEC-002", "Title": "Apple iPad - 64GB WiFi", "Description": "iPad 9th generation, 64GB, space gray. WiFi model. Screen is flawless, battery holds full charge.", "Price": "179.00", "Category": "Tablets", "Condition": "Used - Excellent", "Status": "Available", "Images": ""},
+    {"SKU": "ELEC-003", "Title": "Sony Noise Cancelling Headphones WH-1000XM4", "Description": "Premium Bluetooth headphones with active noise cancellation. All original accessories included.", "Price": "149.99", "Category": "Audio", "Condition": "Used - Like New", "Status": "Available", "Images": ""},
+    {"SKU": "ELEC-004", "Title": "Nintendo Switch OLED Model", "Description": "Nintendo Switch OLED, white. Includes dock and both Joy-Cons. Screen protector applied.", "Price": "269.99", "Category": "Gaming", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "ELEC-005", "Title": "Dell XPS Desktop Computer", "Description": "Dell XPS 8940, Intel i7, 16GB RAM, 512GB SSD. Windows 11. Perfect for home or office.", "Price": "449.00", "Category": "Computers", "Condition": "Used - Good", "Status": "Available", "Images": ""}
   ],
   "furniture": [
-    {
-      "SKU": "FURN-001",
-      "Title": "Solid Wood Dining Table - Seats 6",
-      "Description": "Beautiful solid wood dining table in natural finish. Seats 6 comfortably. Small scratch on one leg. Very sturdy.",
-      "Price": "199.99",
-      "Category": "Dining",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "50.00"
-    },
-    {
-      "SKU": "FURN-002",
-      "Title": "Leather Recliner - Brown",
-      "Description": "Genuine leather recliner in rich brown. Power recline feature works perfectly. Minor patina on armrests.",
-      "Price": "275.00",
-      "Category": "Seating",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "80.00"
-    },
-    {
-      "SKU": "FURN-003",
-      "Title": "Bookshelf - 5 Tier Wood",
-      "Description": "Five-tier bookshelf in rustic wood finish. 72 inches tall. Adjustable shelves. Great condition.",
-      "Price": "49.99",
-      "Category": "Storage",
-      "Condition": "Used - Excellent",
-      "Status": "Available",
-      "Cost Paid": "15.00"
-    },
-    {
-      "SKU": "FURN-004",
-      "Title": "Queen Size Bed Frame - Metal",
-      "Description": "Modern black metal bed frame, queen size. Platform style, no box spring needed. Easy assembly.",
-      "Price": "89.00",
-      "Category": "Bedroom",
-      "Condition": "New",
-      "Status": "Available",
-      "Cost Paid": "35.00"
-    },
-    {
-      "SKU": "FURN-005",
-      "Title": "Glass Top Coffee Table",
-      "Description": "Modern glass top coffee table with chrome legs. Tempered glass, 42x24 inches. No chips or cracks.",
-      "Price": "65.00",
-      "Category": "Living Room",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "20.00"
-    }
+    {"SKU": "FURN-001", "Title": "Solid Wood Dining Table - Seats 8", "Description": "Beautiful solid wood dining table in natural finish. Seats 8 comfortably. Minor surface scratches.", "Price": "299.99", "Category": "Dining", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "FURN-002", "Title": "Leather Sofa - Brown, 3-Seat", "Description": "Genuine leather sofa in rich brown. Very comfortable, minor wear on cushions. Frame is solid.", "Price": "399.00", "Category": "Living Room", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "FURN-003", "Title": "Queen Size Platform Bed - Walnut", "Description": "Modern walnut platform bed frame, queen size. No box spring needed. Clean lines, sturdy build.", "Price": "189.00", "Category": "Bedroom", "Condition": "New", "Status": "Available", "Images": ""},
+    {"SKU": "FURN-004", "Title": "5-Shelf Wooden Bookcase", "Description": "Solid pine bookcase, 5 shelves, 72 inches tall. Adjustable shelf heights. Great condition.", "Price": "59.99", "Category": "Storage", "Condition": "Used - Excellent", "Status": "Available", "Images": ""}
   ],
   "clothing": [
-    {
-      "SKU": "CLOTH-001",
-      "Title": "Men's Nike Air Max - Size 11",
-      "Description": "Men's Nike Air Max 90, white/black colorway. Size 11. Worn twice, like new condition. Original box included",
-      "Price": "65.00",
-      "Category": "Shoes",
-      "Condition": "Used - Like New",
-      "Status": "Available",
-      "Cost Paid": "18.00"
-    },
-    {
-      "SKU": "CLOTH-002",
-      "Title": "Vintage Band T-Shirt - Nirvana",
-      "Description": "Authentic vintage Nirvana band tee, 1990s era tour shirt. Size L. Some fading adds to the vintage look.",
-      "Price": "45.00",
-      "Category": "Tops",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "5.00"
-    },
-    {
-      "SKU": "CLOTH-003",
-      "Title": "Women's Designer Handbag - Guess",
-      "Description": "Guess designer handbag in tan leather. Adjustable strap, multiple compartments. Minor wear on corners.",
-      "Price": "35.99",
-      "Category": "Accessories",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "8.00"
-    }
+    {"SKU": "CLOTHING-001", "Title": "Men's Nike Air Max 90 - Size 11", "Description": "Nike Air Max 90, black and white colorway. Worn twice, like new. Original box included.", "Price": "75.00", "Category": "Shoes", "Condition": "Used - Like New", "Status": "Available", "Images": ""},
+    {"SKU": "CLOTHING-002", "Title": "Vintage Band Tee - Nirvana 1993 Tour", "Description": "Authentic 1993 Nirvana tour shirt. Single stitch. Size large. Some fading adds vintage character.", "Price": "85.00", "Category": "Tops", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "CLOTHING-003", "Title": "Women's Winter Coat - North Face - Medium", "Description": "The North Face ThermoBall jacket, black. Size medium. Incredibly warm, barely worn. Packs small.", "Price": "89.00", "Category": "Outerwear", "Condition": "Used - Like New", "Status": "Available", "Images": ""},
+    {"SKU": "CLOTHING-004", "Title": "Leather Belt & Wallet Set - Men's", "Description": "Genuine leather belt (size 36) and matching bifold wallet. Black. New in box.", "Price": "29.99", "Category": "Accessories", "Condition": "New", "Status": "Available", "Images": ""}
   ],
   "antiques": [
-    {
-      "SKU": "ANTI-001",
-      "Title": "Victorian Writing Desk - Mahogany",
-      "Description": "Authentic Victorian era mahogany writing desk, circa 1880. Original finish with beautiful patina. Working lock with key.",
-      "Price": "350.00",
-      "Category": "Furniture",
-      "Condition": "Antique",
-      "Status": "Available",
-      "Cost Paid": "120.00"
-    },
-    {
-      "SKU": "ANTI-002",
-      "Title": "Porcelain China Plates - Set of 8",
-      "Description": "Set of 8 matching porcelain dinner plates. Floral pattern, gold trim. Made in England, circa 1920s. No chips or cracks.",
-      "Price": "125.00",
-      "Category": "China",
-      "Condition": "Antique",
-      "Status": "Available",
-      "Cost Paid": "40.00"
-    },
-    {
-      "SKU": "ANTI-003",
-      "Title": "Brass Ship Bell on Mount",
-      "Description": "Vintage brass ship's bell mounted on wooden base. 6 inches diameter. Engraved 'SS Atlantic'. Great nautical decor piece.",
-      "Price": "55.00",
-      "Category": "Maritime",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "15.00"
-    }
+    {"SKU": "ANTI-001", "Title": "Victorian Writing Desk - Mahogany, ca. 1880", "Description": "Authentic Victorian mahogany writing desk. Original finish with beautiful patina. Working lock with key.", "Price": "450.00", "Category": "Furniture", "Condition": "Antique", "Status": "Available", "Images": ""},
+    {"SKU": "ANTI-002", "Title": "Porcelain Dinner Set - 12 Piece, Hand-Painted", "Description": "Set of 12 matching porcelain dinner plates. Floral pattern, gold trim. Made in England circa 1920s.", "Price": "225.00", "Category": "China", "Condition": "Antique", "Status": "Available", "Images": ""},
+    {"SKU": "ANTI-003", "Title": "Brass Ship's Bell - Mounted on Wooden Base", "Description": "Vintage brass ship's bell, 6 inch diameter. Engraved SS Atlantic. Great nautical collectible.", "Price": "175.00", "Category": "Maritime", "Condition": "Antique", "Status": "Available", "Images": ""}
   ],
   "general": [
-    {
-      "SKU": "GEN-001",
-      "Title": "Bluetooth Speaker - JBL Flip 5",
-      "Description": "JBL Flip 5 portable Bluetooth speaker in black. Waterproof, 12-hour battery. Sounds great, minor cosmetic wear.",
-      "Price": "39.99",
-      "Category": "Electronics",
-      "Condition": "Used - Good",
-      "Status": "Available",
-      "Cost Paid": "12.00"
-    },
-    {
-      "SKU": "GEN-002",
-      "Title": "LED Desk Lamp with USB",
-      "Description": "Modern LED desk lamp with adjustable brightness and color temperature. Built-in USB charging port. Touch controls.",
-      "Price": "22.50",
-      "Category": "Office",
-      "Condition": "New",
-      "Status": "Available",
-      "Cost Paid": "8.00"
-    },
-    {
-      "SKU": "GEN-003",
-      "Title": "Yoga Mat - Premium 6mm",
-      "Description": "Premium non-slip yoga mat, 6mm thick. Purple. Includes carrying strap. Used a handful of times, excellent condition.",
-      "Price": "15.99",
-      "Category": "Fitness",
-      "Condition": "Used - Excellent",
-      "Status": "Available",
-      "Cost Paid": "5.00"
-    }
+    {"SKU": "GEN-001", "Title": "JBL Flip 5 Bluetooth Speaker", "Description": "Portable waterproof Bluetooth speaker in black. 12-hour battery. Sounds incredible.", "Price": "39.99", "Category": "Electronics", "Condition": "Used - Good", "Status": "Available", "Images": ""},
+    {"SKU": "GEN-002", "Title": "LED Desk Lamp with USB Charging", "Description": "Modern LED desk lamp with adjustable brightness and color temp. Built-in USB port.", "Price": "24.99", "Category": "Office", "Condition": "New", "Status": "Available", "Images": ""},
+    {"SKU": "GEN-003", "Title": "Yoga Mat - Premium 6mm Non-Slip", "Description": "Premium non-slip yoga mat, 6mm thick. Purple. Includes carrying strap. Used a handful of times.", "Price": "15.99", "Category": "Fitness", "Condition": "Used - Excellent", "Status": "Available", "Images": ""},
+    {"SKU": "GEN-004", "Title": "Stainless Steel Water Bottle Set (2)", "Description": "Two 32oz insulated water bottles. Keeps drinks cold 24h. Mint and navy colors.", "Price": "19.99", "Category": "Kitchen", "Condition": "New", "Status": "Available", "Images": ""}
   ]
 }
