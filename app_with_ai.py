@@ -986,6 +986,33 @@ def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en
 
 # ── Free Royalty-Free Music Generation ────────────────────────────────────────
 
+def _generate_custom_voiceover(text, tmp_files, voice='en-US-ChristopherNeural'):
+    """Generate voiceover from a custom user-written script using Edge TTS."""
+    import asyncio
+    import edge_tts
+    
+    out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
+    tmp_files.append(out_file)
+    
+    # Wrap in minimal SSML for natural delivery
+    script = f'<speak>{text}</speak>'
+    
+    try:
+        communicate = edge_tts.Communicate(script, voice)
+        asyncio.run(communicate.save(out_file))
+        
+        result = subprocess.run(
+            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+             '-of', 'default=noprint_wrappers=1:nokey=1', out_file],
+            capture_output=True, text=True
+        )
+        duration = float(result.stdout.strip())
+        return out_file, duration
+    except Exception as e:
+        app.logger.warning(f"Custom voiceover failed: {e}")
+        return None, 0
+
+
 def _generate_builtin_music(duration_seconds, tmp_files):
     """Generate a simple upbeat royalty-free music track using ffmpeg tone synthesis."""
     out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
