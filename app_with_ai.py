@@ -1227,21 +1227,40 @@ def generate_video_ad():
 
         # ── AI Voiceover: generate narration per product ──────────────────────
         voiceover_durations = []
-        if enable_voiceover and store_name_vo:
-            for i, p in enumerate(products):
-                vo_file, vo_dur, vo_script = _generate_product_voiceover(
-                    p, store_name_vo, tmp_files, i
+        custom_voice_script = request.form.get('voice_script', '').strip()
+        
+        if enable_voiceover:
+            if custom_voice_script:
+                # Use user's custom script — one big narration piece
+                vo_file, vo_dur = _generate_custom_voiceover(
+                    custom_voice_script, tmp_files, voice_select
                 )
                 if vo_file:
-                    voiceover_durations.append({'file': vo_file, 'duration': vo_dur, 'script': vo_script})
-                else:
-                    voiceover_durations.append(None)
-
-            # Adjust duration to fit voiceovers (or keep user's duration)
-            if voiceover_durations and all(vd is not None for vd in voiceover_durations):
-                total_voice = sum(vd['duration'] for vd in voiceover_durations)
-                # Add intro + outro padding
-                duration = max(duration, int(total_voice + 5.5))
+                    voiceover_durations.append({
+                        'file': vo_file, 
+                        'duration': vo_dur,
+                        'script': custom_voice_script,
+                        'is_custom': True
+                    })
+                if vo_file:
+                    # Adjust duration to fit voiceover
+                    duration = max(duration, int(vo_dur + 3))
+            elif store_name_vo:
+                # Use auto-generated per-product narration
+                for i, p in enumerate(products):
+                    vo_file, vo_dur, vo_script = _generate_product_voiceover(
+                        p, store_name_vo, tmp_files, i, voice_select
+                    )
+                    if vo_file:
+                        voiceover_durations.append({'file': vo_file, 'duration': vo_dur, 'script': vo_script})
+                    else:
+                        voiceover_durations.append(None)
+                
+                # Adjust duration to fit voiceovers
+                valid_vo = [vd for vd in voiceover_durations if vd is not None]
+                if valid_vo:
+                    total_voice = sum(vd['duration'] for vd in valid_vo)
+                    duration = max(duration, int(total_voice + 3))
 
         # Resolve music path
         if music_token:

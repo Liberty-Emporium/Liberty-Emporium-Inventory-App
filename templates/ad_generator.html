@@ -506,15 +506,15 @@
 /* ── Video Studio Panel ───────────────────────────────────────── */
 .vs-panel {
   margin: 2rem 0;
-  border: 2px solid #7c3aed;
+  border: 2px solid #4a7c59;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(124,58,237,0.18);
+  box-shadow: 0 4px 24px rgba(74,124,89,0.18);
   font-family: 'DM Sans', sans-serif;
 }
 
 .vs-header {
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #4a7c59 0%, #6b4423 100%);
   color: white;
   padding: 1rem 1.5rem;
   display: flex;
@@ -562,16 +562,16 @@
   transition: all 0.2s;
 }
 
-.vs-style-card:hover { border-color: #7c3aed; }
+.vs-style-card:hover { border-color: #4a7c59; }
 .vs-style-card.active {
-  border-color: #7c3aed;
-  background: #f5f3ff;
+  border-color: #4a7c59;
+  background: #f0ece0;
 }
 
 .vs-style-card .vs-card-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
 .vs-style-card h4 { font-size: 0.88rem; font-weight: 700; color: #333; margin: 0 0 0.2rem; }
 .vs-style-card p  { font-size: 0.75rem; color: #888; margin: 0; }
-.vs-style-card.active h4 { color: #7c3aed; }
+.vs-style-card.active h4 { color: #4a7c59; }
 
 /* Seasonal template cards */
 .vs-template-card {
@@ -587,10 +587,10 @@
   gap: 0.3rem;
 }
 
-.vs-template-card:hover { border-color: #7c3aed; }
+.vs-template-card:hover { border-color: #4a7c59; }
 .vs-template-card.active {
-  border-color: #7c3aed;
-  background: #f5f3ff;
+  border-color: #4a7c59;
+  background: #f0ece0;
 }
 
 /* Social media format cards */
@@ -608,10 +608,10 @@
   gap: 0.2rem;
 }
 
-.vs-format-card:hover { border-color: #7c3aed; }
+.vs-format-card:hover { border-color: #4a7c59; }
 .vs-format-card.active {
-  border-color: #7c3aed;
-  background: #f5f3ff;
+  border-color: #4a7c59;
+  background: #f0ece0;
 }
 
 /* Preset cards */
@@ -629,8 +629,8 @@
 }
 
 .vs-preset-card:hover {
-  border-color: #7c3aed;
-  background: #f5f3ff;
+  border-color: #4a7c59;
+  background: #f0ece0;
   transform: translateY(-2px);
 }
 
@@ -657,10 +657,10 @@
   transition: all 0.2s;
 }
 
-.vs-track-card:hover { border-color: #7c3aed; }
+.vs-track-card:hover { border-color: #4a7c59; }
 .vs-track-card.active {
-  border-color: #7c3aed;
-  background: #f5f3ff;
+  border-color: #4a7c59;
+  background: #f0ece0;
 }
 
 .vs-track-card .vs-track-name {
@@ -672,7 +672,7 @@
   text-overflow: ellipsis;
 }
 
-.vs-track-card.active .vs-track-name { color: #7c3aed; }
+.vs-track-card.active .vs-track-name { color: #4a7c59; }
 
 .vs-play-btn {
   background: none;
@@ -685,20 +685,20 @@
 }
 
 .vs-upload-zone {
-  border: 2px dashed #7c3aed;
+  border: 2px dashed #4a7c59;
   border-radius: 8px;
   padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
-  background: #faf8ff;
+  background: #f5f0e5;
   transition: background 0.2s;
   margin-bottom: 1.25rem;
 }
 
-.vs-upload-zone:hover { background: #f0ecff; }
-.vs-upload-zone .vs-upload-label { font-size: 0.85rem; font-weight: 700; color: #7c3aed; }
+.vs-upload-zone:hover { background: #e8e0d0; }
+.vs-upload-zone .vs-upload-label { font-size: 0.85rem; font-weight: 700; color: #4a7c59; }
 .vs-upload-zone .vs-upload-sub   { font-size: 0.75rem; color: #999; }
 
 /* Duration slider */
@@ -710,12 +710,12 @@
 }
 
 .vs-slider-row span { font-size: 0.78rem; color: #999; white-space: nowrap; }
-.vs-slider-row input[type=range] { flex: 1; accent-color: #7c3aed; }
+.vs-slider-row input[type=range] { flex: 1; accent-color: #4a7c59; }
 
 /* Generate video button */
 .btn-generate-video {
   width: 100%;
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #4a7c59 0%, #6b4423 100%);
   color: white;
   border: none;
   padding: 0.9rem;
@@ -737,7 +737,7 @@
 .vs-results {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 2px solid #ede9fe;
+  border-top: 2px solid #e8e0d5;
   display: none;
 }
 
@@ -746,17 +746,17 @@
 .vs-results h2 {
   font-family: 'Playfair Display', serif;
   font-size: 1.6rem;
-  color: #4f46e5;
+  color: #6b4423;
   margin-bottom: 1.25rem;
 }
 
 .vs-video-card {
   background: white;
-  border: 1px solid #ede9fe;
+  border: 1px solid #e8e0d5;
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 12px rgba(124,58,237,0.1);
+  box-shadow: 0 2px 12px rgba(74,124,89,0.1);
 }
 
 .vs-video-card-header {
@@ -764,15 +764,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background: #faf8ff;
-  border-bottom: 1px solid #ede9fe;
+  background: #f5f0e5;
+  border-bottom: 1px solid #e8e0d5;
   gap: 0.75rem;
 }
 
 .vs-video-title { font-weight: 700; font-size: 0.95rem; color: #333; }
 
 .btn-dl-video {
-  background: #7c3aed;
+  background: #4a7c59;
   color: white;
   padding: 0.45rem 1rem;
   border-radius: 6px;
@@ -944,9 +944,9 @@
         <span style="font-size:1.2rem;">💌</span>
         <span style="font-size:0.75rem; font-weight:700;">Valentine</span>
         <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#4a0e4e;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ff1493;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ffb6c1;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#3d2b1f;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#8B6914;"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#d4b86a;"></div>
         </div>
       </div>
       <div class="vs-template-card" data-template="spring" onclick="vsSelectTemplate(this)">
@@ -1063,7 +1063,7 @@
     </div>
 
     <!-- Duration -->
-    <div class="vs-section-label">⏱️ Duration — <span id="vsDurationLabel" style="color:#7c3aed; font-weight:800;">30 seconds</span></div>
+    <div class="vs-section-label">⏱️ Duration — <span id="vsDurationLabel" style="color:#4a7c59; font-weight:800;">30 seconds</span></div>
     <div class="vs-slider-row">
       <span>10s</span>
       <input type="range" id="vsDurationSlider" min="10" max="60" value="30"
@@ -1088,7 +1088,7 @@
 
     <!-- Watermark/Logo Upload -->
     <div class="vs-section-label">🎖️ Watermark/Logo (Optional)</div>
-    <div class="vs-upload-zone" onclick="document.getElementById('vsLogoInput').click()" style="background:#f0ecff; border-color:#7c3aed;">
+    <div class="vs-upload-zone" onclick="document.getElementById('vsLogoInput').click()" style="background:#e8e0d0; border-color:#4a7c59;">
       <span style="font-size:1.2rem;">🖼️</span>
       <div>
         <div class="vs-upload-label" id="vsLogoLabel">Upload Logo/Watermark</div>
@@ -1118,12 +1118,12 @@
 
     <!-- ══ AI Voiceover (NEW) ══ -->
     <div style="margin-top:1.25rem; padding-top:1.25rem; border-top:1.5px solid #e0ddd8;">
-      <div class="vs-section-label">🤖 AI Voiceover <span style="font-size:0.7rem; color:#7c3aed; font-weight:600; background:#f0ecff; padding:0.15rem 0.5rem; border-radius:4px; margin-left:0.4rem;">AI</span></div>
+      <div class="vs-section-label">🤖 AI Voiceover <span style="font-size:0.7rem; color:#4a7c59; font-weight:600; background:#e8e0d0; padding:0.15rem 0.5rem; border-radius:4px; margin-left:0.4rem;">AI</span></div>
       <p style="font-size:0.78rem; color:#888; margin-bottom:0.75rem;">Professional narration generated by AI — speaks the name and price of each product</p>
       
       <!-- Toggle -->
       <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; margin-bottom:0.75rem;">
-        <input type="checkbox" id="vsVoiceoverToggle" style="width:18px; height:18px; accent-color:#7c3aed;">
+        <input type="checkbox" id="vsVoiceoverToggle" style="width:18px; height:18px; accent-color:#4a7c59;">
         <span style="font-size:0.88rem; font-weight:600; color:#333;">Enable AI Voiceover</span>
       </label>
       
@@ -1147,7 +1147,7 @@
           </div>
         </div>
         <!-- Preview -->
-        <button type="button" onclick="vsPreviewVoice()" style="background:#f0ecff; border:1.5px solid #7c3aed; color:#7c3aed; padding:0.5rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer;">
+        <button type="button" onclick="vsPreviewVoice()" style="background:#e8e0d0; border:1.5px solid #4a7c59; color:#4a7c59; padding:0.5rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer;">
           🔊 Preview Voice
         </button>
         <span id="vsVoiceStatus" style="font-size:0.78rem; color:#888; margin-left:0.5rem;"></span>
@@ -1184,7 +1184,7 @@
   <div class="spinner-ring"></div>
   <div id="loadingText" style="font-size:1rem; font-weight:500;">Generating your ads...</div>
   <div id="loadingProgress" style="width:60%; max-width:300px; height:6px; background:#rgba(255,255,255,0.2); border-radius:3px; margin-top:1rem; overflow:hidden;">
-    <div id="loadingBar" style="height:100%; width:0%; background:linear-gradient(90deg, #7c3aed 0%, #4f46e5 100%); transition:width 0.3s ease; border-radius:3px;"></div>
+    <div id="loadingBar" style="height:100%; width:0%; background:linear-gradient(90deg, #4a7c59 0%, #6b4423 100%); transition:width 0.3s ease; border-radius:3px;"></div>
   </div>
   <div id="loadingDetail" style="font-size:0.85rem; color:#ccc; margin-top:0.8rem; min-height:1.2rem;"></div>
 </div>
@@ -1304,7 +1304,7 @@ let vsAudioPlayer    = null;   // current HTMLAudioElement for preview
 const vsTemplates = {
   default:       { accent: '#f0c040', bg_dark: '#1a1a2e', overlay_text: '#f0f0f5' },
   holiday:       { accent: '#ff2d2d', bg_dark: '#0d3d22', overlay_text: '#ffff00' },  // Red & Green
-  valentine:     { accent: '#ff1493', bg_dark: '#4a0e4e', overlay_text: '#ffb6c1' },  // Pink & Purple
+  valentine:     { accent: '#8B6914', bg_dark: '#3d2b1f', overlay_text: '#d4b86a' },  // Pink & Purple
   spring:        { accent: '#00d084', bg_dark: '#f5f5f5', overlay_text: '#2d5f3f' },  // Green & Light
   summer:        { accent: '#ffa500', bg_dark: '#003d82', overlay_text: '#fff76d' },  // Orange & Blue
   fall:          { accent: '#ff7f50', bg_dark: '#3d2817', overlay_text: '#ffe4b5' },  // Orange & Brown
@@ -1596,6 +1596,7 @@ function vsGenerate() {
     const voEnabled = document.getElementById('vsVoiceoverToggle').checked;
     formData.append('voiceover', voEnabled ? 'on' : 'off');
     if (voEnabled) {
+      formData.append('voice_script', document.getElementById('vsVoiceScript').value.trim());
       formData.append('store_name_vo', document.getElementById('vsStoreNameVo').value.trim());
       formData.append('voice_select', document.getElementById('vsVoiceSelect').value);
     }
@@ -1751,6 +1752,15 @@ updateUI = function() { _origUpdateUI(); vsUpdateGenerateBtn(); };
 document.addEventListener('DOMContentLoaded', () => {
   vsLoadMusicLibrary();
   vsUpdateTemplatePreview('default');
+  // Script character counter
+  const vsScript = document.getElementById('vsVoiceScript');
+  const vsCounter = document.getElementById('vsScriptCharCount');
+  if (vsScript && vsCounter) {
+    vsScript.addEventListener('input', function() {
+      vsCounter.textContent = this.value.length + ' / 2000 chars';
+      vsCounter.style.color = this.value.length > 1500 ? '#e53e3e' : '#999';
+    });
+  }
 });
 
 // ── AI Voiceover Controls ──────────────────────────────────────────────
