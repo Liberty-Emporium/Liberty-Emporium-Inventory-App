@@ -880,36 +880,107 @@ def _draw_text_layer(W, H, store_name, title, price, description, cta_text, tagl
 
 # ── AI Voiceover for Video Ads ────────────────────────────────────────────────
 
-def _generate_product_voiceover(product, store_name, tmp_files, index):
-    """Generate a professional voiceover for one product using Edge TTS (free)."""
+def _build_humanlike_script(product, store_name, index):
+    """Build a natural-sounding, conversational ad script for one product."""
+    title = product.get('title', 'this item')
+    price = product.get('price', '0.00')
+    desc = product.get('description', '')
+    condition = product.get('condition', '')
+    category = product.get('category', '')
+    
+    # Build natural scripts — varied phrasing, contractions, conversational
+    intro_scripts = [
+        # SSML with pauses, emphasis, and natural pacing
+        f"""<speak>
+<prosody rate="medium" pitch="+1st">Welcome to <emphasis level="moderate">{store_name}</emphasis>.</prosody>
+<break time="500ms"/>
+<prosody rate="slow" pitch="+2st">We've got something special today.</prosody>
+<break time="300ms"/>
+</speak>""",
+        f"""<speak>
+<prosody rate="medium">Hey there, welcome to <emphasis level="moderate">{store_name}</emphasis>!</prosody>
+<break time="400ms"/>
+<prosody pitch="+3st">Let me show you what we've got.</prosody>
+<break time="300ms"/>
+</speak>""",
+    ]
+    
+    product_scripts = [
+        f"""<speak>
+<prosody rate="medium" pitch="+1st">Take a look at this</prosody>
+<prosody rate="slow"><emphasis level="strong">{title}</emphasis>.</prosody>
+<break time="250ms"/>
+''' + (f'<prosody rate="medium">{desc}</prosody><break time="300ms"/>' if desc and len(desc) < 150 else '') + f'''
+''' + (f'<prosody rate="slow" pitch="+2st">It\'s in {condition.lower()} condition' if condition else '') + f'''
+</prosody>
+<break time="200ms"/>
+<prosody rate="slow" pitch="+3st"><emphasis level="strong">Only {price} dollars.</emphasis></prosody>
+</speak>""",
+        f"""<speak>
+<prosody rate="medium">Check this out — <emphasis level="moderate">{title}</emphasis>.</prosody>
+<break time="300ms"/>
+''' + (f'<prosody rate="medium">{desc[:80]}</prosody><break time="250ms"/>' if desc else '') + f'''
+''' + (f'<prosody rate="medium">{condition} condition' if condition else '') + f'''
+</prosody>
+<break time="200ms"/>
+<prosody rate="slow" pitch="+2st">Just <emphasis level="strong">{price} dollars</emphasis>.</prosody>
+</speak>""",
+        f"""<speak>
+<prosody rate="medium" pitch="+1st">Now this one's really nice — </prosody>
+<prosody rate="slow"><emphasis level="strong">{title}</emphasis>.</prosody>
+<break time="350ms"/>
+''' + (f'<prosody rate="medium">{desc[:100]}</prosody><break time="300ms"/>' if desc else '') + f'''
+''' + (f'<prosody pitch="+2st">{condition} quality' if condition else '') + f'''
+</prosody>
+<break time="200ms"/>
+<prosody rate="slow" pitch="+3st"><emphasis level="strong">Only {price}.</emphasis> You don't wanna miss this one.</prosody>
+</speak>""",
+    ]
+    
+    outro_scripts = [
+        f"""<speak>
+<break time="400ms"/>
+<prosody rate="medium" pitch="+2st">That's what's waiting for you at <emphasis level="moderate">{store_name}</emphasis>.</prosody>
+<break time="300ms"/>
+<prosody rate="slow">Come see us today.</prosody>
+</speak>""",
+        f"""<speak>
+<break time="400ms"/>
+<prosody rate="medium">Stop by <emphasis level="moderate">{store_name}</emphasis> and grab these deals while they last.</prosody>
+<break time="200ms"/>
+<prosody rate="slow" pitch="+1st">See you soon!</prosody>
+</speak>""",
+    ]
+    
+    # Pick the intro for product 0, product scripts vary by index
+    if index >= len(product_scripts) - 1:
+        # Last product — use product script + outro
+        return product_scripts[index % len(product_scripts)] + outro_scripts[index % len(outro_scripts)]
+    elif index == 0:
+        # First product — intro + product script
+        return intro_scripts[index % len(intro_scripts)] + product_scripts[0]
+    else:
+        return product_scripts[index % len(product_scripts)]
+
+
+def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en-US-BrianNeural'):
+    """Generate a natural-sounding voiceover for one product using Edge TTS.
+    
+    Uses SSML for human-like pacing, emphasis, and pauses.
+    Default voice: Brian (Approachable, Casual, Sincere)
+    """
     import asyncio
     import edge_tts
     
-    title = product.get('title', 'Item')
-    price = product.get('price', '0.00')
-    desc = product.get('description', '')
+    # Build conversational script with SSML
+    script = _build_humanlike_script(product, store_name, index)
     
-    # Build natural-sounding narration script
-    voice_scripts = [
-        f"Check out this {title} at {store_name}, just {price}.",
-        f"Available now at {store_name}: the {title}. Only {price}.",
-        f"This {title} is available for just {price} at {store_name}. Don't miss it!",
-    ]
-    
-    # Vary the script per product to sound natural across multiple items
-    script = voice_scripts[index % len(voice_scripts)]
-    
-    # If description is short and interesting, weave it in
-    if desc and len(desc) < 120:
-        script = f"Check out this {title} at {store_name}. {desc} Just {price}."
-    
-    # Generate with Microsoft's free high-quality TTS
+    # Generate TTS
     out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
     tmp_files.append(out_file)
     
     try:
-        # Use a warm, professional American voice
-        communicate = edge_tts.Communicate(script, 'en-US-GuyNeural', rate='+5%', pitch='+2Hz')
+        communicate = edge_tts.Communicate(script, voice)
         asyncio.run(communicate.save(out_file))
         
         # Get duration
@@ -1104,6 +1175,9 @@ def generate_video_ad():
         tagline   = request.form.get('tagline', '').strip()
         logo_position = request.form.get('logo_position', 'top-right')
         logo_size = request.form.get('logo_size', 'medium')
+        enable_voiceover = request.form.get('voiceover', 'off') == 'on'
+        store_name_vo = request.form.get('store_name_vo', '').strip()
+        voice_select = request.form.get('voice_select', 'en-US-GuyNeural')
         
         # Voiceover toggle
         enable_voiceover = request.form.get('voiceover', 'off') == 'on'
