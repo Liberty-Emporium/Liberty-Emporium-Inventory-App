@@ -7,6 +7,7 @@ import base64
 import hashlib
 import datetime
 import io
+import tempfile
 from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, jsonify, send_file, send_from_directory)
 from werkzeug.utils import secure_filename
