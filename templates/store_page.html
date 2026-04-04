@@ -1,59 +1,157 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ config.store_name or 'Your Store' }} — {{ tagline or 'Powered by RetailTrack' }}{% endblock %}
+{% block title %}{{ store_name or 'Your Store' }} — RetailTrack Demo{% endblock %}
 
-{% block howto_slides %}
-{# Skip how-to slides on customer store pages #}
-{% endblock %}
+{% block howto_slides %}{% endblock %}
 
 {% block content %}
-<!-- Customer branded dashboard -->
-<div style="max-width:900px; margin:0 auto; padding:2rem 1rem; text-align:center;">
-    <div style="font-size:3rem; margin-bottom:1rem;">🏪</div>
-    <h1 style="color:{{ config.primary_color or '#2e7d6e' }}; margin-bottom:0.5rem;">{{ config.store_name or 'Your Store' }}</h1>
-    {% if config.tagline %}
-    <p style="color:#6b7280; font-size:1.1rem; margin-bottom:2rem;">{{ config.tagline }}</p>
-    {% endif %}
+<div style="max-width:1100px; margin:0 auto; padding:2rem 1rem;">
     
-    <div style="background:#f0fdf4; border:2px solid #bbf7d0; border-radius:16px; padding:2rem; margin-bottom:2rem;">
-        <h2 style="color:#0f172a; margin-bottom:1rem;">This is YOUR store, powered by RetailTrack</h2>
-        <p style="color:#6b7280; font-size:1rem; line-height:1.8; max-width:600px; margin:0 auto;">
-            Everything you see here can be yours. Inventory management, AI photo analysis, 
-            ad generation, listing creation — and it's all branded with <strong>{{ config.store_name or 'your store name' }}</strong>.
+    <!-- Store Header -->
+    <div style="text-align:center; margin-bottom:2.5rem;">
+        <div style="font-size:3rem;">🏪</div>
+        <h1 style="color:{{ config.primary_color or '#2e7d6e' }}; margin:0.5rem 0 0.3rem; font-size:2rem;">
+            {{ store_name or 'Your Store' }}
+        </h1>
+        {% if config.tagline %}
+        <p style="color:#6b7280; font-size:1.1rem; margin:0;">{{ config.tagline }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Demo Banner -->
+    <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:2px solid #86efac; border-radius:16px; padding:1.5rem; margin-bottom:2rem; text-align:center;">
+        <h2 style="color:#166534; margin:0 0 0.5rem;">This Could Be YOUR Store!</h2>
+        <p style="color:#15803d; margin:0; font-size:1rem;">
+            Everything you see is yours. Inventory management, AI analysis, ad generation — 
+            all branded as <strong>{{ store_name or 'Your Store' }}</strong>.
         </p>
     </div>
     
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-bottom:2rem;">
-        <div style="background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    <!-- Sample Inventory -->
+    {% if sample_products %}
+    <div class="sample-products">
+        <h3 style="text-align:center; margin-bottom:1.5rem; color:#0f172a; font-size:1.3rem;">
+            📦 Sample Inventory — This is what YOUR store looks like
+        </h3>
+        <div class="products-grid">
+            {% for product in sample_products %}
+            <div class="product-card">
+                <div class="product-image">
+                    <div class="no-image">{{ product.Category }}</div>
+                </div>
+                <div class="product-info">
+                    <h3>{{ product.Title }}</h3>
+                    <p class="sku">SKU: {{ product.SKU }}</p>
+                    <p class="price">${{ product.Price }}</p>
+                    <span class="status status-{{ product.Status|lower }}">{{ product.Status }}</span>
+                    <p style="font-size:0.8rem; color:#6b7280; margin-top:0.4rem;">{{ product.Condition }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Feature Preview -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin:2.5rem 0;">
+        <div style="background:white; border-radius:12px; padding:1.5rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             <div style="font-size:2rem;">📦</div>
-            <h3 style="color:#0f172a; font-size:1rem;">Inventory Management</h3>
-            <p style="color:#6b7280; font-size:0.85rem;">Track every item, price, and location</p>
+            <h3 style="color:#0f172a; font-size:0.95rem; margin:0.5rem 0;">Inventory</h3>
+            <p style="color:#6b7280; font-size:0.8rem;">Full inventory tracking</p>
         </div>
-        <div style="background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background:white; border-radius:12px; padding:1.5rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             <div style="font-size:2rem;">🤖</div>
-            <h3 style="color:#0f172a; font-size:1rem;">AI Photo Analysis</h3>
-            <p style="color:#6b7280; font-size:0.85rem;">Auto-fill listings from photos</p>
+            <h3 style="color:#0f172a; font-size:0.95rem; margin:0.5rem 0;">AI Analysis</h3>
+            <p style="color:#6b7280; font-size:0.8rem;">Auto-fill from photos</p>
         </div>
-        <div style="background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background:white; border-radius:12px; padding:1.5rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             <div style="font-size:2rem;">🎬</div>
-            <h3 style="color:#0f172a; font-size:1rem;">Video Ad Generator</h3>
-            <p style="color:#6b7280; font-size:0.85rem;">Create stunning ads in seconds</p>
+            <h3 style="color:#0f172a; font-size:0.95rem; margin:0.5rem 0;">Video Ads</h3>
+            <p style="color:#6b7280; font-size:0.8rem;">Professional ads in seconds</p>
+        </div>
+        <div style="background:white; border-radius:12px; padding:1.5rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <div style="font-size:2rem;">🛡️</div>
+            <h3 style="color:#0f172a; font-size:0.95rem; margin:0.5rem 0;">Monitoring</h3>
+            <p style="color:#6b7280; font-size:0.8rem;">24/7 uptime guard</p>
         </div>
     </div>
     
-    <a href="/wizard" class="btn btn-primary" style="display:inline-block; padding:1rem 3rem; font-size:1.1rem; font-weight:700;">
-        🚀 Get This for Your Store
-    </a>
+    <!-- CTA -->
+    <div style="text-align:center; margin:2rem 0;">
+        <a href="/wizard" class="btn btn-primary" style="display:inline-block; padding:1rem 3rem; font-size:1.15rem; font-weight:700; background:{{ config.primary_color or '#10b981' }};">
+            🚀 Get This for Your Store
+        </a>
+        <p style="margin-top:1rem; color:#9ca3af; font-size:0.85rem;">
+            Free demo · No credit card · Setup in 60 seconds
+        </p>
+    </div>
     
-    <p style="margin-top:1.5rem; color:#9ca3af; font-size:0.85rem;">
-        A demo for <strong>{{ config.contact_name or 'a potential customer' }}</strong>
-        {% if config.contact_email %} · {{ config.contact_email }}{% endif %}
+    {% if config.contact_name or config.contact_email %}
+    <p style="text-align:center; color:#9ca3af; font-size:0.8rem; margin-top:1rem;">
+        Demo created for {{ config.contact_name or '' }}{% if config.contact_email %} · {{ config.contact_email }}{% endif %}
     </p>
+    {% endif %}
 </div>
 
 <style>
-    .btn-primary {
-        background: {{ config.primary_color or '#2e7d6e' }} !important;
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
+    .product-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    .product-image {
+        height: 140px;
+        background: linear-gradient(135deg, {{ config.primary_color or '#2e7d6e' }}, #0f766e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .no-image {
+        color: rgba(255,255,255,0.9);
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    .product-info {
+        padding: 1rem 1.25rem;
+    }
+    .product-info h3 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 0 0 0.3rem;
+        line-height: 1.3;
+    }
+    .product-info .sku {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin: 0 0 0.3rem;
+    }
+    .product-info .price {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: {{ config.primary_color or '#2e7d6e' }};
+        margin: 0.3rem 0;
+    }
+    .status {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .status-available { background: #dcfce7; color: #166534; }
+    .status-sold { background: #fee2e2; color: #991b1b; }
 </style>
 {% endblock %}

@@ -1665,6 +1665,25 @@ def onboarding():
         return redirect(url_for('dashboard'))
     return render_template('onboarding.html', config=cfg, **ctx())
 
+# ── Sample Products by Industry ──────────────────────────────────────────────
+SAMPLE_PRODUCTS_FILE = os.path.join(BASE_DIR, 'sample_products.json')
+
+def load_sample_products(industry='general'):
+    """Load industry-specific sample products for customer demos."""
+    if not os.path.exists(SAMPLE_PRODUCTS_FILE):
+        return []
+    
+    try:
+        with open(SAMPLE_PRODUCTS_FILE) as f:
+            all_products = json.load(f)
+    except:
+        return []
+    
+    # Return the selected industry's products, or general as fallback
+    if industry in all_products and all_products[industry]:
+        return all_products[industry]
+    return all_products.get('general', [])
+
 # ── Landing Page ─────────────────────────────────────────────────────────────
 @app.route('/landing')
 def landing_page():
@@ -1705,7 +1724,7 @@ def wizard():
 
 @app.route('/wizard-submit', methods=['POST'])
 def wizard_submit():
-    """Handle wizard submission — create customer store."""
+    """Handle wizard submission — create customer store with auto-provisioned demo data."""
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data'}), 400
@@ -1722,17 +1741,22 @@ def wizard_submit():
         customer_file = os.path.join(CUSTOMERS_DIR, f'{slug}.json')
         counter += 1
     
+    # Load industry-specific sample products
+    industry = data.get('industry', 'general')
+    sample_products = load_sample_products(industry)
+    
     # Save customer config
     config = {
         'store_name': store_name,
         'slug': slug,
         'primary_color': data.get('color', '#2e7d6e'),
-        'industry': data.get('industry', 'general'),
+        'industry': industry,
         'tagline': data.get('tagline', ''),
         'contact_name': data.get('contact_name', ''),
         'contact_email': data.get('contact_email', ''),
         'contact_phone': data.get('contact_phone', ''),
         'created_at': datetime.datetime.now().isoformat(),
+        'sample_products': sample_products,
     }
     
     with open(customer_file, 'w') as f:
@@ -1743,24 +1767,84 @@ def wizard_submit():
     leads.append(config)
     save_leads(leads)
     
-    return jsonify({'url': f'/store/{slug}'})
+    # NOTE: If Jay sets up a sendgrid/Mailgun API key later, we can auto-send him
+    # an email notification here. For now it's in the leads file.
+    
+    return jsonify({
+        'url': f'/store/{slug}',
+        'store_name': store_name,
+        'product_count': len(sample_products),
+    })
 
 @app.route('/store/<slug>')
 def customer_store(slug):
-    """Render a customer's branded store demo."""
+    """Render a customer's branded store demo with sample inventory."""
     config_file = os.path.join(CUSTOMERS_DIR, f'{slug}.json')
     
-    # Load customer config if exists
-    config = {}
-    if os.path.exists(config_file):
-        with open(config_file) as f:
-            config = json.load(f)
-    else:
-        # Not found — redirect to wizard
+    if not os.path.exists(config_file):
         flash('Store not found. Start your own demo!', 'info')
         return redirect(url_for('wizard'))
     
-    return render_template('store_page.html', config=config, tagline=config.get('tagline', ''))
+    with open(config_file) as f:
+        config = json.load(f)
+    
+    sample_products = config.get('sample_products') or load_sample_products(config.get('industry', 'general'))
+    
+    return render_template('store_page.html', 
+        config=config, 
+        tagline=config.get('tagline', ''),
+        sample_products=sample_products,
+        **ctx())
+
+# ── Payment Routes ───────────────────────────────────────────────────────────
+@app.route('/pay/<plan>')
+def payment_plan(plan):
+    """Redirect to checkout for the chosen pricing tier."""
+    plans = {
+        'starter': {'name': 'Starter', 'price': 299, 'email': 'leprograms@protonmail.com'},
+        'pro': {'name': 'Pro', 'price': 499, 'email': 'leprograms@protonmail.com'},
+        'enterprise': {'name': 'Enterprise', 'price': 799, 'email': 'leprograms@protonmail.com'},
+    }
+    p = plans.get(plan, plans['pro'])
+    
+    # If Stripe is configured, do a proper checkout session
+    if stripe_enabled and STRIPE_SECRET_KEY:
+        import stripe
+        stripe.api_key = STRIPE_SECRET_KEY
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': f"RetailTrack {p['name']}",
+                            'description': f"One-time purchase of RetailTrack {p['name']} plan",
+                        },
+                        'unit_amount': p['price'] * 100,
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=url_for('payment_success', _external=True),
+                cancel_url=url_for('wizard', _external=True),
+                customer_email=plan,  # placeholder
+                metadata={'plan': plan},
+            )
+            return redirect(checkout_session.url, code=303)
+        except Exception as e:
+            flash(f"Payment error: {e}", "error")
+            return redirect(url_for('wizard'), 302)
+    
+    # Fallback: show a mailto link for manual payment
+    subject = f"RetailTrack {p['name']} - ${p['price']}"
+    body = f"Hi Jay,\n\nI'm interested in the RetailTrack {p['name']} plan (${p['price']}).\n\nPlease send me more info and setup details.\n\nThanks!"
+    return redirect(f"mailto:leprograms@protonmail.com?subject={subject}&body={body}")
+
+@app.route('/pay-success')
+def payment_success():
+    """Thank you page after payment."""
+    return render_template('payment_success.html')
 
 @app.route('/admin/leads')
 @login_required
