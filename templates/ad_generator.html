@@ -1855,6 +1855,8 @@ function vsToggleMic() {
     btn.style.color = '#e74c3c';
     btn.title = 'Listening... click to stop';
     status.textContent = '🔴 Listening... speak now. Click the mic again when done.';
+    status.style.color = '#e74c3c';
+    status.style.fontWeight = '700';
   };
 
   vsMicRecognition.onresult = function(event) {
@@ -1873,13 +1875,21 @@ function vsToggleMic() {
   vsMicRecognition.onerror = function(event) {
     vsMicActive = false;
     btn.style.color = '';
-    status.textContent = '❌ Error: ' + event.error + '. Try Chrome or speak louder.';
+    var msg = '❌ Error: ' + event.error;
+    if (event.error === 'not-allowed') msg = '❌ Microphone access denied. Please allow mic access in your browser settings.';
+    else if (event.error === 'no-speech') msg = '❌ No speech detected. Try speaking louder or closer to the mic.';
+    else if (event.error === 'network') msg = '❌ Network error. Check your internet connection.';
+    status.textContent = msg;
+    status.style.color = '#e74c3c';
+    status.style.fontWeight = '700';
+    console.log('Mic error:', event.error);
   };
 
   vsMicRecognition.onend = function() {
     vsMicActive = false;
     btn.style.color = '';
-    if (!status.textContent.includes('Added to script')) {
+    // Only clear status if it's the normal "listening" message
+    if (status.textContent.includes('🔴') || status.textContent.includes('Listening')) {
       status.textContent = '';
     }
   };
