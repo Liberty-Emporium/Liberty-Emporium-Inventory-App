@@ -1543,9 +1543,10 @@ def generate_video_ad():
         )
 
         # Add store branding watermark (top-left, subtle)
-        if store_display:
+        font_exists = os.path.exists(font_bold)
+        if store_display and font_exists:
             brand_y = 10
-            # Escape special characters for ffmpeg drawtext fontfile (colon and backslash)
+            # Escape special characters for ffmpeg drawtext fontfile (colon, backslash, comma)
             font_bold_escaped = font_bold.replace('\\', '\\\\').replace(':', '\\:')
             
             # Escape single quotes in store display text for ffmpeg filter
