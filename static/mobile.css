@@ -1,0 +1,102 @@
+/* ═══ Mobile Responsive — Global Overrides ═══ */
+
+@media (max-width: 768px) {
+    * { box-sizing: border-box !important; }
+    body { font-size: 14px; }
+    main { padding: 0.5rem !important; margin: 0.5rem auto !important; }
+    input, textarea, select { font-size: 16px !important; }
+    
+    /* ── Navigation ─ */
+    .logo { font-size: 0.75rem !important; max-width: 160px !important; }
+    .nav-links a {
+        padding: 0.75rem 1.5rem !important;
+        font-size: 1rem !important;
+        min-height: 44px !important;
+    }
+    
+    /* ── Dashboard ─ */
+    .dashboard > div:nth-child(3) { flex-wrap: wrap !important; gap: 0.4rem !important; }
+    .dashboard a.btn-secondary, .dashboard a.btn {
+        font-size: 0.72rem !important;
+        padding: 0.35rem 0.6rem !important;
+    }
+    .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.4rem !important; }
+    .stat-box { padding: 0.75rem 0.5rem !important; }
+    .stat-value { font-size: 1.3rem !important; }
+    .stat-label { font-size: 0.65rem !important; }
+    .products-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+    .product-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+    }
+    .product-actions a, .product-actions button {
+        flex: 1 1 calc(50% - 0.5rem) !important;
+        text-align: center !important;
+        min-height: 44px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* ── Monitoring Bar ─ */
+    .monitoring-title { font-size: 0.75rem !important; flex-wrap: wrap; }
+    .monitoring-subtitle { display: none !important; }
+    .monitoring-badges { gap: 0.3rem; flex-wrap: wrap; }
+    .monitor-badge { padding: 0.35rem 0.6rem !important; font-size: 0.7rem !important; }
+    .monitor-badge .badge-label { font-size: 0.72rem !important; }
+    .monitor-badge .badge-status { display: none !important; }
+    
+    /* ── Video Studio ─ */
+    .vs-panel { padding: 0.75rem 1rem !important; }
+    .vs-header h3 { font-size: 1.1rem !important; }
+    .vs-format-grid, .vs-style-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem !important; }
+    .vs-style-card { padding: 0.75rem 0.5rem !important; }
+    .vs-music-grid {
+        display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        gap: 0.5rem; padding-bottom: 0.5rem;
+    }
+    .vs-music-card { flex-shrink: 0; width: 150px !important; }
+    .vs-template-scroller {
+        display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        gap: 0.5rem; padding-bottom: 0.5rem;
+    }
+    .vs-template-card { flex-shrink: 0; width: 100px !important; padding: 0.5rem 0.75rem !important; }
+    .vs-video-card { flex-direction: column !important; gap: 0.75rem !important; }
+    .vs-video-card video { width: 100% !important; }
+    
+    /* ── Ad Generator ─ */
+    .style-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem !important; }
+    .style-card { padding: 0.75rem 0.5rem !important; }
+    .btn-generate { width: 100% !important; text-align: center !important; }
+    .ad-list-item { flex-direction: column !important; gap: 0.75rem !important; }
+    .ad-image-preview { width: 100% !important; }
+    .ad-buttons { width: 100% !important; }
+    .ad-buttons a { width: 100% !important; text-align: center !important; }
+    
+    /* ── Ad Vault ─ */
+    .ad-vault-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; }
+    .ad-vault-item video { max-height: 200px !important; }
+    .ad-vault-buttons { flex-direction: column !important; gap: 0.5rem !important; }
+    .ad-vault-buttons a { width: 100% !important; text-align: center !important; }
+    
+    /* ── Edit Form ─ */
+    .form-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+    .form-group { width: 100% !important; }
+    .form-actions { flex-direction: column !important; gap: 0.5rem !important; }
+    .form-actions button, .form-actions a { width: 100% !important; text-align: center !important; min-height: 44px !important; }
+    
+    /* ── Login ─ */
+    .login-container { padding: 1.5rem 1rem !important; max-width: 90% !important; }
+    .login-form input { font-size: 16px !important; padding: 0.75rem 1rem !important; }
+    .login-form button { width: 100% !important; }
+    
+    /* ── How-To Modals ─ */
+    .ht-modal { margin: 1rem !important; padding: 1.5rem !important; }
+    .ht-modal h2 { font-size: 1.3rem !important; }
+}
+
+@media (max-width: 380px) {
+    body { font-size: 13px; }
+    .stat-box { padding: 0.6rem 0.4rem !important; }
+    .stat-value { font-size: 1.1rem !important; }
+    .stat-label { font-size: 0.6rem !important; }
+}
