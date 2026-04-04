@@ -1151,6 +1151,24 @@ def generate_video_ad():
         generated = []
         tmp_files = []
 
+        # ── AI Voiceover: generate narration per product ──────────────────────
+        voiceover_durations = []
+        if enable_voiceover and store_name_vo:
+            for i, p in enumerate(products):
+                vo_file, vo_dur, vo_script = _generate_product_voiceover(
+                    p, store_name_vo, tmp_files, i
+                )
+                if vo_file:
+                    voiceover_durations.append({'file': vo_file, 'duration': vo_dur, 'script': vo_script})
+                else:
+                    voiceover_durations.append(None)
+
+            # Adjust duration to fit voiceovers (or keep user's duration)
+            if voiceover_durations and all(vd is not None for vd in voiceover_durations):
+                total_voice = sum(vd['duration'] for vd in voiceover_durations)
+                # Add intro + outro padding
+                duration = max(duration, int(total_voice + 5.5))
+
         # Resolve music path
         if music_token:
             # Pre-uploaded via /upload-music-temp
