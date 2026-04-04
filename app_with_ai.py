@@ -878,6 +878,136 @@ def _draw_text_layer(W, H, store_name, title, price, description, cta_text, tagl
     return layer
 
 
+# ── Professional Video Intro/Outro Cards ──────────────────────────────────────
+
+def _hex_rgb_for(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+
+def _draw_text_with_shadow(draw, text, pos, font, color):
+    """Draw text with subtle shadow for depth."""
+    x, y = pos
+    draw.text((x + 1, y + 1), text, font=font, fill=(0, 0, 0, 160))
+    if len(color) == 3:
+        color = color + (255,)
+    draw.text((x, y), text, font=font, fill=color)
+
+
+def _fit_font_size(text, font_path, max_width, max_size):
+    """Find the largest font size that fits within max_width."""
+    from PIL import ImageFont as _Font
+    size = max_size
+    while size > 12:
+        font = _Font.truetype(font_path, size)
+        bbox = font.getbbox(text)
+        w = bbox[2] - bbox[0]
+        if w <= max_width - 40:
+            return size
+        size -= 2
+    return 24
+
+
+def _make_intro_card(W, H, store_name, tagline, template_config, font_bold_path, font_reg_path):
+    """Create an intro card for the video ad."""
+    from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+    
+    accent_rgb = _hex_rgb_for(template_config['bg_dark'])
+    accent = _hex_rgb_for(template_config['accent'])
+    
+    layer = _Img.new('RGB', (W, H), accent_rgb)
+    draw = _Draw.Draw(layer)
+    
+    cx, cy = W // 2, H // 2
+    
+    # Subtle darker radial gradient
+    max_r = max(W, H)
+    for r in range(max_r, 0, -3):
+        alpha_int = max(0, int(40 - 40 * r / max_r))
+        if alpha_int > 5:
+            darker = tuple(max(0, c - alpha_int) for c in accent_rgb)
+            draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=darker)
+    
+    # Accent line
+    line_y = cy - 10
+    draw.line([(int(W * 0.3), line_y), (int(W * 0.7), line_y)], fill=accent, width=2)
+    
+    # Store name
+    font_sz = _fit_font_size(store_name or 'Your Store', font_bold_path, W, int(W * 0.7))
+    font = _Font.truetype(font_bold_path, font_sz)
+    bbox = draw.textbbox((0, 0), store_name or 'Your Store', font=font)
+    w_text = bbox[2] - bbox[0]
+    h_text = bbox[3] - bbox[1]
+    
+    x = (W - w_text) // 2
+    y = cy - h_text - 15
+    _draw_text_with_shadow(draw, store_name or 'Your Store', (x, y), font, (255, 255, 255))
+    
+    # Tagline
+    if tagline and len(tagline.strip()) > 2:
+        font_sz_t = max(18, int(font_sz * 0.5))
+        font_t = _Font.truetype(font_reg_path, font_sz_t)
+        bbox_t = draw.textbbox((0, 0), tagline.strip(), font=font_t)
+        w_t = bbox_t[2] - bbox_t[0]
+        _draw_text_with_shadow(draw, tagline.strip(), ((W - w_t) // 2, cy + 20), font_t, (200, 200, 220))
+    
+    return layer
+
+
+def _make_outro_card(W, H, store_name, cta_text, template_config, font_bold_path, font_reg_path):
+    """Create a call-to-action outro card for the video ad."""
+    from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+    
+    accent_rgb = _hex_rgb_for(template_config['bg_dark'])
+    accent = _hex_rgb_for(template_config['accent'])
+    overlay_text = _hex_rgb_for(template_config['overlay_text'])
+    
+    layer = _Img.new('RGB', (W, H), accent_rgb)
+    draw = _Draw.Draw(layer)
+    
+    cx, cy = W // 2, H // 2
+    max_r = max(W, H)
+    for r in range(max_r, 0, -3):
+        alpha_int = max(0, int(60 - 60 * r / max_r))
+        if alpha_int > 5:
+            darker = tuple(max(0, c - alpha_int) for c in accent_rgb)
+            draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=darker)
+    
+    # Accent bar
+    bar_h = 3
+    draw.rectangle([(int(W * 0.3), cy - 30), (int(W * 0.7), cy - 30 + bar_h * 2)], fill=accent)
+    
+    # "Available Now" label
+    avail_sz = max(24, int(W * 0.022))
+    avail_font = _Font.truetype(font_reg_path, avail_sz)
+    available_text = "Available Now"
+    bbox = draw.textbbox((0, 0), available_text, font=avail_font)
+    w = bbox[2] - bbox[0]
+    _draw_text_with_shadow(draw, available_text, ((W - w) // 2, int(H * 0.28)), avail_font, accent)
+    
+    # Store name
+    name_sz = _fit_font_size(store_name or 'Your Store', font_bold_path, W, int(W * 0.6))
+    name_font = _Font.truetype(font_bold_path, name_sz)
+    bbox = draw.textbbox((0, 0), store_name or 'Your Store', font=name_font)
+    w = bbox[2] - bbox[0]
+    _draw_text_with_shadow(draw, store_name or 'Your Store', ((W - w) // 2, int(H * 0.38)), name_font, (255, 255, 255))
+    
+    # CTA text
+    if cta_text:
+        cta_sz = max(20, int(W * 0.02))
+        cta_font = _Font.truetype(font_reg_path, cta_sz)
+        tw = __import__('textwrap').TextWrapper(width=60)
+        lines = tw.wrap(cta_text)
+        ty = cy + 10
+        for line in lines[:3]:
+            bbox = draw.textbbox((0, 0), line, font=cta_font)
+            w = bbox[2] - bbox[0]
+            _draw_text_with_shadow(draw, line, ((W - w) // 2, ty), cta_font, overlay_text)
+            ty += cta_sz + 8
+    
+    return layer
+
+
 @app.route('/generate-video-ad', methods=['POST'])
 @login_required
 def generate_video_ad():
@@ -1070,48 +1200,136 @@ def generate_video_ad():
             bg_files.append(tmp_bg.name)
             text_files.append(tmp_text.name)
 
-        # ── Run ONE ffmpeg for all products cycling through ───────────────────
-        n      = len(bg_files)
-        t_per  = round(duration / n, 3)
+        # ── Professional video generation with intro, crossfades & progress ───
+        n = len(bg_files)
+        # Reserve 2.5s for intro + 3s for outro
+        intro_dur = 2.5
+        outro_dur = 3.0
+        product_dur = max(duration - intro_dur - outro_dur, 6.0)
+        t_per = round(product_dur / n, 3)
+        crossfade_dur = min(0.8, t_per * 0.25)  # 25% of per-product time, max 0.8s
 
-        ts           = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        # Create intro card image
+        store_display = request.form.get('store_name', 'Your Store').strip()
+        intro_img = _make_intro_card(W, H, store_display, tagline, template_config, font_bold, font_reg)
+        tmp_intro = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+        intro_img.save(tmp_intro.name, 'JPEG', quality=95)
+        tmp_files.append(tmp_intro.name)
+
+        # Create outro card image
+        outro_cta = cta_text or 'Available Now — Visit Our Store Today!'
+        outro_img = _make_outro_card(W, H, store_display, outro_cta, template_config, font_bold, font_reg)
+        tmp_outro = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+        outro_img.save(tmp_outro.name, 'JPEG', quality=95)
+        tmp_files.append(tmp_outro.name)
+
+        # Total timeline
+        total_dur = intro_dur + (n * t_per) + outro_dur
+        fps = 25
+
+        ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         template_sfx = f'_{template}' if template != 'default' else ''
-        format_sfx   = f'_{format_str}' if format_str != '1920x1080' else ''
-        sku_str      = products[0].get('sku', 'UNKNOWN') if len(products) == 1 else f"{n}products"
-        out_name     = f'video_ad_{sku_str}{template_sfx}{format_sfx}_{ts}.mp4'
-        out_path     = os.path.join(ADS_FOLDER, out_name)
+        format_sfx = f'_{format_str}' if format_str != '1920x1080' else ''
+        sku_str = products[0].get('sku', 'UNKNOWN') if len(products) == 1 else f"{n}products"
+        out_name = f'video_ad_{sku_str}{template_sfx}{format_sfx}_{ts}.mp4'
+        out_path = os.path.join(ADS_FOLDER, out_name)
 
-        # Build input list: N bg images, N text images, 1 music track
+        # Build Ken Burns zoom directions: alternate between subtle in/out/pan
+        kb_configs = []
+        directions = [
+            ("z='if(eq(on,1),1.0,zoom+0.001)':d=0:ox='iw/2-(iw/zoom/2)':oy='ih/2-(ih/zoom/2)'",
+             "zoom in slowly from center"),
+            ("z='if(eq(on,1),1.15,max(zoom-0.001,1.0))':d=0:ox='iw/2-(iw/zoom/2)':oy='ih/2-(ih/zoom/2)'",
+             "zoom out slowly from center"),
+            ("z='min(zoom+0.001,1.25)':d=0:ox='if(eq(on,1),0,if(lt(x,10),x,x+0.15))':oy='ih/2-(ih/zoom/2)'",
+             "pan left to right"),
+            ("z='min(zoom+0.001,1.25)':d=0:ox='if(eq(on,1),10,if(gt(x,10),x,x-0.15))':oy='ih/2-(ih/zoom/2)'",
+             "pan right to left"),
+        ]
+
+        # Build inputs: intro + N bg + N text + outro + music
         cmd = [ffmpeg_path, '-y']
-        for bf in bg_files:
-            cmd += ['-loop', '1', '-framerate', '25', '-t', str(t_per), '-i', bf]
-        for tf in text_files:
-            cmd += ['-loop', '1', '-framerate', '25', '-t', str(t_per), '-i', tf]
+        cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(intro_dur), '-i', tmp_intro.name]
+        for i in range(n):
+            cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(t_per), '-i', bg_files[i]]
+            cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(t_per), '-i', text_files[i]]
+        cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(outro_dur), '-i', tmp_outro.name]
         cmd += ['-i', music_path]
 
-        # Filter complex: per-segment bg+text overlay, then concat all segments
-        parts = []
-        for i in range(n):
-            if style == 'kenburns':
-                zoom_d = int(t_per * 25)
-                parts.append(
-                    f"[{i}:v]zoompan=z='min(zoom+0.0015,1.5)':d={zoom_d}:s={W}x{H},fps=25[bg{i}]"
-                )
-            else:
-                parts.append(f"[{i}:v]fps=25[bg{i}]")
-            parts.append(f"[{n+i}:v]fade=in:st=1:d=0.8:alpha=1[txt{i}]")
-            parts.append(f"[bg{i}][txt{i}]overlay=0:0[ov{i}]")
+        music_idx = 1 + 2 * n + 1  # intro + 2*N (bg+text) + outro
 
-        concat_in = ''.join(f"[ov{i}]" for i in range(n))
-        parts.append(f"{concat_in}concat=n={n}:v=1:a=0[outv]")
+        # Build filter_complex
+        parts = []
+
+        # Intro card: simple hold
+        parts.append(f"[0:v]fps={fps}[intro]")
+
+        # For each product: optionally apply Ken Burns + overlay text + progress bar
+        for i in range(n):
+            bg_idx = 1 + i
+            txt_idx = 1 + n + i
+            
+            # Ken Burns with varying direction per product
+            zoom_expr, _ = directions[i % len(directions)]
+            if style == 'kenburns':
+                dur_frames = int(t_per * fps)
+                parts.append(
+                    f"[{bg_idx}:v]zoompan=z={zoom_expr}:d={dur_frames}:s={W}x{H}:fps={fps}[kb{i}]"
+                )
+                bg_ref = f"kb{i}"
+            else:
+                parts.append(f"[{bg_idx}:v]fps={fps}[bg{i}]")
+                bg_ref = f"bg{i}"
+
+            # Text overlay with fade-in
+            parts.append(f"[{txt_idx}:v]fade=in:st=0:d=0.8:alpha=1[txt{i}]")
+            parts.append(f"[{bg_ref}][txt{i}]overlay=0:0[prod{i}]")
+
+        # Outro card
+        outro_idx = 1 + 2 * n
+        parts.append(f"[{outro_idx}:v]fps={fps}[outro]")
+
+        # Chain: intro -> xfade products -> outro
+        # First: intro + product0 with xfade
+        parts.append(f"[intro][prod0]xfade=transition=fade:duration={crossfade_dur}:offset={intro_dur - crossfade_dur}[chain0]")
+
+        for i in range(1, n):
+            prev = f"chain{i-1}"
+            prev_offset = intro_dur + sum(t_per for _ in range(i)) - crossfade_dur
+            parts.append(f"[{prev}][prod{i}]xfade=transition=fade:duration={crossfade_dur}:offset={prev_offset:.3f}[chain{i}]")
+
+        # Chain last product with outro
+        last_chain = f"chain{n-1}" if n > 1 else f"chain0"
+        outro_offset = intro_dur + (n * t_per) - crossfade_dur
+        parts.append(f"[{last_chain}][outro]xfade=transition=fade:duration={crossfade_dur}:offset={outro_offset:.3f}[outv]")
+
+        # Add progress bar: thin colored line at bottom that grows
+        bar_h = max(4, int(H * 0.004))
+        bar_y = H - bar_h - 2
+        accent_rgb = _hex_rgb(template_config['accent'])
+        parts.append(
+            f"[outv]drawbox=x=0:y={bar_y}:w=iw*t/{total_dur:.3f}:h={bar_h}:color='0x{template_config['accent'].lstrip('#')}'@0.95:t=fill[final]"
+        )
+
+        # Add store branding watermark (top-left, subtle)
+        if store_display:
+            brand_y = 10
+            parts.append(
+                f"[final]drawtext=text='{store_display}':fontfile={font_bold}:fontsize={max(18, int(W*0.018))}:fontcolor=0x{template_config['accent'].lstrip('#')}@0.85:x=20:y={brand_y}:box=1:boxcolor=0x000000@0.45:boxborderw=6[branded]"
+            )
+            map_label = '[branded]'
+        else:
+            map_label = '[final]'
+
         fc = ';'.join(parts)
 
         cmd += [
             '-filter_complex', fc,
-            '-map', '[outv]', '-map', f'{2*n}:a',
-            '-c:v', 'libx264', '-c:a', 'aac',
-            '-t', str(duration),
+            '-map', map_label, '-map', f'{music_idx}:a',
+            '-c:v', 'libx264', '-preset', 'medium', '-crf', '22',
+            '-c:a', 'aac', '-b:a', '128k',
             '-pix_fmt', 'yuv420p',
+            '-movflags', '+faststart',
             '-shortest',
             out_path,
         ]
