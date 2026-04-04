@@ -185,14 +185,13 @@
                 align-items: center;
             }
             
-            /* Compact right side */
-            .nav-right { gap: 0.4rem !important; }
+            /* Compact right side — ONLY show hamburger */
+            .nav-right { gap: 0 !important; }
+            .nav-right > a:not(#navHamburger),
+            .nav-right > span,
             .stats-badge { display: none !important; }
-            .nav-right span { display: none !important; }
-            .nav-cta {
-                font-size: 0.7rem !important;
-                padding: 0.35rem 0.6rem !important;
-            }
+            /* Ensure hamburger is visible */
+            .hamburger { display: flex !important; margin-left: auto !important; padding: 0.4rem !important; }
             
             /* Page content */
             main {
@@ -227,7 +226,7 @@
                 {% endif %}
             </div>
 
-            <div class="nav-right" style="display:flex; align-items:center; gap:1rem;">
+            <div class="nav-right" style="display:flex; align-items:center; gap:1rem;" id="navRight">
                 <a href="/wizard" class="nav-cta">🚀 Get This App Now!</a>
                 <div class="stats-badge">
                     {% if stats %}{{ stats.get('total', 0) }}{% else %}0{% endif %} Items
@@ -239,8 +238,10 @@
                     🚪 Logout
                 </a>
                 {% endif %}
-                <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
-                    <span></span><span></span><span></span>
+                <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu" style="margin-left:auto;">
+                    <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
+                    <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
+                    <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                 </button>
             </div>
         </nav>
