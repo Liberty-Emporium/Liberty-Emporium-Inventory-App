@@ -479,6 +479,20 @@ def edit_product(sku):
                            categories=CATEGORIES, conditions=CONDITIONS,
                            statuses=STATUSES, **ctx())
 
+@app.route('/confirm-delete/<sku>')
+@login_required
+def confirm_delete_product(sku):
+    if session.get('is_guest'):
+        flash('Guests cannot delete products.', 'error')
+        return redirect(url_for('dashboard'))
+    products = load_inventory()
+    product = next((p for p in products if p['SKU'] == sku), None)
+    if not product:
+        flash('Product not found.', 'error')
+        return redirect(url_for('dashboard'))
+    return render_template('confirm_delete.html', product=product,
+        delete_type='product', back_url=url_for('product_view', sku=sku), **ctx())
+
 @app.route('/delete/<sku>', methods=['POST'])
 @login_required
 def delete_product(sku):
@@ -495,6 +509,15 @@ def delete_product(sku):
 @app.route('/uploads/<filename>')
 def serve_upload(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
+
+@app.route('/confirm-delete-image/<sku>/<filename>')
+@login_required
+def confirm_delete_image(sku, filename):
+    if session.get('is_guest'):
+        flash('Guests cannot delete images.', 'error')
+        return redirect(url_for('dashboard'))
+    return render_template('confirm_delete.html', sku=sku, filename=filename,
+        delete_type='image', back_url=url_for('edit_product', sku=sku), **ctx())
 
 @app.route('/delete-image/<sku>', methods=['POST'])
 @login_required
@@ -1536,6 +1559,15 @@ def ad_vault():
     videos.sort(key=lambda v: v['mod_date'], reverse=True)
     
     return render_template('ad_vault.html', videos=videos, **ctx())
+
+@app.route('/confirm-delete-video/<filename>')
+@login_required
+def confirm_delete_video(filename):
+    if session.get('is_guest'):
+        flash('Guests cannot delete videos.', 'error')
+        return redirect(url_for('dashboard'))
+    return render_template('confirm_delete.html', filename=filename,
+        delete_type='video', back_url=url_for('ad_vault'), **ctx())
 
 @app.route('/ad-vault/delete/<filename>', methods=['POST'])
 @login_required

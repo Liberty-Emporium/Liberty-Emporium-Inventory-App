@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Delete — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="confirm-delete-page">
+    <div class="confirm-card">
+        <div class="confirm-icon">⚠️</div>
+        
+        {% if delete_type == 'product' %}
+        <h1>Delete This Product?</h1>
+        <p class="confirm-detail"><strong>{{ product.Title }}</strong> (SKU: {{ product.SKU }})</p>
+        <p class="confirm-detail">Price: ${{ product.Price|default('0.00') }}</p>
+        <p class="confirm-warning">This will permanently remove the product and all its images from your inventory.</p>
+        <form method="POST" action="{{ url_for('delete_product', sku=product.SKU) }}">
+            <button type="submit" class="btn-confirm-delete">Yes, Delete Permanently</button>
+        </form>
+        
+        {% elif delete_type == 'image' %}
+        <h1>Delete This Image?</h1>
+        <p class="confirm-detail"><strong>Product:</strong> (SKU: {{ sku }})</p>
+        <p class="confirm-detail"><strong>File:</strong> {{ filename }}</p>
+        <p class="confirm-warning">This will permanently remove the image.</p>
+        <form method="POST" action="{{ url_for('delete_image', sku=sku) }}">
+            <input type="hidden" name="filename" value="{{ filename }}">
+            <button type="submit" class="btn-confirm-delete">Yes, Delete Permanently</button>
+        </form>
+        
+        {% elif delete_type == 'video' %}
+        <h1>Delete This Video?</h1>
+        <p class="confirm-detail"><strong>File:</strong> {{ filename }}</p>
+        <p class="confirm-warning">This will permanently remove the video from your Ad Vault.</p>
+        <form method="POST" action="{{ url_for('delete_video', filename=filename) }}">
+            <button type="submit" class="btn-confirm-delete">Yes, Delete Permanently</button>
+        </form>
+        
+        {% endif %}
+        
+        <a href="{{ back_url }}" class="btn-confirm-cancel">Cancel — Go Back</a>
+    </div>
+</div>
+
+<style>
+.confirm-delete-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 1rem;
+}
+.confirm-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+}
+.confirm-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+}
+.confirm-card h1 {
+    color: #e74c3c;
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+}
+.confirm-detail {
+    color: #555;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+.confirm-warning {
+    color: #c0392b;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 1.25rem 0;
+    padding: 0.75rem 1rem;
+    background: #fff5f5;
+    border-radius: 8px;
+    border-left: 3px solid #e53e3e;
+}
+.btn-confirm-delete {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin: 1.5rem 0 0.75rem;
+    transition: background 0.2s;
+    min-height: 50px;
+}
+.btn-confirm-delete:hover {
+    background: #c0392b;
+}
+.btn-confirm-cancel {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: #eee;
+    color: #555;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background 0.2s;
+    min-height: 44px;
+    line-height: 28px;
+}
+.btn-confirm-cancel:hover {
+    background: #ddd;
+}
+</style>
+{% endblock %}

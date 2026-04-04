@@ -41,11 +41,10 @@
                  class="btn btn-sm btn-success flex-fill" title="Download">
                 ⬇️ Download
               </a>
-              <button class="btn btn-sm btn-danger flex-fill"
-                      onclick="deleteVideo('{{ video.filename }}', 'card-{{ loop.index }}')"
-                      title="Delete">
+              <a href="{{ url_for('confirm_delete_video', filename=video.filename) }}"
+                 class="btn btn-sm btn-danger flex-fill" title="Delete">
                 🗑️ Delete
-              </button>
+              </a>
             </div>
           </div>
         </div>

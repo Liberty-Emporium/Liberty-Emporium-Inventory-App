@@ -285,12 +285,7 @@
                 <div class="image-thumbnail">
                     <img src="{{ url_for('serve_upload', filename=img) }}" alt="Product image">
                     <span class="image-name">{{ img }}</span>
-                    <form method="POST" action="{{ url_for('delete_image', sku=product.SKU) }}"
-                          onsubmit="return confirm('Delete this image?');"
-                          style="margin:0;">
-                        <input type="hidden" name="filename" value="{{ img }}">
-                        <button type="submit" class="btn-delete-image">🗑️ Delete</button>
-                    </form>
+                    <a href="{{ url_for('confirm_delete_image', sku=product.SKU, filename=img) }}" class="btn-delete-image">🗑️ Delete</a>
                 </div>
                 {% endfor %}
             </div>
@@ -315,10 +310,7 @@
 {% if product.SKU %}
 <div class="danger-zone">
     <h3>⚠️ Danger Zone</h3>
-    <form method="POST" action="{{ url_for('delete_product', sku=product.SKU) }}" 
-          onsubmit="return confirm('Are you sure you want to delete this product? This cannot be undone!');">
-        <button type="submit" class="btn btn-danger">🗑️ Delete Product</button>
-    </form>
+    <a href="{{ url_for('confirm_delete_product', sku=product.SKU) }}" class="btn btn-danger">🗑️ Delete Product</a>
 </div>
 {% endif %}
 {% endblock %}
