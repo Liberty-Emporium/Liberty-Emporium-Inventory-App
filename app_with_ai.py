@@ -1686,6 +1686,7 @@ def rewrite_voice_script():
     }
 
     try:
+        import urllib.request
         data = json.dumps(payload).encode()
         req = urllib.request.Request(
             'https://api.anthropic.com/v1/messages',
