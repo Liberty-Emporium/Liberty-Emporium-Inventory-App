@@ -1849,8 +1849,8 @@ function vsShowResults(files) {
     const video = document.createElement('video');
     video.src = '/ads/' + encodeURIComponent(f.filename);
     video.controls = true;
-    video.autoplay = true;
-    video.muted = true;
+    video.autoplay = false;
+    video.muted = false;
     video.loop = true;
     video.style.cssText = 'width:100%; display:block; max-height:480px; background:#000;';
 

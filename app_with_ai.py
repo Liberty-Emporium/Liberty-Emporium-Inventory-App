@@ -1569,15 +1569,15 @@ def generate_video_ad():
 
         # For each product: optionally apply Ken Burns + overlay text + progress bar
         for i in range(n):
-            bg_idx = 1 + i
-            txt_idx = 1 + n + i
-            
+            bg_idx = 1 + 2*i
+            txt_idx = 2 + 2*i
+
             # Ken Burns with varying direction per product
             if style == 'kenburns':
                 dur_frames = int(t_per * fps)
                 zoom_expr = directions[i % len(directions)][0]
                 parts.append(
-                    f"[{bg_idx}:v]zoompan={zoom_expr}:d={dur_frames}:s={W}x{H}:fps={fps}[kb{i}]"
+                    f"[{bg_idx}:v]{zoom_expr}:d={dur_frames}:s={W}x{H}:fps={fps}[kb{i}]"
                 )
                 bg_ref = f"kb{i}"
             else:
