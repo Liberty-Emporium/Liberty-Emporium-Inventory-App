@@ -1290,16 +1290,8 @@
         <!-- Custom Script -->
         <div style="margin-bottom:1rem;">
           <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Custom Script (optional — leave blank for auto-generated)</label>
-          <div style="position:relative;">
-            <textarea id="vsVoiceScript" rows="4" placeholder="Write your narration script, or click the mic to speak it..." 
-                      style="width:100%; padding:0.5rem 2.5rem 0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem; font-family:inherit; resize:vertical;"></textarea>
-            <button type="button" onclick="vsToggleMic()" id="vsMicBtn" title="Click to speak your script"
-                    style="position:absolute; bottom:8px; right:8px; background:none; border:none; font-size:1.3rem; cursor:pointer; padding:4px; border-radius:4px; transition:background 0.2s;"
-                    onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='none'">
-              🎤
-            </button>
-          </div>
-          <div id="vsMicStatus" style="font-size:0.7rem; color:#999; margin-top:0.25rem; min-height:1rem;"></div>
+            <textarea id="vsVoiceScript" rows="4" placeholder="Write your narration script here..." 
+                      style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem; font-family:inherit; resize:vertical;"></textarea>
           <button type="button" onclick="vsRewriteScript()" id="vsRewriteBtn"
                     style="background:#4a7c59; color:#fff; border:none; padding:0.3rem 0.75rem; border-radius:5px; font-size:0.75rem; font-weight:700; cursor:pointer; margin-top:0.4rem; display:inline-flex; align-items:center; gap:5px; transition:opacity 0.2s;">
             ✨ Rewrite Script
@@ -1989,43 +1981,7 @@ function vsPreviewVoice() {
 // ── Speech-to-Text (Mic) ───────────────────────────────────────────────
 let vsMicRecognition = null;
 let vsMicActive = false;
-
-function vsToggleMic() {
-  var status = document.getElementById('vsMicStatus');
-  var btn = document.getElementById('vsMicBtn');
-  var textarea = document.getElementById('vsVoiceScript');
-
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    status.textContent = '⚠️ Your browser does not support speech recognition. Try Chrome.';
-    return;
-  }
-
-  if (vsMicActive) {
-    // Stop listening
-    if (vsMicRecognition) vsMicRecognition.stop();
-    vsMicActive = false;
-    btn.style.color = '';
-    btn.title = 'Click to speak your script';
-    status.textContent = '';
-    return;
-  }
-
-  // Start listening — ONE sentence per tap, NO auto-restart
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  vsMicRecognition = new SR();
-  vsMicRecognition.continuous = false;
-  vsMicRecognition.interimResults = false;
-  vsMicRecognition.lang = 'en-US';
-  var done = false;
-
-  vsMicRecognition.onstart = function() {
-    vsMicActive = true;
-    btn.style.color = '#e74c3c';
-    btn.title = 'Listening... tap to stop';
-    status.textContent = '🔴 Listening...';
-    status.style.color = '#e74c3c';
-    status.style.fontWeight = '700';
-  };
+;
 
   vsMicRecognition.onresult = function(event) {
     if (done) return;
