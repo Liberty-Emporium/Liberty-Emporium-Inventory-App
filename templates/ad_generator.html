@@ -1297,12 +1297,17 @@
             ✨ Rewrite Script
           </button>
           <span id="vsRewriteStatus" style="font-size:0.7rem; color:#4a7c59; margin-left:0.5rem;"></span>
+          <div id="vsScriptCharCount" style="font-size:0.65rem; color:#999; margin-top:0.25rem;"></div>
         </div>
         <!-- Preview -->
         <button type="button" onclick="vsPreviewVoice()" style="background:#e8e0d0; border:1.5px solid #4a7c59; color:#4a7c59; padding:0.5rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer;">
           🔊 Preview Voice
         </button>
         <span id="vsVoiceStatus" style="font-size:0.78rem; color:#888; margin-left:0.5rem;"></span>
+        <button type="button" onclick="vsToggleMic()" id="vsMicBtn"
+                style="background:#e8e0d0; border:1.5px solid #4a7c59; color:#4a7c59; padding:0.5rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer; margin-left:0.5rem;">
+          🎤 Dictate
+        </button>
       </div>
     </div>
     <!-- ══ End AI Voiceover ══ -->
@@ -1981,41 +1986,86 @@ function vsPreviewVoice() {
 // ── Speech-to-Text (Mic) ───────────────────────────────────────────────
 let vsMicRecognition = null;
 let vsMicActive = false;
-;
 
-  vsMicRecognition.onresult = function(event) {
-    if (done) return;
-    var r = event.results[event.results.length - 1];
-    if (r && r.isFinal) {
-      done = true;
-      var transcript = r[0].transcript.trim();
-      if (transcript.length > 0) {
-        var existing = textarea.value;
-        if (existing.length > 0 && !/[.!? \n ]$/.test(existing)) {
-          transcript = ' ' + transcript;
-        }
-        textarea.value = existing + transcript;
-        status.textContent = '✅ Added — tap mic for more';
-      }
-    }
-  };
+function vsToggleMic() {
+  var textarea = document.getElementById('vsVoiceScript');
+  var status = document.getElementById('vsVoiceStatus');
+  var btn = document.getElementById('vsMicBtn');
+  var done = false;
 
-  vsMicRecognition.onerror = function(event) {
-    if (event.error === 'no-speech') return; // harmless, keep listening
-    done = true;
-    vsMicActive = false;
-    btn.style.color = '';
-    var msg = '❌ ' + event.error;
-    if (event.error === 'not-allowed') msg = '❌ Mic blocked';
-    status.textContent = msg;
+  if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+    status.textContent = '⚠️ Browser doesn\'t support Speech Recognition';
     status.style.color = '#e74c3c';
-  };
+    return;
+  }
 
-  vsMicRecognition.onend = function() {
+  if (vsMicActive) {
+    // Stop listening
+    if (vsMicRecognition) vsMicRecognition.stop();
     vsMicActive = false;
     btn.style.color = '';
-  };
+    btn.textContent = '🎤 Dictate';
+    status.textContent = '';
+    return;
+  }
 
-  vsMicRecognition.start();
-}</script>
+  // Start listening
+  try {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    vsMicRecognition = new SR();
+    vsMicRecognition.continuous = true;
+    vsMicRecognition.interimResults = false;
+    vsMicRecognition.lang = 'en-US';
+
+    vsMicRecognition.onresult = function(event) {
+      if (done) return;
+      var r = event.results[event.results.length - 1];
+      if (r && r.isFinal) {
+        done = true;
+        vsMicActive = false;
+        btn.style.color = '';
+        btn.textContent = '🎤 Dictate';
+        var transcript = r[0].transcript.trim();
+        if (transcript.length > 0) {
+          var existing = textarea.value;
+          if (existing.length > 0 && !/[.!? \n ]$/.test(existing)) {
+            transcript = ' ' + transcript;
+          }
+          textarea.value = existing + transcript;
+          status.textContent = '✅ Added';
+          setTimeout(function() { status.textContent = ''; }, 2000);
+        }
+      }
+    };
+
+    vsMicRecognition.onerror = function(event) {
+      if (event.error === 'no-speech') return;
+      done = true;
+      vsMicActive = false;
+      btn.style.color = '';
+      btn.textContent = '🎤 Dictate';
+      var msg = '❌ ' + event.error;
+      if (event.error === 'not-allowed') msg = '❌ Mic blocked — allow mic access';
+      status.textContent = msg;
+      status.style.color = '#e74c3c';
+    };
+
+    vsMicRecognition.onend = function() {
+      vsMicActive = false;
+      btn.style.color = '';
+      btn.textContent = '🎤 Dictate';
+    };
+
+    vsMicRecognition.start();
+    vsMicActive = true;
+    btn.style.color = '#e74c3c';
+    btn.textContent = '⏹️ Stop';
+    status.textContent = ' Listening — speak your script...';
+    status.style.color = '#4a7c59';
+  } catch (e) {
+    status.textContent = '⚠️ Could not start mic: ' + e.message;
+    status.style.color = '#e74c3c';
+  }
+}
+</script>
 {% endblock %}
