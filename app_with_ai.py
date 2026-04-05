@@ -1242,7 +1242,10 @@ def generate_video_ad():
         # ── Parse inputs ──────────────────────────────────────────────────────
         products  = json.loads(request.form.get('products', '[]'))
         style     = request.form.get('style', 'slideshow')
-        duration  = max(10, min(60, int(request.form.get('duration', 30))))
+        try:
+            duration = max(10, min(60, int(request.form.get('duration', 30))))
+        except (ValueError, TypeError):
+            duration = 30
         template  = request.form.get('template', 'default')
         format_str = request.form.get('format', '1920x1080')
         cta_text  = request.form.get('cta_text', '').strip()
@@ -2005,10 +2008,14 @@ def seasonal_sale():
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'activate':
+            try:
+                discount_pct = int(request.form.get('discount_percent', '10'))
+            except (ValueError, TypeError):
+                discount_pct = 10
             sale_state = {
                 'active':           True,
                 'category':         request.form.get('category',''),
-                'discount_percent': int(request.form.get('discount_percent', 10))
+                'discount_percent': discount_pct
             }
         else:
             sale_state = {'active': False}
