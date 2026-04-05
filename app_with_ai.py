@@ -1519,16 +1519,16 @@ def generate_video_ad():
         out_name = f'video_ad_{sku_str}{template_sfx}{format_sfx}_{ts}.mp4'
         out_path = os.path.join(ADS_FOLDER, out_name)
 
-        # Build Ken Burns zoom directions: alternate between subtle in/out/pan
+        # Build Ken Burns zoom directions: simple, tested expressions
         kb_configs = []
         directions = [
-            ("zoompan=z='min(zoom+0.003,1.2)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
+            ("zoompan=z='if(lte(on,1),1.0,zoom+0.003)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
              "zoom in slowly from center"),
-            ("zoompan=z='if(lte(zoom,1.0),1.15,max(zoom-0.003,1.0))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
+            ("zoompan=z='if(lte(on,1),1.15,max(zoom-0.003,1.0))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
              "zoom out slowly from center"),
-            ("zoompan=z='min(zoom+0.003,1.2)':x='if(lte(on,1),0,x+(iw/100))':y='ih/2-(ih/zoom/2)'",
+            ("zoompan=z='min(zoom+0.003,1.3)':x='if(lte(on,1),0,x+iw/100)':y='ih/2-(ih/zoom/2)'",
              "pan left to right"),
-            ("zoompan=z='min(zoom+0.003,1.2)':x='if(lte(on,1),iw/5,max(0,x-(iw/100)))':y='ih/2-(ih/zoom/2)'",
+            ("zoompan=z='min(zoom+0.003,1.3)':x='if(lte(on,1),iw/5,max(0,x-iw/100))':y='ih/2-(ih/zoom/2)'",
              "pan right to left"),
         ]
 
