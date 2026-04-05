@@ -1081,34 +1081,41 @@ def _generate_custom_voiceover(text, tmp_files, voice='en-US-ChristopherNeural')
         return None, 0
 
 
-def _generate_builtin_music(duration_seconds, tmp_files):
+def _generate_builtin_music(duration_seconds, tmp_files, ffmpeg_path='ffmpeg'):
     """Generate a simple upbeat royalty-free music track using ffmpeg tone synthesis."""
+    import shutil as _shutil
+    if ffmpeg_path == 'ffmpeg':
+        ffmpeg_path = _shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
+
     out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
     tmp_files.append(out_file)
-    
+
     # Generate a pleasant 4-chord loop: C-G-Am-F pattern with simple melody
     # Using sine waves with envelope for a soft, professional sound
     total_dur = max(duration_seconds, 15)
-    
+
     # Create a simple but pleasant background: alternating bass notes + soft pad
     cmd = [
-        'ffmpeg', '-y',
+        ffmpeg_path, '-y',
         '-f', 'lavfi', '-i', f'sine=frequency=220:duration={total_dur}:sample_rate=44100',
         '-f', 'lavfi', '-i', f'sine=frequency=330:duration={total_dur}:sample_rate=44100',
         '-filter_complex',
-        f'[0:a]volume=0.08[a0];[1:a]volume=0.04[a1];[a0][a1]amix=inputs=2:duration=longest[aout]',
+        f'[0:a]volume=0.35[a0];[1:a]volume=0.20[a1];[a0][a1]amix=inputs=2:duration=longest[aout]',
         '-map', '[aout]',
         '-b:a', '128k',
         out_file,
     ]
     
     try:
-        subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        if result.returncode != 0:
+            app.logger.warning(f"Builtin music generation failed: {result.stderr[-300:]}")
         if os.path.exists(out_file) and os.path.getsize(out_file) > 1000:
             return out_file
-    except Exception:
-        pass
-    
+        app.logger.warning(f"Builtin music file too small or missing: {out_file}")
+    except Exception as e:
+        app.logger.warning(f"Builtin music generation exception: {e}")
+
     return None
 
 
@@ -1381,7 +1388,7 @@ def generate_video_ad():
         user_wanted_music = bool(music_file_upload or music_track_name or music_token)
         if not music_path and user_wanted_music:
             app.logger.info("Selected music track not found, generating fallback music")
-            generated_music = _generate_builtin_music(duration, tmp_files)
+            generated_music = _generate_builtin_music(duration, tmp_files, ffmpeg_path)
             if generated_music:
                 music_path = generated_music
                 tmp_files.append(generated_music)
@@ -1579,10 +1586,27 @@ def generate_video_ad():
         # generate background music so the video always has sound
         if audio_inputs == 0:
             app.logger.info("No audio sources available — generating fallback background music")
-            fallback_music = _generate_builtin_music(total_dur, tmp_files)
+            fallback_music = _generate_builtin_music(total_dur, tmp_files, ffmpeg_path)
             if fallback_music:
                 cmd += ['-i', fallback_music]
                 audio_inputs += 1
+            else:
+                # Last resort: generate a silent audio track so the video container
+                # always has an audio stream (some players misbehave without one)
+                app.logger.warning("Fallback music failed — generating silent audio track")
+                silent_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
+                tmp_files.append(silent_file)
+                try:
+                    subprocess.run([
+                        ffmpeg_path, '-y',
+                        '-f', 'lavfi', '-i', f'anullsrc=r=44100:cl=stereo',
+                        '-t', str(total_dur), '-b:a', '128k', silent_file,
+                    ], capture_output=True, text=True, timeout=30)
+                    if os.path.exists(silent_file) and os.path.getsize(silent_file) > 100:
+                        cmd += ['-i', silent_file]
+                        audio_inputs += 1
+                except Exception as e:
+                    app.logger.error(f"Silent audio generation failed: {e}")
 
         music_and_vo_start = 1 + 2 * n + 1  # after intro + 2*N + outro
 
