@@ -24,6 +24,79 @@
             Set your Claude API key here once — all AI features (photo analysis, video voiceover, script rewriting, listing generation) will use this key automatically.
         </p>
         
+        <!-- Step-by-step slideshow -->
+        <div id="api-setup-slides" style="margin-bottom:1.5rem; border-radius:10px; overflow:hidden; border:1px solid #e0e0e0;">
+            <div style="background:linear-gradient(135deg,#f0f7f4,#e8f5e9); padding:1.75rem;">
+                <!-- Step 1 -->
+                <div class="api-step" id="apiStep1">
+                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:#4a7c59; margin-bottom:0.5rem; font-weight:700;">Step 1 of 4</div>
+                    <h3 style="margin:0 0 0.5rem; font-size:1.1rem; color:#1a4a42;">Create a free Anthropic account</h3>
+                    <ol style="margin:0; padding-left:1.25rem; color:#333; font-size:0.9rem; line-height:1.8;">
+                        <li>Go to <a href="https://console.anthropic.com/" target="_blank" style="color:#4a7c59; font-weight:700;">console.anthropic.com ↗</a></li>
+                        <li>Click <strong>"Sign Up"</strong> in the top right corner</li>
+                        <li>Create an account with Google or email</li>
+                    </ol>
+                    <div style="background:white; border-radius:8px; padding:0.75rem 1rem; margin-top:0.75rem; font-size:0.8rem; border-left:3px solid #4a7c59;">
+                        💡 <strong>Free credits:</strong> New accounts come with $5 of free API credits — enough for thousands of AI analyses!
+                    </div>
+                </div>
+                <!-- Step 2 -->
+                <div class="api-step" id="apiStep2" style="display:none;">
+                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:#4a7c59; margin-bottom:0.5rem; font-weight:700;">Step 2 of 4</div>
+                    <h3 style="margin:0 0 0.5rem; font-size:1.1rem; color:#1a4a42;">Navigate to API Keys</h3>
+                    <ol style="margin:0; padding-left:1.25rem; color:#333; font-size:0.9rem; line-height:1.8;">
+                        <li>After logging in, look for the left sidebar</li>
+                        <li>Click on <strong>"API Keys"</strong></li>
+                        <li>Or go directly to: <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#4a7c59; font-weight:700;">console.anthropic.com/settings/keys ↗</a></li>
+                    </ol>
+                    <div style="background:white; border-radius:8px; padding:0.75rem 1rem; margin-top:0.75rem; font-size:0.8rem; border-left:3px solid #4a7c59;">
+                        🗝️ The API Keys section is under <strong>Settings</strong> in the Anthropic console.
+                    </div>
+                </div>
+                <!-- Step 3 -->
+                <div class="api-step" id="apiStep3" style="display:none;">
+                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:#4a7c59; margin-bottom:0.5rem; font-weight:700;">Step 3 of 4</div>
+                    <h3 style="margin:0 0 0.5rem; font-size:1.1rem; color:#1a4a42;">Generate your API key</h3>
+                    <ol style="margin:0; padding-left:1.25rem; color:#333; font-size:0.9rem; line-height:1.8;">
+                        <li>Click the <strong>"Create Key"</strong> button</li>
+                        <li>Give it a name (e.g., "Liberty Emporium")</li>
+                        <li><strong>Important:</strong> Copy the key immediately — it starts with <code style="background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-size:0.85rem;">sk-ant-...</code></li>
+                    </ol>
+                    <div style="background:#fff3cd; border-radius:8px; padding:0.75rem 1rem; margin-top:0.75rem; font-size:0.8rem; border-left:3px solid #ffc107;">
+                        ⚠️ <strong>You only see the key ONCE!</strong> If you lose it, you'll need to create a new one. So copy it right away.
+                    </div>
+                </div>
+                <!-- Step 4 -->
+                <div class="api-step" id="apiStep4" style="display:none;">
+                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:2px; color:#4a7c59; margin-bottom:0.5rem; font-weight:700;">Step 4 of 4</div>
+                    <h3 style="margin:0 0 0.5rem; font-size:1.1rem; color:#1a4a42;">Paste your key below and save</h3>
+                    <ol style="margin:0; padding-left:1.25rem; color:#333; font-size:0.9rem; line-height:1.8;">
+                        <li>Come back to this page</li>
+                        <li>Paste your key (starts with <code style="background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px; font-size:0.85rem;">sk-ant-...</code>) into the field below</li>
+                        <li>Click <strong>"Save API Key"</strong></li>
+                    </ol>
+                    <div style="background:#d4edda; border-radius:8px; padding:0.75rem 1rem; margin-top:0.75rem; font-size:0.8rem; border-left:3px solid #4a7c59;">
+                        ✅ Once set, your key is saved automatically. All AI features work instantly — no restart needed!
+                    </div>
+                </div>
+                <!-- Slide navigation -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.25rem;">
+                    <button id="apiPrevBtn" onclick="apiNavStep(-1)" style="background:none; border:1.5px solid #4a7c59; color:#4a7c59; padding:0.4rem 1rem; border-radius:6px; font-size:0.8rem; font-weight:700; cursor:pointer; display:none;">
+                        ← Previous
+                    </button>
+                    <div id="apiDots" style="display:flex; gap:6px; margin:0 auto;">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#4a7c59;display:inline-block;"></span>
+                        <span style="width:8px;height:8px;border-radius:50%;background:#c5e0d5;display:inline-block;"></span>
+                        <span style="width:8px;height:8px;border-radius:50%;background:#c5e0d5;display:inline-block;"></span>
+                        <span style="width:8px;height:8px;border-radius:50%;background:#c5e0d5;display:inline-block;"></span>
+                    </div>
+                    <button id="apiNextBtn" onclick="apiNavStep(1)" style="background:#4a7c59; color:white; border:none; padding:0.4rem 1rem; border-radius:6px; font-size:0.8rem; font-weight:700; cursor:pointer;">
+                        Next →
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         {% if has_key %}
         <div style="background:#d4edda; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1.5rem; font-size:0.85rem;">
             ✅ <strong>API Key Configured</strong><br>
@@ -64,4 +137,44 @@
         </form>
     </div>
 </div>
+
+<script>
+// ── API Setup Slideshow ──────────────────────────────────────────────
+var apiCurrentSlide = 1;
+var apiTotalSlides = 4;
+
+function apiNavStep(dir) {
+    apiCurrentSlide = Math.max(1, Math.min(apiCurrentSlide + dir, apiTotalSlides));
+    updateApiSlides();
+}
+
+function updateApiSlides() {
+    // Show/hide steps
+    for (var i = 1; i <= apiTotalSlides; i++) {
+        var el = document.getElementById('apiStep' + i);
+        if (el) el.style.display = (i === apiCurrentSlide) ? 'block' : 'none';
+    }
+    // Update dots
+    var dots = document.getElementById('apiDots');
+    if (dots) {
+        var spans = dots.querySelectorAll('span');
+        for (var j = 0; j < spans.length; j++) {
+            spans[j].style.background = (j + 1 <= apiCurrentSlide) ? '#4a7c59' : '#c5e0d5';
+        }
+    }
+    // Show/hide prev button
+    var prevBtn = document.getElementById('apiPrevBtn');
+    if (prevBtn) prevBtn.style.display = (apiCurrentSlide > 1) ? 'inline-block' : 'none';
+    // Update next button text
+    var nextBtn = document.getElementById('apiNextBtn');
+    if (nextBtn) {
+        if (apiCurrentSlide >= apiTotalSlides) {
+            nextBtn.style.display = 'none';
+        } else {
+            nextBtn.style.display = 'inline-block';
+            nextBtn.textContent = (apiCurrentSlide === apiTotalSlides - 1) ? 'Almost there! →' : 'Next →';
+        }
+    }
+}
+</script>
 {% endblock %}
