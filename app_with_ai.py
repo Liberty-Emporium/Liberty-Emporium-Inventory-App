@@ -1522,13 +1522,13 @@ def generate_video_ad():
         # Build Ken Burns zoom directions: alternate between subtle in/out/pan
         kb_configs = []
         directions = [
-            ("z='if(eq(n,0),1.0,zoom+0.002)':d=0:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
+            ("z='if(eq(n,0),1.0,zoom+0.002)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
              "zoom in slowly from center"),
-            ("z='if(eq(n,0),1.15,max(zoom-0.002,1.0))':d=0:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
+            ("z='if(eq(n,0),1.15,max(zoom-0.002,1.0))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
              "zoom out slowly from center"),
-            ("z='min(zoom+0.002,1.25)':d=0:x='if(eq(n,0),0,if(lt(x,10),x,x+0.3))':y='ih/2-(ih/zoom/2)'",
+            ("z='min(zoom+0.002,1.25)':x='if(eq(n,0),0,if(lt(x,10),x,x+0.3))':y='ih/2-(ih/zoom/2)'",
              "pan left to right"),
-            ("z='min(zoom+0.002,1.25)':d=0:x='if(eq(n,0),10,if(gt(x,10),x,x-0.3))':y='ih/2-(ih/zoom/2)'",
+            ("z='min(zoom+0.002,1.25)':x='if(eq(n,0),10,if(gt(x,10),x,x-0.3))':y='ih/2-(ih/zoom/2)'",
              "pan right to left"),
         ]
 
