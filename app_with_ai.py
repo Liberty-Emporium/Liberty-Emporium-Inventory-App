@@ -998,13 +998,16 @@ def _build_humanlike_script(product, store_name, index):
 
 
 def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en-US-ChristopherNeural'):
-    """Generate a natural-sounding voiceover for one product using Edge TTS.
-    
-    Uses SSML for human-like pacing, emphasis, and pauses.
-    Default voice: Brian (Approachable, Casual, Sincere)
-    """
+    """Generate a natural-sounding voiceover for one product using Edge TTS."""
     import asyncio
     import edge_tts
+    
+    try:
+        # Try nest_asyncio first (for Flask compatibility)
+        import nest_asyncio
+        nest_asyncio.apply()
+    except ImportError:
+        pass
     
     # Build conversational script with SSML
     script = _build_humanlike_script(product, store_name, index)
@@ -1015,7 +1018,13 @@ def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en
     
     try:
         communicate = edge_tts.Communicate(script, voice)
-        asyncio.run(communicate.save(out_file))
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(communicate.save(out_file))
+        loop.close()
+        
+        if not os.path.exists(out_file) or os.path.getsize(out_file) < 100:
+            return None, 0, ''
         
         # Get duration
         result = subprocess.run(
@@ -1027,6 +1036,8 @@ def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en
         return out_file, duration, script
     except Exception as e:
         app.logger.warning(f"Voiceover failed: {e}")
+        if os.path.exists(out_file):
+            os.unlink(out_file)
         return None, 0, ''
 
 
