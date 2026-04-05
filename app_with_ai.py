@@ -705,7 +705,9 @@ def ad_generator():
 @app.route('/generate-ads', methods=['POST'])
 @login_required
 def generate_ads():
-    data     = request.get_json()
+    data     = request.get_json() or {}
+    if not data:
+        return jsonify({'error': 'No product data provided.'}), 400
     products = data.get('products', [])
     style    = data.get('style', 'elegant')
     use_json_response = request.headers.get('Accept') == 'application/json' or request.is_json
