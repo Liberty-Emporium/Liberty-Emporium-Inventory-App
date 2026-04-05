@@ -2178,7 +2178,8 @@ def admin_settings():
     key = get_ai_api_key()
     masked = ''
     if key:
-        masked = f'{key[:8]}••••••••••••••{key[-4:]}'
+        # Show only first 8 + last 4 with fixed 10 dots in middle
+        masked = f"{key[:8]}{'•' * 10}{key[-4:]}"
     if request.method == 'POST':
         new_key = request.form.get('anthropic_api_key', '').strip()
         if new_key:
