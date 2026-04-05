@@ -730,7 +730,7 @@ def generate_ads():
         price         = p.get('price', '0.00')
         description   = p.get('description', '')
         image_url     = p.get('image', '')
-        product_url   = f"https://libertye.pythonanywhere.com/product/{sku}"
+        product_url   = f"https://liberty-emporium-inventory-demo-app-production.up.railway.app/product/{sku}"
 
         ts            = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         html_filename = f"ad_{sku}_{ts}.html"
