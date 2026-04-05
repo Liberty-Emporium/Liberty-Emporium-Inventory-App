@@ -1605,6 +1605,51 @@ def listing_generator():
     products = load_inventory()
     return render_template('listing_generator.html', products=products, **ctx())
 
+@app.route('/rewrite-voice-script', methods=['POST'])
+@login_required
+def rewrite_voice_script():
+    """Use Claude to polish a rough voiceover script into natural narration."""
+    draft = request.form.get('draft', '').strip()
+    if not draft:
+        return jsonify({'error': 'No draft text provided.'})
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+    if not api_key:
+        return jsonify({'error': 'No Anthropic API key configured.'})
+
+    prompt = (
+        f"Rewrite this draft text into a natural-sounding voiceover script for a thrift store video ad. "
+        f"Use short sentences, conversational tone, contractions (e.g., 'don't' not 'do not'), "
+        f"and friendly enthusiasm. Include the store name, product name, price, and condition. "
+        f"Keep it under 80 words so it reads in about 20-25 seconds at normal speaking pace. "
+        f"Return ONLY the rewritten script — no quotes, no preamble.\n\n"
+        f"Draft:\n{draft}"
+    )
+
+    payload = {
+        'model': 'claude-haiku-4-5-20251001',
+        'max_tokens': 300,
+        'messages': [{'role': 'user', 'content': prompt}],
+    }
+
+    try:
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=data,
+            headers={
+                'Content-Type': 'application/json',
+                'x-api-key': api_key,
+                'anthropic-version': '2023-06-01',
+            }
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+        rewritten = result['content'][0]['text'].strip()
+        return jsonify({'script': rewritten})
+    except Exception as e:
+        return jsonify({'error': f'Rewrite failed: {str(e)}'})
+
 @app.route('/generate-listing', methods=['POST'])
 @login_required
 def generate_listing():

@@ -1300,6 +1300,11 @@
             </button>
           </div>
           <div id="vsMicStatus" style="font-size:0.7rem; color:#999; margin-top:0.25rem; min-height:1rem;"></div>
+          <button type="button" onclick="vsRewriteScript()" id="vsRewriteBtn"
+                    style="background:#4a7c59; color:#fff; border:none; padding:0.3rem 0.75rem; border-radius:5px; font-size:0.75rem; font-weight:700; cursor:pointer; margin-top:0.4rem; display:inline-flex; align-items:center; gap:5px; transition:opacity 0.2s;">
+            ✨ Rewrite Script
+          </button>
+          <span id="vsRewriteStatus" style="font-size:0.7rem; color:#4a7c59; margin-left:0.5rem;"></span>
         </div>
         <!-- Preview -->
         <button type="button" onclick="vsPreviewVoice()" style="background:#e8e0d0; border:1.5px solid #4a7c59; color:#4a7c59; padding:0.5rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer;">
@@ -1925,6 +1930,29 @@ if (vsVoToggle && vsVoSettings) {
   vsVoToggle.addEventListener('change', function() {
     vsVoSettings.style.display = this.checked ? 'block' : 'none';
   });
+}
+
+// ✨ Rewrite voice script with Claude AI
+function vsRewriteScript() {
+  var textarea = document.getElementById("vsVoiceScript");
+  var draft = textarea.value.trim();
+  var status = document.getElementById("vsRewriteStatus");
+  var btn = document.getElementById("vsRewriteBtn");
+  if (!draft) { status.textContent = "✏️ Type something first, then click rewrite."; return; }
+  btn.disabled = true; btn.style.opacity = "0.5";
+  status.textContent = "✨ Claude is polishing your script...";
+  fetch("/rewrite-voice-script", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "draft=" + encodeURIComponent(draft)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) { status.textContent = "⚠️ " + data.error; }
+    else { textarea.value = data.script; status.textContent = "✅ Script rewritten!"; }
+  })
+  .catch(function(e) { status.textContent = "⚠️ Rewrite failed: " + e.message; })
+  .finally(function() { btn.disabled = false; btn.style.opacity = "1"; });
 }
 
 function vsPreviewVoice() {
