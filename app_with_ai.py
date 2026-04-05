@@ -1600,6 +1600,9 @@ def generate_video_ad():
         )
         map_label = '[final]'
 
+        # Build filter_complex string
+        fc = ';'.join(parts)
+
         # Handle audio: voiceover, music, both, or neither
         if audio_inputs == 0:
             # No audio sources
