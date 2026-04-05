@@ -88,6 +88,48 @@ if DATA_DIR != BASE_DIR:
             shutil.copy2(_src, _dst)
             print(f"[STARTUP] Seeded {_fname} -> {_dst}", flush=True)
 
+# ── Centralized AI API Key Management ─────────────────────────────────────────
+
+def get_ai_api_key():
+    """Get the unified Claude API key.
+    Checks: 1) app config JSON (admin-entered) → 2) store_config.json → 3) env var.
+    This is the SINGLE source for ALL AI features.
+    """
+    # 1. Check app config file (set by admin via settings page)
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                app_cfg = json.load(f)
+            key = app_cfg.get('anthropic_api_key', '').strip()
+            if key:
+                return key
+        except Exception:
+            pass
+
+    # 2. Check store_config.json
+    cfg = load_store_config()
+    key = cfg.get('anthropic_api_key', '').strip()
+    if key:
+        return key
+
+    # 3. Fall back to environment variable
+    return get_ai_api_key()
+
+def save_ai_api_key(key):
+    """Save the Claude API key. Stored in-app (not in env vars)."""
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    config = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                config = json.load(f)
+        except Exception:
+            pass
+    config['anthropic_api_key'] = key.strip()
+    with open(app_config_file, 'w') as f:
+        json.dump(config, f, indent=2)
+
 # ── Store Configuration (white-label) ─────────────────────────────────────────
 STORE_CONFIG_FILE = os.path.join(DATA_DIR, 'store_config.json')
 
@@ -572,9 +614,9 @@ def save_image(sku):
 @login_required
 def ai_analyze():
     # Accept key from the request first (user-supplied), fall back to server env var
-    api_key = request.form.get('api_key', '').strip() or os.environ.get('ANTHROPIC_API_KEY')
+    api_key = request.form.get('api_key', '').strip() or get_ai_api_key()
     if not api_key:
-        return jsonify({'error': 'No API key provided. Enter your Claude API key in the AI box above.'})
+        return jsonify({'error': 'No API key provided. Ask the admin to configure the Claude API key in App Settings.'})
     file = request.files.get('image')
     if not file:
         return jsonify({'error': 'No image provided.'})
@@ -1613,7 +1655,7 @@ def rewrite_voice_script():
     if not draft:
         return jsonify({'error': 'No draft text provided.'})
 
-    api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+    api_key = get_ai_api_key()
     if not api_key:
         return jsonify({'error': 'No Anthropic API key configured.'})
 
@@ -1656,7 +1698,7 @@ def generate_listing():
     data      = request.get_json()
     product   = data.get('product', {})
     platform  = data.get('platform', 'facebook')
-    api_key   = os.environ.get('ANTHROPIC_API_KEY')
+    api_key   = get_ai_api_key()
 
     title     = product.get('title', '')
     price     = product.get('price', '0')
@@ -2105,7 +2147,7 @@ def debug():
         'inventory_file':    INVENTORY_FILE,
         'inventory_exists':  os.path.exists(INVENTORY_FILE),
         'upload_folder':     UPLOAD_FOLDER,
-        'anthropic_key_set': bool(os.environ.get('ANTHROPIC_API_KEY')),
+        'anthropic_key_set': bool(get_ai_api_key()),
         'demo_mode':         DEMO_MODE,
         'python_version':    __import__('sys').version,
     }
@@ -2128,6 +2170,26 @@ def price_tag(sku):
     return render_template('price_tag.html', product=product, **ctx())
 
 # ── Store Configuration (white-label admin) ───────────────────────────────────
+# ── App Settings (single API key for all AI features) ─────────────────────────
+@app.route('/admin/settings', methods=['GET','POST'])
+@login_required
+@admin_required
+def admin_settings():
+    key = get_ai_api_key()
+    masked = ''
+    if key:
+        masked = key[:6] + '•' * (max(0, len(key) - 10)) + key[-4:]
+    if request.method == 'POST':
+        new_key = request.form.get('anthropic_api_key', '').strip()
+        if new_key:
+            save_ai_api_key(new_key)
+            flash('AI API key updated! All AI features now use this key.', 'success')
+        elif request.form.get('clear_key') == '1':
+            save_ai_api_key('')
+            flash('AI API key cleared.', 'warning')
+        return redirect(url_for('admin_settings'))
+    return render_template('admin_settings.html', masked_key=masked, has_key=bool(key), **ctx())
+
 @app.route('/admin/branding', methods=['GET','POST'])
 @login_required
 @admin_required

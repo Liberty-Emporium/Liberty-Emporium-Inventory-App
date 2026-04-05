@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}App Settings | {{ store_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width:640px; margin:2rem auto;">
+    <h1 style="text-align:center; margin-bottom:2rem; color:#2c3e50;">⚙️ App Settings</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}" style="margin-bottom:1rem; padding:0.75rem 1rem; border-radius:8px; 
+                    {% if category == 'success' %}background:#d4edda; color:#155724; border:1px solid #c3e6cb;{% endif %}
+                    {% if category == 'warning' %}background:#fff3cd; color:#856404; border:1px solid #ffeeba;{% endif %}
+                    {% if category == 'error' %}background:#f8d7da; color:#721c24; border:1px solid #f5c6cb;{% endif %}
+                ">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div style="background:white; padding:2rem; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <h2 style="font-size:1.2rem; margin-bottom:0.5rem;">🤖 AI API Key (Unified)</h2>
+        <p style="color:#666; font-size:0.85rem; margin-bottom:1.5rem;">
+            Set your Claude API key here once — all AI features (photo analysis, video voiceover, script rewriting, listing generation) will use this key automatically.
+        </p>
+        
+        {% if has_key %}
+        <div style="background:#d4edda; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1.5rem; font-size:0.85rem;">
+            ✅ <strong>API Key Configured</strong><br>
+            Current key: <code style="background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px;">{{ masked_key }}</code>
+        </div>
+        {% else %}
+        <div style="background:#fff3cd; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1.5rem; font-size:0.85rem;">
+            ⚠️ <strong>No API key configured</strong> — AI features will not work until you set one.
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            <div style="margin-bottom:1.5rem;">
+                <label for="anthropic_api_key" style="font-size:0.85rem; font-weight:700; color:#333; display:block; margin-bottom:0.35rem;">
+                    Anthropic (Claude) API Key
+                </label>
+                <input type="password" id="anthropic_api_key" name="anthropic_api_key" 
+                       placeholder="sk-ant-api03-..." 
+                       style="width:100%; padding:0.75rem; border:1.5px solid #ddd; border-radius:8px; font-size:0.9rem; font-family:monospace;">
+                <p style="font-size:0.75rem; color:#999; margin-top:0.3rem;">
+                    Get your key from <a href="https://console.anthropic.com/" target="_blank" style="color:#4a7c59;">console.anthropic.com</a> → API Keys
+                </p>
+            </div>
+            
+            <div style="display:flex; gap:0.75rem; align-items:center;">
+                <button type="submit" style="padding:0.7rem 1.5rem; background:#4a7c59; color:white; border:none; border-radius:8px; font-size:0.9rem; font-weight:700; cursor:pointer;">
+                    💾 Save API Key
+                </button>
+                {% if has_key %}
+                <input type="hidden" name="clear_key" value="0">
+                <button type="submit" name="clear_key" value="1" 
+                        style="padding:0.7rem 1rem; background:#fff; color:#c0392b; border:1.5px solid #f5c6cb; border-radius:8px; font-size:0.8rem; cursor:pointer;"
+                        onclick="this.form.clear_key.value='1'">
+                    🗑️ Clear Key
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
