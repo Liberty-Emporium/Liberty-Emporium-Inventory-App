@@ -1334,7 +1334,7 @@ def generate_video_ad():
                     total_voice = sum(vd['duration'] for vd in valid_vo)
                     duration = max(duration, int(total_voice + 3))
 
-        # Resolve music path (now optional)
+        # Resolve music path — ALWAYS ensure we have audio
         music_path = None
         if music_token:
             # Pre-uploaded via /upload-music-temp
@@ -1355,7 +1355,17 @@ def generate_video_ad():
             # Built-in track
             music_path = os.path.join(MUSIC_FOLDER, os.path.basename(music_track_name))
             if not os.path.exists(music_path):
-                music_path = None  # Fall back to no music
+                music_path = None  # Will fall through to auto-generate
+
+        # If no music file found, auto-generate one — silence is worse than bad music
+        if not music_path:
+            app.logger.info("No music track available, generating fallback music")
+            generated_music = _generate_builtin_music(duration, tmp_files)
+            if generated_music:
+                music_path = generated_music
+                tmp_files.append(generated_music)
+            else:
+                app.logger.warning("Fallback music generation also failed")
 
         # Save uploaded logo to a temp file if provided
         logo_path = None
