@@ -1720,7 +1720,9 @@ def rewrite_voice_script():
 @app.route('/generate-listing', methods=['POST'])
 @login_required
 def generate_listing():
-    data      = request.get_json()
+    data = request.get_json() or {}
+    if not data:
+        return jsonify({'error': 'No product data provided.'}), 400
     product   = data.get('product', {})
     platform  = data.get('platform', 'facebook')
     api_key   = get_ai_api_key()
