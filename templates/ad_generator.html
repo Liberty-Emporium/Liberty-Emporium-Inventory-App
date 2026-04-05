@@ -1,933 +1,429 @@
 {% extends 'base.html' %}
 
-{% block title %}Ad Generator | Liberty Emporium{% endblock %}
+{% block title %}Picture Ad Studio | Liberty Emporium{% endblock %}
 
 {% block howto_slides %}
 <div class="ht-slide">
-  <div class="ht-icon">📣</div>
-  <div class="ht-label">Ad Generator — How-To Guide</div>
-  <h2>Generate Ready-to-Post Ads</h2>
-  <p>The Ad Generator uses AI to create polished JPEG advertisement images for your products — perfect for Facebook, Instagram, or printing in-store. You can generate ads for up to 10 products at once.</p>
+  <div class="ht-icon">📸</div>
+  <div class="ht-label">Picture Ad Studio — How-To Guide</div>
+  <h2>Generate Beautiful JPEG Ads</h2>
+  <p>The Picture Ad Studio creates polished 1080px JPEG images for your products — ready to post on Facebook, Instagram, TikTok, or print in-store. Generate up to 10 ads at once.</p>
 </div>
 <div class="ht-slide">
   <div class="ht-icon">☑️</div>
   <div class="ht-label">Step 1 — Select Products</div>
-  <h2>Choosing Your Products</h2>
+  <h2>Choose Your Products</h2>
   <ol>
-    <li>Browse the product grid below the style picker.</li>
-    <li>Click any product card to <strong>select</strong> it — a checkmark appears and the border highlights.</li>
-    <li>Click again to <strong>deselect</strong> it.</li>
-    <li>The counter in the top-right shows how many are selected (max 10).</li>
+    <li>Browse the product grid below.</li>
+    <li>Click any card to <strong>select</strong> it — a checkmark and gold border appear.</li>
+    <li>Click again to deselect. You can select up to 10 products at once.</li>
   </ol>
-  <div class="ht-tip">Only Available products appear. Sold products are not shown.</div>
+  <div class="ht-tip">Only Available products are shown. Sold items are excluded.</div>
 </div>
 <div class="ht-slide">
   <div class="ht-icon">🎨</div>
-  <div class="ht-label">Step 2 — Choose Style</div>
-  <h2>Picking an Ad Style</h2>
-  <p>Before generating, choose a visual style for your ads using the style buttons at the top:</p>
+  <div class="ht-label">Step 2 — Pick a Style</div>
+  <h2>Choose Your Look</h2>
   <ul>
-    <li><strong>Red &amp; Gold</strong> — classic, elegant look</li>
-    <li><strong>Navy &amp; Cream</strong> — professional and clean</li>
-    <li><strong>Forest &amp; Tan</strong> — warm, earthy tone</li>
-    <li><strong>Midnight</strong> — bold dark theme</li>
-    <li><strong>Blush</strong> — soft, boutique feel</li>
+    <li><strong>Elegant</strong> — Deep navy with gold accents</li>
+    <li><strong>Vivid</strong> — Bold red with yellow pop</li>
+    <li><strong>Forest</strong> — Rich green, earthy feel</li>
+    <li><strong>Ocean</strong> — Deep blue, cool tones</li>
+    <li><strong>Warm</strong> — Amber espresso, cosy vibe</li>
+  </ul>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📐</div>
+  <div class="ht-label">Step 3 — Pick a Format</div>
+  <h2>Choose Your Size</h2>
+  <ul>
+    <li><strong>Square 1:1</strong> — 1080×1080 · Instagram, Facebook, in-store display</li>
+    <li><strong>Portrait 4:5</strong> — 1080×1350 · Instagram feed portrait</li>
+    <li><strong>Story 9:16</strong> — 1080×1920 · Stories, Reels, TikTok</li>
   </ul>
 </div>
 <div class="ht-slide">
   <div class="ht-icon">⚡</div>
-  <div class="ht-label">Step 3 — Generate</div>
-  <h2>Generating Your Ads</h2>
+  <div class="ht-label">Step 4 — Generate</div>
+  <h2>Create Your Ads</h2>
   <ol>
-    <li>With at least one product selected, the <strong>"✨ Generate Ads"</strong> button becomes active.</li>
-    <li>Click it — a loading overlay appears while the AI creates your ads.</li>
-    <li>When done, a list of generated ad files appears below the product grid.</li>
+    <li>Optionally add your <strong>Store Name</strong> and a <strong>CTA line</strong>.</li>
+    <li>Click <strong>"✨ Generate Ads"</strong> in the sticky bar at the bottom.</li>
+    <li>Ads appear as full-size previews below — click <strong>Download</strong> to save each one.</li>
   </ol>
-  <div class="ht-tip">Generation takes a few seconds per product. Don't close the page while it's running.</div>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">⬇️</div>
-  <div class="ht-label">Step 4 — Use Your Ads</div>
-  <h2>Viewing &amp; Downloading Ads</h2>
-  <p>Each generated ad appears as a card in the results section with two buttons:</p>
-  <ul>
-    <li><strong>View</strong> — opens the ad image in a new browser tab so you can preview it.</li>
-    <li><strong>Download</strong> — saves the JPEG file to your computer, ready to post.</li>
-  </ul>
-  <div class="ht-tip">Ads are saved on the server. You can re-download them any time by visiting this page again.</div>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">🎬</div>
-  <div class="ht-label">Video Studio</div>
-  <h2>Creating a Video Ad</h2>
-  <p>The purple <strong>🎬 Video Studio</strong> panel below the generate bar turns your product photos into MP4 video ads with music. Use the same selected products as image ads.</p>
-  <ol>
-    <li>Pick a <strong>Video Style</strong> — Slideshow or Ken Burns zoom.</li>
-    <li>Select a <strong>Music Track</strong> from the library (click ▶️ to preview) or upload your own MP3.</li>
-    <li>Set the <strong>Duration</strong> with the slider (10–60 seconds).</li>
-    <li>Click <strong>"🎬 Create Video Ad"</strong> — takes up to a minute.</li>
-  </ol>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">⬇️</div>
-  <div class="ht-label">Video Results</div>
-  <h2>Your Generated Videos</h2>
-  <p>Each video appears below the Video Studio panel with an inline preview player and a <strong>⬇️ Download MP4</strong> button. Videos are saved on the server so you can download them any time.</p>
-  <div class="ht-tip">Ken Burns videos may take slightly longer to generate than Slideshow videos due to the zoom animation processing.</div>
+  <div class="ht-tip">Generation takes just a few seconds per product.</div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
 
+  /* ── Header ── */
   .ad-gen-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
     padding-bottom: 1.5rem;
     border-bottom: 2px solid #e8e0d4;
   }
-
   .ad-gen-header h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 2.4rem;
+    font-size: 2.2rem;
     color: #1a1a2e;
     letter-spacing: -0.02em;
   }
-
   .ad-gen-header p {
     color: #7a7a8c;
     font-size: 0.95rem;
     margin-top: 0.4rem;
     font-family: 'DM Sans', sans-serif;
   }
-
   .selection-info {
     background: linear-gradient(135deg, #1a1a2e 0%, #2d2d5a 100%);
     color: white;
-    padding: 1rem 1.5rem;
+    padding: 0.9rem 1.4rem;
     border-radius: 12px;
     text-align: center;
-    min-width: 140px;
+    min-width: 130px;
   }
-
   .selection-count {
     font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
+    font-size: 2.4rem;
     font-weight: 900;
     line-height: 1;
     color: #f0c040;
   }
-
   .selection-label {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     opacity: 0.8;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin-top: 0.25rem;
+    margin-top: 0.2rem;
     font-family: 'DM Sans', sans-serif;
   }
 
-  /* Ad Style Picker */
-  .style-picker {
+  /* ── Config panel ── */
+  .config-panel {
     background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.75rem;
     box-shadow: 0 2px 12px rgba(0,0,0,0.07);
   }
-
-  .style-picker h3 {
+  .config-panel h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: #1a1a2e;
     margin-bottom: 1rem;
   }
-
-  .style-options {
+  .config-row {
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .config-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+    min-width: 180px;
+  }
+  .config-field label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .config-field input {
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 0.55rem 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    color: #1a1a2e;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .config-field input:focus { border-color: #1a1a2e; }
+
+  /* ── Style chips ── */
+  .style-chips {
+    display: flex;
+    gap: 0.6rem;
     flex-wrap: wrap;
   }
-
-  .style-option {
-    border: 2px solid #e0ddd8;
-    border-radius: 10px;
-    padding: 0.75rem 1.25rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.875rem;
-    background: white;
+  .style-chip {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 2px solid #e0ddd8;
+    border-radius: 24px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: white;
+    transition: all 0.18s;
+    user-select: none;
   }
-
-  .style-option:hover {
-    border-color: #1a1a2e;
-    background: #f8f7f5;
-  }
-
-  .style-option.active {
-    border-color: #1a1a2e;
-    background: #1a1a2e;
-    color: white;
-  }
-
-  .style-dot {
-    width: 12px;
-    height: 12px;
+  .style-chip:hover { border-color: #1a1a2e; background: #f8f7f5; }
+  .style-chip.active { border-color: #1a1a2e; background: #1a1a2e; color: white; }
+  .style-chip.active .chip-dot { border-color: white; }
+  .chip-dot {
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
-    display: inline-block;
+    border: 2px solid transparent;
+    flex-shrink: 0;
   }
 
-  /* Products Grid */
+  /* ── Format chips ── */
+  .format-chips {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .format-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.65rem 1rem;
+    border: 2px solid #e0ddd8;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    background: white;
+    transition: all 0.18s;
+    min-width: 90px;
+  }
+  .format-chip:hover { border-color: #1a1a2e; background: #f8f7f5; }
+  .format-chip.active { border-color: #1a1a2e; background: #1a1a2e; color: white; }
+  .format-chip .fc-icon { font-size: 1.4rem; line-height: 1; }
+  .format-chip .fc-label { font-size: 0.78rem; font-weight: 600; }
+  .format-chip .fc-size  { font-size: 0.68rem; opacity: 0.65; }
+
+  /* ── Products grid ── */
   .products-selection-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.1rem;
+    margin-bottom: 1.75rem;
   }
-
   .selectable-card {
     background: white;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.07);
     cursor: pointer;
-    transition: all 0.25s;
+    transition: all 0.22s;
     border: 2.5px solid transparent;
     position: relative;
   }
-
-  .selectable-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  }
-
-  .selectable-card.selected {
-    border-color: #1a1a2e;
-    box-shadow: 0 8px 24px rgba(26,26,46,0.2);
-  }
-
+  .selectable-card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
+  .selectable-card.selected { border-color: #f0c040; box-shadow: 0 8px 22px rgba(240,192,64,0.25); }
   .select-checkbox {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 28px;
-    height: 28px;
+    top: 9px; right: 9px;
+    width: 26px; height: 26px;
     border-radius: 50%;
     background: white;
     border: 2.5px solid #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     z-index: 2;
-    transition: all 0.2s;
-    font-size: 14px;
+    transition: all 0.18s;
+    font-size: 13px;
   }
-
-  .selectable-card.selected .select-checkbox {
-    background: #1a1a2e;
-    border-color: #1a1a2e;
-    color: white;
-  }
-
+  .selectable-card.selected .select-checkbox { background: #1a1a2e; border-color: #1a1a2e; color: white; }
   .card-img {
-    height: 180px;
+    height: 170px;
     background: #f0ede8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     overflow: hidden;
   }
-
-  .card-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .card-img .no-img-text {
-    color: #b0aaa0;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.875rem;
-  }
-
-  .card-body {
-    padding: 1rem 1.1rem 1.1rem;
-  }
-
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-img .no-img-text { color: #b0aaa0; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; }
+  .card-body { padding: 0.9rem 1rem 1rem; }
   .card-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    color: #1a1a2e;
-    margin-bottom: 0.3rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.95rem; color: #1a1a2e;
+    margin-bottom: 0.25rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-
-  .card-sku {
-    font-size: 0.75rem;
-    color: #a0a0b0;
-    font-family: 'DM Sans', sans-serif;
-    margin-bottom: 0.5rem;
-  }
-
-  .card-footer-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .card-price {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    color: #27ae60;
-    font-size: 1.1rem;
-  }
-
-  .card-status {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 20px;
-    text-transform: uppercase;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-  }
-
+  .card-sku { font-size: 0.72rem; color: #a0a0b0; font-family: 'DM Sans', sans-serif; margin-bottom: 0.45rem; }
+  .card-footer-row { display: flex; justify-content: space-between; align-items: center; }
+  .card-price { font-family: 'DM Sans', sans-serif; font-weight: 600; color: #27ae60; font-size: 1.05rem; }
+  .card-status { font-size: 0.68rem; padding: 0.18rem 0.55rem; border-radius: 20px; text-transform: uppercase; font-family: 'DM Sans', sans-serif; font-weight: 500; }
   .status-available { background: #d4edda; color: #155724; }
-  .status-sold { background: #f8d7da; color: #721c24; }
+  .status-sold      { background: #f8d7da; color: #721c24; }
 
-  /* Generate Button */
+  /* ── Sticky generate bar ── */
   .generate-bar {
     position: sticky;
     bottom: 1rem;
     background: white;
     border-radius: 16px;
-    padding: 1.25rem 1.75rem;
+    padding: 1.1rem 1.6rem;
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     z-index: 100;
-    border: 1.5px solid #e8e4de;
   }
-
-  .generate-bar-info {
-    font-family: 'DM Sans', sans-serif;
-    color: #5a5a6e;
-    font-size: 0.9rem;
-  }
-
-  .generate-bar-info strong {
-    color: #1a1a2e;
-    font-size: 1.1rem;
-  }
-
+  .generate-bar-info { font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: #444; }
+  .generate-bar-info strong { color: #1a1a2e; }
+  #maxWarning { display: none; font-size: 0.78rem; color: #e74c3c; margin-top: 0.25rem; }
+  #maxWarning.visible { display: block; }
   .btn-generate {
     background: linear-gradient(135deg, #1a1a2e 0%, #2d2d5a 100%);
     color: white;
     border: none;
-    padding: 0.9rem 2rem;
+    padding: 0.8rem 2rem;
     border-radius: 10px;
     font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    transition: opacity 0.2s, transform 0.15s;
     white-space: nowrap;
   }
+  .btn-generate:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+  .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .gold-icon { color: #f0c040; }
 
-  .btn-generate:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(26,26,46,0.4);
-  }
-
-  .btn-generate:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-
-  .btn-generate .gold-icon {
-    color: #f0c040;
-    font-size: 1.1rem;
-  }
-
-  /* Generated Ads List */
-  .generated-ads-section {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 2px solid #e8e0d4;
+  /* ── Results ── */
+  .results-section {
+    margin-top: 2.5rem;
     display: none;
   }
-
-  .generated-ads-section.visible {
-    display: block;
-  }
-
-  .generated-ads-section h2 {
+  .results-section.visible { display: block; }
+  .results-section h2 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     color: #1a1a2e;
+    margin-bottom: 0.5rem;
+  }
+  .results-section > p {
+    color: #7a7a8c;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
     margin-bottom: 1.5rem;
   }
-
-  .ad-files-list {
+  .results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
   }
-
-  .ad-file-card {
+  .result-card {
     background: white;
-    border-radius: 10px;
-    padding: 1.25rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+  }
+  .result-card img {
+    width: 100%;
+    display: block;
+    border-bottom: 1px solid #f0ede8;
+  }
+  .result-card-footer {
+    padding: 0.85rem 1.1rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    border-left: 4px solid #f0c040;
+    justify-content: space-between;
+    gap: 0.75rem;
   }
-
-  .ad-file-icon {
-    font-size: 2rem;
-    flex-shrink: 0;
-  }
-
-  .ad-file-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .ad-file-name {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.92rem;
     color: #1a1a2e;
-    font-size: 0.9rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
   }
-
-  .ad-file-meta {
-    font-size: 0.75rem;
-    color: #a0a0b0;
-    margin-top: 0.2rem;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .ad-file-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .btn-view-ad, .btn-download-ad {
-    padding: 0.35rem 0.85rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    text-decoration: none;
-    text-align: center;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    transition: all 0.15s;
-    cursor: pointer;
-    border: none;
-  }
-
-  .btn-view-ad {
+  .result-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+  .btn-dl {
     background: #1a1a2e;
     color: white;
+    border: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
   }
-
-  .btn-download-ad {
-    background: #f0f0f5;
+  .btn-dl:hover { opacity: 0.85; }
+  .btn-open {
+    background: #f5f3ef;
     color: #1a1a2e;
+    border: 1.5px solid #e0ddd8;
+    padding: 0.45rem 0.9rem;
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
   }
+  .btn-open:hover { background: #ece9e3; }
 
-  .btn-view-ad:hover { background: #2d2d5a; }
-  .btn-download-ad:hover { background: #e0e0ec; }
-
-  /* Loading overlay */
+  /* ── Loading overlay ── */
   .loading-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(26,26,46,0.7);
+    background: rgba(10, 10, 30, 0.82);
     z-index: 9999;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
-    gap: 1rem;
+    gap: 1.2rem;
     color: white;
     font-family: 'DM Sans', sans-serif;
   }
-
-  .loading-overlay.active {
-    display: flex;
-  }
-
+  .loading-overlay.active { display: flex; }
   .spinner-ring {
-    width: 56px;
-    height: 56px;
-    border: 4px solid rgba(255,255,255,0.2);
+    width: 52px; height: 52px;
+    border: 5px solid rgba(255,255,255,0.18);
     border-top-color: #f0c040;
     border-radius: 50%;
     animation: spin 0.9s linear infinite;
   }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loadingBar { height: 100%; width: 0%; background: linear-gradient(90deg, #f0c040, #fff); border-radius: 3px; transition: width 0.4s ease; }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .ad-gen-header { flex-direction: column; gap: 1rem; }
+    .config-row { flex-direction: column; }
+    .generate-bar { flex-direction: column; align-items: stretch; text-align: center; }
+    .results-grid { grid-template-columns: 1fr; }
   }
-
-  .max-warning {
-    background: #fff3cd;
-    color: #856404;
-    border-radius: 8px;
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
-    font-family: 'DM Sans', sans-serif;
-    display: none;
-    margin-bottom: 1rem;
-  }
-
-  .max-warning.visible { display: block; }
-
-/* ── Video Studio Panel ───────────────────────────────────────── */
-.vs-panel {
-  margin: 2rem 0;
-  border: 2px solid #4a7c59;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(74,124,89,0.18);
-  font-family: 'DM Sans', sans-serif;
-}
-
-.vs-header {
-  background: linear-gradient(135deg, #4a7c59 0%, #6b4423 100%);
-  color: white;
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.vs-header h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
-.vs-header p  { margin: 0.2rem 0 0; font-size: 0.8rem; opacity: 0.85; }
-
-.vs-badge {
-  background: rgba(255,255,255,0.2);
-  border-radius: 20px;
-  padding: 0.2rem 0.7rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.vs-body { background: white; padding: 1.25rem 1.5rem; }
-
-.vs-section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: #666;
-  margin-bottom: 0.6rem;
-}
-
-/* Video style cards */
-.vs-style-grid {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-
-.vs-style-card {
-  flex: 1;
-  border: 2px solid #e0ddd8;
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-}
-
-.vs-style-card:hover { border-color: #4a7c59; }
-.vs-style-card.active {
-  border-color: #4a7c59;
-  background: #f0ece0;
-}
-
-.vs-style-card .vs-card-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
-.vs-style-card h4 { font-size: 0.88rem; font-weight: 700; color: #333; margin: 0 0 0.2rem; }
-.vs-style-card p  { font-size: 0.75rem; color: #888; margin: 0; }
-.vs-style-card.active h4 { color: #4a7c59; }
-
-/* Seasonal template cards */
-.vs-template-card {
-  border: 2px solid #e0ddd8;
-  border-radius: 8px;
-  padding: 0.6rem;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.vs-template-card:hover { border-color: #4a7c59; }
-.vs-template-card.active {
-  border-color: #4a7c59;
-  background: #f0ece0;
-}
-
-/* Social media format cards */
-.vs-format-card {
-  border: 2px solid #e0ddd8;
-  border-radius: 8px;
-  padding: 0.6rem;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
-}
-
-.vs-format-card:hover { border-color: #4a7c59; }
-.vs-format-card.active {
-  border-color: #4a7c59;
-  background: #f0ece0;
-}
-
-/* Preset cards */
-.vs-preset-card {
-  border: 2px solid #e0ddd8;
-  border-radius: 8px;
-  padding: 0.6rem;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.vs-preset-card:hover {
-  border-color: #4a7c59;
-  background: #f0ece0;
-  transform: translateY(-2px);
-}
-
-.vs-preset-card:active {
-  transform: translateY(0);
-}
-
-/* Music track grid */
-.vs-music-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
-}
-
-.vs-track-card {
-  border: 2px solid #e0ddd8;
-  border-radius: 8px;
-  padding: 0.6rem 0.75rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  transition: all 0.2s;
-}
-
-.vs-track-card:hover { border-color: #4a7c59; }
-.vs-track-card.active {
-  border-color: #4a7c59;
-  background: #f0ece0;
-}
-
-.vs-track-card .vs-track-name {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vs-track-card.active .vs-track-name { color: #4a7c59; }
-
-.vs-play-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-.vs-upload-zone {
-  border: 2px dashed #4a7c59;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  background: #f5f0e5;
-  transition: background 0.2s;
-  margin-bottom: 1.25rem;
-}
-
-.vs-upload-zone:hover { background: #e8e0d0; }
-.vs-upload-zone .vs-upload-label { font-size: 0.85rem; font-weight: 700; color: #4a7c59; }
-.vs-upload-zone .vs-upload-sub   { font-size: 0.75rem; color: #999; }
-
-/* Duration slider */
-.vs-slider-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-
-.vs-slider-row span { font-size: 0.78rem; color: #999; white-space: nowrap; }
-.vs-slider-row input[type=range] { flex: 1; accent-color: #4a7c59; }
-
-/* Generate video button */
-.btn-generate-video {
-  width: 100%;
-  background: linear-gradient(135deg, #4a7c59 0%, #6b4423 100%);
-  color: white;
-  border: none;
-  padding: 0.9rem;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: opacity 0.2s;
-}
-
-.btn-generate-video:hover:not(:disabled) { opacity: 0.88; }
-.btn-generate-video:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* Video results */
-.vs-results {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid #e8e0d5;
-  display: none;
-}
-
-.vs-results.visible { display: block; }
-
-.vs-results h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.6rem;
-  color: #6b4423;
-  margin-bottom: 1.25rem;
-}
-
-.vs-video-card {
-  background: white;
-  border: 1px solid #e8e0d5;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 12px rgba(74,124,89,0.1);
-}
-
-.vs-video-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background: #f5f0e5;
-  border-bottom: 1px solid #e8e0d5;
-  gap: 0.75rem;
-}
-
-.vs-video-title { font-weight: 700; font-size: 0.95rem; color: #333; }
-
-.btn-dl-video {
-  background: #4a7c59;
-  color: white;
-  padding: 0.45rem 1rem;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.btn-dl-video:hover { background: #6d28d9; }
-
-/* ── Mobile Responsive ───────────────────────────────────────────── */
-@media (max-width: 768px) {
-    * { box-sizing: border-box !important; }
-    main { padding: 0.25rem !important; }
-    
-    /* Product selection - single column */
-    .selectable-card {
-        padding: 0.75rem !important;
-        display: flex !important;
-        flex-direction: column !important;
-        min-height: 100px !important;
-    }
-    
-    /* Style cards - compact */
-    .style-card {
-        padding: 0.75rem 0.5rem !important;
-        min-height: 60px !important;
-    }
-    .style-card h3 {
-        font-size: 0.85rem !important;
-    }
-    
-    /* Video Studio Panel */
-    .vs-panel {
-        padding: 0.75rem 1rem !important;
-        margin: 0.5rem 0 1rem !important;
-    }
-    .vs-header {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 0.5rem !important;
-    }
-    .vs-header h3 {
-        font-size: 1.1rem !important;
-    }
-    .vs-header p {
-        font-size: 0.75rem !important;
-    }
-    
-    /* Template cards - horizontally scrollable */
-    .vs-template-group {
-        display: flex !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        gap: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
-    }
-    .vs-template-card {
-        flex-shrink: 0 !important;
-        width: 100px !important;
-        min-width: 80px !important;
-        padding: 0.5rem 0.5rem !important;
-    }
-    
-    /* Format cards - 2x2 grid */
-    .vs-format-cards {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 0.4rem !important;
-    }
-    .vs-format-card {
-        padding: 0.5rem !important;
-    }
-    
-    /* Style cards - 2x2 grid */
-    .vs-style-cards {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 0.4rem !important;
-    }
-    .vs-style-card {
-        padding: 0.75rem 0.5rem !important;
-    }
-    
-    /* Music grid - horizontal scroll */
-    #vsMusicGrid {
-        display: flex !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        gap: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
-    }
-    .vs-music-card {
-        flex-shrink: 0 !important;
-        width: 150px !important;
-        min-width: 140px !important;
-    }
-    
-    /* Upload zone - stacked */
-    .vs-upload-zone {
-        flex-direction: column !important;
-        text-align: center !important;
-        padding: 0.75rem !important;
-    }
-    
-    /* Controls section - stacked */
-    .vs-section-label {
-        margin-top: 1rem !important;
-    }
-    .vs-control-row {
-        flex-direction: column !important;
-        gap: 0.5rem !important;
-    }
-    .vs-control-row > div {
-        width: 100% !important;
-    }
-    
-    /* Generate button - full width */
-    .btn-generate-video {
-        width: 100% !important;
-        min-height: 44px !important;
-        font-size: 1rem !important;
-        padding: 0.75rem !important;
-    }
-    
-    /* Results */
-    .vs-results {
-        padding: 0.5rem !important;
-    }
-    .vs-results h2 {
-        font-size: 1.2rem !important;
-    }
-    .vs-video-card {
-        flex-direction: column !important;
-        gap: 0.5rem !important;
-    }
-    .vs-video-card video {
-        width: 100% !important;
-        max-height: 200px !important;
-    }
-    .vs-video-card-header {
-        flex-direction: column !important;
-        gap: 0.3rem !important;
-    }
-    .btn-dl-video {
-        width: 100% !important;
-        text-align: center !important;
-    }
-}
-
 </style>
 
+<!-- ── Page Header ── -->
 <div class="ad-gen-header">
   <div>
-    <h1>📣 Ad Generator</h1>
-    <p>Select up to 10 products and generate polished JPEG ads ready to post.</p>
+    <h1>📸 Picture Ad Studio</h1>
+    <p>Select products, choose a style, and generate beautiful JPEG ads ready to post anywhere.</p>
   </div>
   <div class="selection-info">
     <div class="selection-count" id="countDisplay">0</div>
@@ -935,55 +431,90 @@
   </div>
 </div>
 
-<!-- Style Picker -->
-<div class="style-picker">
-  <h3>Choose Ad Style</h3>
-  <div class="style-options">
-    <button class="style-option active" data-style="elegant" onclick="selectStyle(this)">
-      <span class="style-dot" style="background:#cc0000"></span> Red &amp; Gold
-    </button>
-    <button class="style-option" data-style="bright" onclick="selectStyle(this)">
-      <span class="style-dot" style="background:#ff6600"></span> Orange &amp; Yellow
-    </button>
-    <button class="style-option" data-style="minimal" onclick="selectStyle(this)">
-      <span class="style-dot" style="background:#003366"></span> Navy &amp; White
-    </button>
-    <button class="style-option" data-style="vintage" onclick="selectStyle(this)">
-      <span class="style-dot" style="background:#8B4513"></span> Brown &amp; Gold
-    </button>
+<!-- ── Config Panel ── -->
+<div class="config-panel">
+  <h3>Ad Settings</h3>
+
+  <div style="margin-bottom:1.25rem;">
+    <div style="font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:500; color:#555; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.6rem;">Style</div>
+    <div class="style-chips">
+      <div class="style-chip active" data-style="elegant" onclick="selectStyle(this)">
+        <span class="chip-dot" style="background:linear-gradient(135deg,#0a0a1c,#f0c040);"></span> Elegant
+      </div>
+      <div class="style-chip" data-style="vivid" onclick="selectStyle(this)">
+        <span class="chip-dot" style="background:linear-gradient(135deg,#aa1919,#ffdc3c);"></span> Vivid
+      </div>
+      <div class="style-chip" data-style="forest" onclick="selectStyle(this)">
+        <span class="chip-dot" style="background:linear-gradient(135deg,#123723,#78d278);"></span> Forest
+      </div>
+      <div class="style-chip" data-style="ocean" onclick="selectStyle(this)">
+        <span class="chip-dot" style="background:linear-gradient(135deg,#0a265a,#5ac3ff);"></span> Ocean
+      </div>
+      <div class="style-chip" data-style="warm" onclick="selectStyle(this)">
+        <span class="chip-dot" style="background:linear-gradient(135deg,#482308,#ffb641);"></span> Warm
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:1.25rem;">
+    <div style="font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:500; color:#555; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.6rem;">Format</div>
+    <div class="format-chips">
+      <div class="format-chip active" data-fmt="square" onclick="selectFormat(this)">
+        <span class="fc-icon">⬛</span>
+        <span class="fc-label">Square</span>
+        <span class="fc-size">1080 × 1080</span>
+      </div>
+      <div class="format-chip" data-fmt="portrait" onclick="selectFormat(this)">
+        <span class="fc-icon">📱</span>
+        <span class="fc-label">Portrait</span>
+        <span class="fc-size">1080 × 1350</span>
+      </div>
+      <div class="format-chip" data-fmt="story" onclick="selectFormat(this)">
+        <span class="fc-icon">🎞️</span>
+        <span class="fc-label">Story</span>
+        <span class="fc-size">1080 × 1920</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="config-row">
+    <div class="config-field">
+      <label>Store Name</label>
+      <input type="text" id="storeNameInput" placeholder="Liberty Emporium" value="{{ store_name or '' }}">
+    </div>
+    <div class="config-field">
+      <label>Call-to-Action line (optional)</label>
+      <input type="text" id="ctaInput" placeholder="e.g. Shop Now · Visit Us Today!">
+    </div>
   </div>
 </div>
 
-<div class="max-warning" id="maxWarning">
-  ⚠️ Maximum 10 products selected. Deselect one to choose another.
-</div>
-
-<!-- Products Grid -->
+<!-- ── Product Grid ── -->
 <div class="products-selection-grid">
   {% for product in products %}
-  <div class="selectable-card" 
+  <div class="selectable-card"
        data-sku="{{ product.SKU }}"
-       data-title="{{ product.Title }}"
-       data-price="{{ product.Price|default('0.00') }}"
-       data-category="{{ product.Category|default('') }}"
-       data-condition="{{ product.Condition|default('') }}"
-       data-description="{{ product.Description|default('')|truncate(150) }}"
-       data-image="{% if product.valid_images %}{{ url_for('serve_upload', filename=product.valid_images[0]) }}{% endif %}"
+       data-title="{{ product.Title | e }}"
+       data-price="{{ product.Price | default('0.00') }}"
+       data-category="{{ product.Category | default('') | e }}"
+       data-condition="{{ product.Condition | default('') | e }}"
+       data-description="{{ product.Description | default('') | e }}"
+       data-image="{{ url_for('uploaded_file', filename=product.Image) if product.Image else '' }}"
        onclick="toggleCard(this)">
-    <div class="select-checkbox" id="chk-{{ loop.index }}">✓</div>
+    <div class="select-checkbox">✓</div>
     <div class="card-img">
-      {% if product.valid_images and product.valid_images|length > 0 %}
-        <img src="{{ url_for('serve_upload', filename=product.valid_images[0]) }}" alt="{{ product.Title }}">
+      {% if product.Image %}
+        <img src="{{ url_for('uploaded_file', filename=product.Image) }}" alt="{{ product.Title }}" loading="lazy">
       {% else %}
-        <span class="no-img-text">No Image</span>
+        <span class="no-img-text">No photo</span>
       {% endif %}
     </div>
     <div class="card-body">
       <div class="card-title">{{ product.Title }}</div>
       <div class="card-sku">SKU: {{ product.SKU }}</div>
       <div class="card-footer-row">
-        <span class="card-price">${{ product.Price|default('0.00') }}</span>
-        <span class="card-status status-{{ product.Status|lower|default('available') }}">{{ product.Status }}</span>
+        <span class="card-price">${{ product.Price | default('0.00') }}</span>
+        <span class="card-status status-{{ product.Status | lower | default('available') }}">{{ product.Status }}</span>
       </div>
     </div>
   </div>
@@ -991,369 +522,54 @@
 </div>
 
 {% if not products %}
-<div style="text-align:center; padding: 3rem; background: white; border-radius: 12px; color: #7a7a8c; font-family: 'DM Sans', sans-serif;">
-  No products in inventory yet. <a href="{{ url_for('new_product') }}" style="color: #1a1a2e; font-weight: 600;">Add some products first!</a>
+<div style="text-align:center; padding:3rem; background:white; border-radius:12px; color:#7a7a8c; font-family:'DM Sans',sans-serif;">
+  No products yet. <a href="{{ url_for('new_product') }}" style="color:#1a1a2e; font-weight:600;">Add some products first!</a>
 </div>
 {% endif %}
 
-<!-- Sticky Generate Bar -->
+<!-- ── Sticky Generate Bar ── -->
 <div class="generate-bar">
   <div class="generate-bar-info">
-    <strong id="barCount">0</strong> products selected &mdash; choose up to 10
+    <strong id="barCount">0</strong> products selected — choose up to 10
+    <div id="maxWarning">Maximum 10 products reached</div>
   </div>
   <button class="btn-generate" id="generateBtn" disabled onclick="generateAds()">
-    <span class="gold-icon">✦</span> Generate JPEG Ads
+    <span class="gold-icon">✨</span> Generate Ads
   </button>
 </div>
 
-<!-- ══ Video Studio Panel ══ -->
-<div class="vs-panel">
-  <div class="vs-header">
-    <div>
-      <h3>🎬 Video Studio</h3>
-      <p>Turn your product photos into video ads with music</p>
-    </div>
-    <span class="vs-badge">NEW</span>
-  </div>
-  <div class="vs-body">
-
-    <!-- Quick Presets -->
-    <div class="vs-section-label">⚡ Quick Presets</div>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0.5rem; margin-bottom:1.5rem;">
-      <div class="vs-preset-card" onclick="vsApplyPreset('quick')">
-        <span style="font-size:1.3rem;">⚡</span>
-        <span style="font-size:0.8rem; font-weight:700;">Quick 30s</span>
-        <span style="font-size:0.65rem; color:#999;">Default + YouTube</span>
-      </div>
-      <div class="vs-preset-card" onclick="vsApplyPreset('social')">
-        <span style="font-size:1.3rem;">📱</span>
-        <span style="font-size:0.8rem; font-weight:700;">TikTok/Reels</span>
-        <span style="font-size:0.65rem; color:#999;">Vertical 15s</span>
-      </div>
-      <div class="vs-preset-card" onclick="vsApplyPreset('holiday')">
-        <span style="font-size:1.3rem;">🎄</span>
-        <span style="font-size:0.8rem; font-weight:700;">Holiday Promo</span>
-        <span style="font-size:0.65rem; color:#999;">Holiday + All</span>
-      </div>
-      <div class="vs-preset-card" onclick="vsApplyPreset('display')">
-        <span style="font-size:1.3rem;">🖼️</span>
-        <span style="font-size:0.8rem; font-weight:700;">Store Display</span>
-        <span style="font-size:0.65rem; color:#999;">Square 30s Loop</span>
-      </div>
-      <div class="vs-preset-card" onclick="vsApplyPreset('youtube')">
-        <span style="font-size:1.3rem;">▶️</span>
-        <span style="font-size:0.8rem; font-weight:700;">YouTube Video</span>
-        <span style="font-size:0.65rem; color:#999;">Cinematic 60s</span>
-      </div>
-      <div class="vs-preset-card" onclick="vsApplyPreset('facebook')">
-        <span style="font-size:1.3rem;">👍</span>
-        <span style="font-size:0.8rem; font-weight:700;">Facebook Share</span>
-        <span style="font-size:0.65rem; color:#999;">Link Preview 20s</span>
-      </div>
-    </div>
-
-    <div style="margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1.5px solid #e0ddd8;">
-      <p style="font-size:0.8rem; color:#999; font-family:'DM Sans', sans-serif; margin:0;">
-        💡 <strong>Tip:</strong> Choose a preset to auto-fill settings, then customize as needed. Or configure manually below.
-      </p>
-    </div>
-
-    <!-- Seasonal Templates -->
-    <div class="vs-section-label">🎄 Seasonal Template</div>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:0.5rem; margin-bottom:0.75rem;">
-      <div class="vs-template-card active" data-template="default" onclick="vsSelectTemplate(this)">
-        <span style="font-size:1.2rem;">📅</span>
-        <span style="font-size:0.75rem; font-weight:700;">Default</span>
-        <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#1a1a2e;border:1px solid #ccc;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#f0c040;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#f0f0f5;border:1px solid #ccc;"></div>
-        </div>
-      </div>
-      <div class="vs-template-card" data-template="holiday" onclick="vsSelectTemplate(this)">
-        <span style="font-size:1.2rem;">🎅</span>
-        <span style="font-size:0.75rem; font-weight:700;">Holiday</span>
-        <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#0d3d22;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ff2d2d;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ffff00;"></div>
-        </div>
-      </div>
-      <div class="vs-template-card" data-template="valentine" onclick="vsSelectTemplate(this)">
-        <span style="font-size:1.2rem;">💌</span>
-        <span style="font-size:0.75rem; font-weight:700;">Valentine</span>
-        <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#3d2b1f;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#8B6914;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#d4b86a;"></div>
-        </div>
-      </div>
-      <div class="vs-template-card" data-template="spring" onclick="vsSelectTemplate(this)">
-        <span style="font-size:1.2rem;">🌸</span>
-        <span style="font-size:0.75rem; font-weight:700;">Spring</span>
-        <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#f5f5f5;border:1px solid #ccc;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#00d084;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#2d5f3f;"></div>
-        </div>
-      </div>
-      <div class="vs-template-card" data-template="summer" onclick="vsSelectTemplate(this)">
-        <span style="font-size:1.2rem;">☀️</span>
-        <span style="font-size:0.75rem; font-weight:700;">Summer</span>
-        <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#003d82;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ffa500;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#fff76d;"></div>
-        </div>
-      </div>
-      <div class="vs-template-card" data-template="fall" onclick="vsSelectTemplate(this)">
-        <span style="font-size:1.2rem;">🍂</span>
-        <span style="font-size:0.75rem; font-weight:700;">Fall</span>
-        <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#3d2817;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ff7f50;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ffe4b5;"></div>
-        </div>
-      </div>
-      <div class="vs-template-card" data-template="blackfriday" onclick="vsSelectTemplate(this)">
-        <span style="font-size:1.2rem;">🔥</span>
-        <span style="font-size:0.75rem; font-weight:700;">Black Friday</span>
-        <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#000000;border:1px solid #ccc;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ffff00;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#ff6600;"></div>
-        </div>
-      </div>
-      <div class="vs-template-card" data-template="backtoschool" onclick="vsSelectTemplate(this)">
-        <span style="font-size:1.2rem;">📚</span>
-        <span style="font-size:0.75rem; font-weight:700;">Back-to-School</span>
-        <div style="display:flex;gap:3px;margin-top:2px;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#1a1a38;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#4169e1;"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#fff176;"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Live color preview strip -->
-    <div id="vsTemplatePreview" style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.8rem;border-radius:8px;margin-bottom:1.25rem;transition:background 0.3s;background:#1a1a2e;">
-      <div style="display:flex;gap:4px;">
-        <div id="vsPreviewBg"  style="width:20px;height:20px;border-radius:4px;background:#1a1a2e;border:1px solid rgba(255,255,255,0.2);"></div>
-        <div id="vsPreviewAcc" style="width:20px;height:20px;border-radius:4px;background:#f0c040;"></div>
-        <div id="vsPreviewTxt" style="width:20px;height:20px;border-radius:4px;background:#f0f0f5;border:1px solid rgba(0,0,0,0.1);"></div>
-      </div>
-      <span id="vsPreviewLabel" style="font-size:0.78rem;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5);">Default theme selected</span>
-    </div>
-
-    <!-- Social Media Format -->
-    <div class="vs-section-label">📱 Social Media Format</div>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:0.5rem; margin-bottom:1.25rem;">
-      <div class="vs-format-card active" data-format="1920x1080" data-platform="universal" onclick="vsSelectFormat(this)" title="16:9 Horizontal">
-        <span style="font-size:0.85rem; font-weight:700;">YouTube</span>
-        <span style="font-size:0.7rem; color:#999;">1920×1080</span>
-      </div>
-      <div class="vs-format-card" data-format="1080x1350" data-platform="instagram" onclick="vsSelectFormat(this)" title="4:5 Portrait">
-        <span style="font-size:0.85rem; font-weight:700;">Instagram</span>
-        <span style="font-size:0.7rem; color:#999;">1080×1350</span>
-      </div>
-      <div class="vs-format-card" data-format="1080x1920" data-platform="tiktok" onclick="vsSelectFormat(this)" title="9:16 Vertical">
-        <span style="font-size:0.85rem; font-weight:700;">TikTok</span>
-        <span style="font-size:0.7rem; color:#999;">1080×1920</span>
-      </div>
-      <div class="vs-format-card" data-format="1200x628" data-platform="facebook" onclick="vsSelectFormat(this)" title="16:9 Facebook/Link">
-        <span style="font-size:0.85rem; font-weight:700;">Facebook</span>
-        <span style="font-size:0.7rem; color:#999;">1200×628</span>
-      </div>
-      <div class="vs-format-card" data-format="1080x1080" data-platform="square" onclick="vsSelectFormat(this)" title="1:1 Square">
-        <span style="font-size:0.85rem; font-weight:700;">Square</span>
-        <span style="font-size:0.7rem; color:#999;">1080×1080</span>
-      </div>
-    </div>
-
-    <!-- Video Style -->
-    <div class="vs-section-label">🎨 Video Style</div>
-    <div class="vs-style-grid">
-      <div class="vs-style-card active" data-vstyle="slideshow" onclick="vsSelectStyle(this)">
-        <div class="vs-card-icon">🎞️</div>
-        <h4>Slideshow</h4>
-        <p>Smooth fade &amp; slide</p>
-      </div>
-      <div class="vs-style-card" data-vstyle="kenburns" onclick="vsSelectStyle(this)">
-        <div class="vs-card-icon">🎥</div>
-        <h4>Ken Burns</h4>
-        <p>Slow cinematic zoom</p>
-      </div>
-    </div>
-
-    <!-- Music Track -->
-    <div class="vs-section-label">🎵 Music Track</div>
-    <div class="vs-music-grid" id="vsMusicGrid">
-      <!-- Populated by JS from GET /music -->
-      <div style="color:#aaa; font-size:0.88rem; padding:0.5rem;">Loading tracks...</div>
-    </div>
-
-    <!-- Upload own track -->
-    <div class="vs-upload-zone" onclick="document.getElementById('vsUploadInput').click()">
-      <span style="font-size:1.3rem;">📤</span>
-      <div>
-        <div class="vs-upload-label" id="vsUploadLabel">Upload Your Own Track</div>
-        <div class="vs-upload-sub">MP3 files only · max 20 MB</div>
-      </div>
-      <input type="file" id="vsUploadInput" accept=".mp3" style="display:none" onchange="vsHandleUpload(this)">
-    </div>
-
-    <!-- Duration -->
-    <div class="vs-section-label">⏱️ Duration — <span id="vsDurationLabel" style="color:#4a7c59; font-weight:800;">30 seconds</span></div>
-    <div class="vs-slider-row">
-      <span>10s</span>
-      <input type="range" id="vsDurationSlider" min="10" max="60" value="30"
-             oninput="document.getElementById('vsDurationLabel').textContent = this.value + ' seconds'">
-      <span>60s</span>
-    </div>
-
-    <!-- Custom Text Overlays -->
-    <div class="vs-section-label" style="margin-top:1.25rem;">📝 Custom Text Overlays</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.25rem;">
-      <div>
-        <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Call-to-Action Text</label>
-        <input type="text" id="vsCtaText" placeholder="e.g., Visit Liberty Emporium" 
-               style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem;">
-      </div>
-      <div>
-        <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Custom Tagline</label>
-        <input type="text" id="vsTagline" placeholder="e.g., Est. in Liberty, NC" 
-               style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem;">
-      </div>
-    </div>
-
-    <!-- Watermark/Logo Upload -->
-    <div class="vs-section-label">🎖️ Watermark/Logo (Optional)</div>
-    <div class="vs-upload-zone" onclick="document.getElementById('vsLogoInput').click()" style="background:#e8e0d0; border-color:#4a7c59;">
-      <span style="font-size:1.2rem;">🖼️</span>
-      <div>
-        <div class="vs-upload-label" id="vsLogoLabel">Upload Logo/Watermark</div>
-        <div class="vs-upload-sub">PNG or JPG · recommended 200×100px · max 5 MB</div>
-      </div>
-      <input type="file" id="vsLogoInput" accept=".png,.jpg,.jpeg" style="display:none" onchange="vsHandleLogoUpload(this)">
-    </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.25rem;">
-      <div>
-        <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Logo Position</label>
-        <select id="vsLogoPosition" style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem;">
-          <option value="top-right">Top Right</option>
-          <option value="top-left">Top Left</option>
-          <option value="bottom-right">Bottom Right</option>
-          <option value="bottom-left">Bottom Left</option>
-        </select>
-      </div>
-      <div>
-        <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Logo Size</label>
-        <select id="vsLogoSize" style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem;">
-          <option value="small">Small</option>
-          <option value="medium" selected>Medium</option>
-          <option value="large">Large</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- ══ AI Voiceover ══ -->
-    <div style="margin-top:1.25rem; padding-top:1.25rem; border-top:1.5px solid #e0ddd8;">
-      <div class="vs-section-label">🤖 AI Voiceover <span style="font-size:0.7rem; color:#4a7c59; font-weight:600; background:#e8e0d0; padding:0.15rem 0.5rem; border-radius:4px; margin-left:0.4rem;">AI</span></div>
-      <p style="font-size:0.78rem; color:#888; margin-bottom:0.75rem;">Professional narration generated by AI — speaks the name and price of each product</p>
-      
-      <!-- Toggle -->
-      <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; margin-bottom:0.75rem;">
-        <input type="checkbox" id="vsVoiceoverToggle" style="width:18px; height:18px; accent-color:#4a7c59;" onchange="document.getElementById('vsVoiceSettings').style.display = this.checked ? 'block' : 'none';">
-        <span style="font-size:0.88rem; font-weight:600; color:#333;">Enable AI Voiceover</span>
-      </label>
-      
-      <!-- Voice settings (hidden until toggle) -->
-      <div id="vsVoiceSettings" style="display:none; padding:1rem; background:#f8f8f8; border-radius:8px; margin-top:0.5rem;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
-          <div>
-            <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Store Name (for narration)</label>
-            <input type="text" id="vsStoreNameVo" placeholder="e.g. Liberty Emporium" 
-                   style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem;">
-          </div>
-          <div>
-            <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Voice</label>
-            <select id="vsVoiceSelect" style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem;">
-              <option value="en-US-ChristopherNeural">🎙️ Christopher (American Male - Natural)</option>
-              <option value="en-US-AndrewNeural">🎙️ Andrew (American Male - Warm)</option>
-              <option value="en-US-GuyNeural">🎙️ Guy (American Male - Deep)</option>
-              <option value="en-US-JennyNeural">🎙️ Jenny (American Female)</option>
-              <option value="en-US-EricNeural">🎙️ Eric (American Male)</option>
-              <option value="en-GB-RyanNeural">🎙️ Ryan (British Male)</option>
-              <option value="en-GB-SoniaNeural">🎙️ Sonia (British Female)</option>
-            </select>
-          </div>
-        </div>
-        <!-- Custom Script -->
-        <div style="margin-bottom:1rem;">
-          <label style="font-size:0.75rem; font-weight:700; color:#666; display:block; margin-bottom:0.35rem;">Custom Script (optional — leave blank for auto-generated)</label>
-            <textarea id="vsVoiceScript" rows="4" placeholder="Write your narration script here..." 
-                      style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid #e0ddd8; border-radius:6px; font-size:0.85rem; font-family:inherit; resize:vertical;"></textarea>
-          <button type="button" onclick="vsRewriteScript()" id="vsRewriteBtn"
-                    style="background:#4a7c59; color:#fff; border:none; padding:0.3rem 0.75rem; border-radius:5px; font-size:0.75rem; font-weight:700; cursor:pointer; margin-top:0.4rem; display:inline-flex; align-items:center; gap:5px; transition:opacity 0.2s;">
-            ✨ Rewrite Script
-          </button>
-          <span id="vsRewriteStatus" style="font-size:0.7rem; color:#4a7c59; margin-left:0.5rem;"></span>
-          <div id="vsScriptCharCount" style="font-size:0.65rem; color:#999; margin-top:0.25rem;"></div>
-        </div>
-        <!-- Preview -->
-        <button type="button" onclick="vsPreviewVoice()" style="background:#e8e0d0; border:1.5px solid #4a7c59; color:#4a7c59; padding:0.5rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer;">
-          🔊 Preview Voice
-        </button>
-        <span id="vsVoiceStatus" style="font-size:0.78rem; color:#888; margin-left:0.5rem;"></span>
-        <button type="button" onclick="vsToggleMic()" id="vsMicBtn"
-                style="background:#e8e0d0; border:1.5px solid #4a7c59; color:#4a7c59; padding:0.5rem 1rem; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer; margin-left:0.5rem;">
-          🎤 Dictate
-        </button>
-      </div>
-    </div>
-    <!-- ══ End AI Voiceover ══ -->
-
-    <!-- Generate button -->
-    <button class="btn-generate-video" id="vsGenerateBtn" disabled onclick="vsGenerate()">
-      🎬 Create Video Ad
-    </button>
-    <div id="vsError" style="color:#e53e3e; font-size:0.85rem; margin-top:0.6rem; display:none;"></div>
-
-  </div>
+<!-- ── Results ── -->
+<div class="results-section" id="resultsSection">
+  <h2>✅ Your Generated Ads</h2>
+  <p>Click <strong>Download</strong> to save each JPEG to your device — ready to post on any platform.</p>
+  <div class="results-grid" id="resultsGrid"></div>
 </div>
 
-<!-- Video Results -->
-<div class="vs-results" id="vsResults">
-  <h2>🎬 Generated Video Ads</h2>
-  <div id="vsResultsList"></div>
-</div>
-
-<!-- Generated Ads Section (shown after generation) -->
-<div class="generated-ads-section" id="generatedSection">
-  <h2>✅ Generated Ads</h2>
-  <p style="color:#7a7a8c; font-family: 'DM Sans', sans-serif; margin-bottom: 1.5rem;">
-    Your ads have been saved to the <code>ads/</code> folder as high-quality JPEG files. View or download each one below.
-  </p>
-  <div class="ad-files-list" id="adFilesList"></div>
-</div>
-
-<!-- Loading Overlay -->
+<!-- ── Loading Overlay ── -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner-ring"></div>
-  <div id="loadingText" style="font-size:1rem; font-weight:500;">Generating your ads...</div>
-  <div id="loadingProgress" style="width:60%; max-width:300px; height:6px; background:#rgba(255,255,255,0.2); border-radius:3px; margin-top:1rem; overflow:hidden;">
-    <div id="loadingBar" style="height:100%; width:0%; background:linear-gradient(90deg, #4a7c59 0%, #6b4423 100%); transition:width 0.3s ease; border-radius:3px;"></div>
+  <div id="loadingText" style="font-size:1rem; font-weight:500;">Creating your ads…</div>
+  <div style="width:60%; max-width:280px; height:6px; background:rgba(255,255,255,0.15); border-radius:3px; overflow:hidden;">
+    <div id="loadingBar"></div>
   </div>
-  <div id="loadingDetail" style="font-size:0.85rem; color:#ccc; margin-top:0.8rem; min-height:1.2rem;"></div>
+  <div id="loadingDetail" style="font-size:0.82rem; color:#ccc; min-height:1.1rem;"></div>
 </div>
 
 <script>
-let selectedSkus = new Set();
+let selectedSkus  = new Set();
 let selectedStyle = 'elegant';
+let selectedFmt   = 'square';
 
-function selectStyle(btn) {
-  document.querySelectorAll('.style-option').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  selectedStyle = btn.dataset.style;
+function selectStyle(el) {
+  document.querySelectorAll('.style-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedStyle = el.dataset.style;
+}
+
+function selectFormat(el) {
+  document.querySelectorAll('.format-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedFmt = el.dataset.fmt;
 }
 
 function toggleCard(card) {
@@ -1361,12 +577,12 @@ function toggleCard(card) {
   if (selectedSkus.has(sku)) {
     selectedSkus.delete(sku);
     card.classList.remove('selected');
+    document.getElementById('maxWarning').classList.remove('visible');
   } else {
     if (selectedSkus.size >= 10) {
       document.getElementById('maxWarning').classList.add('visible');
       return;
     }
-    document.getElementById('maxWarning').classList.remove('visible');
     selectedSkus.add(sku);
     card.classList.add('selected');
   }
@@ -1374,698 +590,99 @@ function toggleCard(card) {
 }
 
 function updateUI() {
-  const count = selectedSkus.size;
-  document.getElementById('countDisplay').textContent = count;
-  document.getElementById('barCount').textContent = count;
-  document.getElementById('generateBtn').disabled = count === 0;
+  const n = selectedSkus.size;
+  document.getElementById('countDisplay').textContent = n;
+  document.getElementById('barCount').textContent = n;
+  document.getElementById('generateBtn').disabled = n === 0;
 }
 
 function generateAds() {
   if (selectedSkus.size === 0) return;
 
-  // Gather selected product data
   const products = [];
   document.querySelectorAll('.selectable-card.selected').forEach(card => {
     products.push({
-      sku: card.dataset.sku,
-      title: card.dataset.title,
-      price: card.dataset.price,
-      category: card.dataset.category,
-      condition: card.dataset.condition,
+      sku:         card.dataset.sku,
+      title:       card.dataset.title,
+      price:       card.dataset.price,
       description: card.dataset.description,
-      image: card.dataset.image
+      image:       card.dataset.image,
     });
   });
 
-  document.getElementById('loadingOverlay').classList.add('active');
+  const storeName = document.getElementById('storeNameInput').value.trim();
+  const ctaText   = document.getElementById('ctaInput').value.trim();
+
+  // Show loading
+  const overlay = document.getElementById('loadingOverlay');
+  const bar     = document.getElementById('loadingBar');
+  const detail  = document.getElementById('loadingDetail');
+  overlay.classList.add('active');
+  bar.style.width = '0%';
+  detail.textContent = 'Rendering images…';
+
+  let pct = 0;
+  const ticker = setInterval(() => {
+    pct = Math.min(pct + Math.random() * 18, 88);
+    bar.style.width = pct + '%';
+  }, 400);
 
   fetch('/generate-ads', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ products: products, style: selectedStyle })
+    body: JSON.stringify({
+      products:   products,
+      style:      selectedStyle,
+      format:     selectedFmt,
+      store_name: storeName,
+      cta_text:   ctaText,
+    }),
   })
   .then(r => r.json())
   .then(data => {
-    document.getElementById('loadingOverlay').classList.remove('active');
-    if (data.success) {
-      showGeneratedAds(data.files);
-    } else {
-      alert('Error generating ads: ' + (data.error || 'Unknown error'));
-    }
+    clearInterval(ticker);
+    bar.style.width = '100%';
+    overlay.classList.remove('active');
+    if (data.error) { alert('Error: ' + data.error); return; }
+    showResults(data.files);
   })
-  .catch(e => {
-    document.getElementById('loadingOverlay').classList.remove('active');
-    alert('Error: ' + e);
+  .catch(err => {
+    clearInterval(ticker);
+    overlay.classList.remove('active');
+    alert('Request failed: ' + err);
   });
 }
 
-function showGeneratedAds(files) {
-  const section = document.getElementById('generatedSection');
-  const list = document.getElementById('adFilesList');
-  list.innerHTML = '';
+function showResults(files) {
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = '';
 
   files.forEach(f => {
     const card = document.createElement('div');
-    card.className = 'ad-file-card';
-    card.style.flexDirection = 'column';
-    card.style.alignItems = 'stretch';
-    card.innerHTML = `
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-bottom:0.75rem;">
-        <div class="ad-file-info">
-          <div class="ad-file-name">${f.product_title}</div>
-        </div>
-        <div class="ad-file-actions">
-          <a href="/ads/${f.filename}" target="_blank" class="btn-view-ad">🔗 Open Ad</a>
-          <a href="/download-ad/${f.filename}" class="btn-download-ad">⬇️ Download</a>
-        </div>
-      </div>
-      <iframe src="/ads/${f.filename}" style="width:100%; height:520px; border:none; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.15);" title="${f.product_title}"></iframe>
-    `;
-    list.appendChild(card);
+    card.className = 'result-card';
+
+    const img = document.createElement('img');
+    img.src = '/ads/' + encodeURIComponent(f.filename);
+    img.alt = f.product_title;
+    img.loading = 'lazy';
+
+    const footer = document.createElement('div');
+    footer.className = 'result-card-footer';
+    footer.innerHTML = `
+      <span class="result-title">${f.product_title}</span>
+      <div class="result-actions">
+        <a class="btn-open" href="/ads/${encodeURIComponent(f.filename)}" target="_blank">🔗 Open</a>
+        <a class="btn-dl"   href="/download-ad/${encodeURIComponent(f.filename)}" download>⬇️ Download</a>
+      </div>`;
+
+    card.appendChild(img);
+    card.appendChild(footer);
+    grid.appendChild(card);
   });
 
+  const section = document.getElementById('resultsSection');
   section.classList.add('visible');
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ── Video Studio ──────────────────────────────────────────────────────────────
-let vsSelectedStyle  = 'slideshow';
-let vsSelectedTrack  = null;   // filename string (library) or null
-let vsUploadedFile   = null;   // File object (upload) or null
-let vsLogoFile       = null;   // File object (logo upload) or null
-let vsSelectedTemplate = 'default'; // seasonal template
-let vsSelectedFormat = '1920x1080';  // social media format
-let vsAudioPlayer    = null;   // current HTMLAudioElement for preview
-
-// ── Template color schemes ─────────────────────────────────────────────────
-const vsTemplates = {
-  default:       { accent: '#f0c040', bg_dark: '#1a1a2e', overlay_text: '#f0f0f5' },
-  holiday:       { accent: '#ff2d2d', bg_dark: '#0d3d22', overlay_text: '#ffff00' },  // Red & Green
-  valentine:     { accent: '#8B6914', bg_dark: '#3d2b1f', overlay_text: '#d4b86a' },  // Pink & Purple
-  spring:        { accent: '#00d084', bg_dark: '#f5f5f5', overlay_text: '#2d5f3f' },  // Green & Light
-  summer:        { accent: '#ffa500', bg_dark: '#003d82', overlay_text: '#fff76d' },  // Orange & Blue
-  fall:          { accent: '#ff7f50', bg_dark: '#3d2817', overlay_text: '#ffe4b5' },  // Orange & Brown
-  blackfriday:   { accent: '#ffff00', bg_dark: '#000000', overlay_text: '#ff6600' },  // Yellow & Black
-  backtoschool:  { accent: '#4169e1', bg_dark: '#1a1a38', overlay_text: '#fff176' },  // Blue & White
-};
-
-// ── Preset combinations ────────────────────────────────────────────────────
-const vsPresets = {
-  quick: {
-    name: 'Quick 30-Second Ad',
-    template: 'default',
-    format: '1920x1080',
-    style: 'slideshow',
-    duration: 30,
-    description: 'Default template, YouTube format, 30 seconds'
-  },
-  social: {
-    name: 'TikTok/Reels Video',
-    template: 'default',
-    format: '1080x1920',
-    style: 'slideshow',
-    duration: 15,
-    description: 'Vertical format optimized for social media loops'
-  },
-  holiday: {
-    name: 'Holiday Campaign Bundle',
-    template: 'holiday',
-    format: 'all', // Special: generates all formats
-    style: 'slideshow',
-    duration: 30,
-    description: 'Holiday theme, all 5 social formats, 30 seconds each'
-  },
-  display: {
-    name: 'In-Store Display Loop',
-    template: 'default',
-    format: '1080x1080',
-    style: 'slideshow',
-    duration: 30,
-    description: 'Square format perfect for kiosk/tablet loops'
-  },
-  youtube: {
-    name: 'Full YouTube Video',
-    template: 'default',
-    format: '1920x1080',
-    style: 'kenburns',
-    duration: 60,
-    description: 'Cinematic Ken Burns effect, full YouTube specs'
-  },
-  facebook: {
-    name: 'Facebook Share Preview',
-    template: 'default',
-    format: '1200x628',
-    style: 'slideshow',
-    duration: 20,
-    description: 'Perfect for Facebook link previews'
-  }
-};
-
-function vsApplyPreset(presetName) {
-  const preset = vsPresets[presetName];
-  if (!preset) return;
-  
-  // Set template
-  document.querySelectorAll('.vs-template-card').forEach(c => c.classList.remove('active'));
-  const templateCard = document.querySelector(`[data-template="${preset.template}"]`);
-  if (templateCard) {
-    templateCard.classList.add('active');
-    vsSelectedTemplate = preset.template;
-    vsUpdateTemplatePreview(vsSelectedTemplate);
-  }
-  
-  // Set format
-  document.querySelectorAll('.vs-format-card').forEach(c => c.classList.remove('active'));
-  if (preset.format !== 'all') {
-    const formatCard = document.querySelector(`[data-format="${preset.format}"]`);
-    if (formatCard) {
-      formatCard.classList.add('active');
-      vsSelectedFormat = preset.format;
-    }
-  }
-  
-  // Set style
-  document.querySelectorAll('.vs-style-card').forEach(c => c.classList.remove('active'));
-  const styleCard = document.querySelector(`[data-vstyle="${preset.style}"]`);
-  if (styleCard) {
-    styleCard.classList.add('active');
-    vsSelectedStyle = preset.style;
-  }
-  
-  // Set duration
-  document.getElementById('vsDurationSlider').value = preset.duration;
-  document.getElementById('vsDurationLabel').textContent = preset.duration + ' seconds';
-  
-  // Show confirmation
-  vsShowToast(`✅ Preset applied: ${preset.name}`);
-}
-
-function vsSelectTemplate(card) {
-  document.querySelectorAll('.vs-template-card').forEach(c => c.classList.remove('active'));
-  card.classList.add('active');
-  vsSelectedTemplate = card.dataset.template;
-  vsUpdateTemplatePreview(vsSelectedTemplate);
-}
-
-function vsUpdateTemplatePreview(name) {
-  const t = vsTemplates[name] || vsTemplates['default'];
-  const label = name.charAt(0).toUpperCase() + name.slice(1).replace(/([a-z])([A-Z])/g, '$1 $2');
-  document.getElementById('vsTemplatePreview').style.background = t.bg_dark;
-  document.getElementById('vsPreviewBg').style.background  = t.bg_dark;
-  document.getElementById('vsPreviewAcc').style.background = t.accent;
-  document.getElementById('vsPreviewTxt').style.background = t.overlay_text;
-  document.getElementById('vsPreviewLabel').textContent = label + ' theme selected';
-}
-
-function vsSelectFormat(card) {
-  document.querySelectorAll('.vs-format-card').forEach(c => c.classList.remove('active'));
-  card.classList.add('active');
-  vsSelectedFormat = card.dataset.format;
-}
-
-function vsSelectStyle(card) {
-  document.querySelectorAll('.vs-style-card').forEach(c => c.classList.remove('active'));
-  card.classList.add('active');
-  vsSelectedStyle = card.dataset.vstyle;
-}
-
-function vsSelectTrack(card, filename) {
-  // Deselect all library cards
-  document.querySelectorAll('.vs-track-card').forEach(c => c.classList.remove('active'));
-  card.classList.add('active');
-  vsSelectedTrack = filename;
-  vsUploadedFile  = null;
-  document.getElementById('vsUploadLabel').textContent = 'Upload Your Own Track';
-  vsUpdateGenerateBtn();
-}
-
-function vsHandleUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 20 * 1024 * 1024) {
-    vsShowError('Uploaded MP3 must be under 20 MB.');
-    input.value = '';
-    return;
-  }
-  vsUploadedFile  = file;
-  vsSelectedTrack = null;
-  document.querySelectorAll('.vs-track-card').forEach(c => c.classList.remove('active'));
-  document.getElementById('vsUploadLabel').textContent = '✅ ' + file.name;
-  vsUpdateGenerateBtn();
-}
-
-function vsHandleLogoUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 5 * 1024 * 1024) {
-    vsShowError('Logo must be under 5 MB.');
-    input.value = '';
-    return;
-  }
-  vsLogoFile = file;
-  document.getElementById('vsLogoLabel').textContent = '✅ ' + file.name;
-}
-
-function vsPlayPreview(btn, filename) {
-  // Stop any existing preview
-  if (vsAudioPlayer) { vsAudioPlayer.pause(); vsAudioPlayer = null; }
-  const icon = btn.querySelector('.vs-play-icon');
-  if (icon && icon.textContent === '⏸️') { icon.textContent = '▶️'; return; }
-  document.querySelectorAll('.vs-play-icon').forEach(i => i.textContent = '▶️');
-  vsAudioPlayer = new Audio('/music/' + encodeURIComponent(filename));
-  vsAudioPlayer.play();
-  if (icon) icon.textContent = '⏸️';
-  vsAudioPlayer.onended = () => { if (icon) icon.textContent = '▶️'; };
-}
-
-function vsUpdateGenerateBtn() {
-  const hasProduct = selectedSkus.size > 0;
-  const hasMusic   = vsSelectedTrack !== null || vsUploadedFile !== null;
-  document.getElementById('vsGenerateBtn').disabled = !hasProduct;
-}
-
-function vsShowError(msg) {
-  const el = document.getElementById('vsError');
-  el.textContent = msg;
-  el.style.color = '#e53e3e';
-  el.style.display = msg ? 'block' : 'none';
-}
-
-function vsShowToast(msg) {
-  const el = document.getElementById('vsError');
-  el.textContent = msg;
-  el.style.color = '#276749';
-  el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 3000);
-}
-
-function vsGenerate() {
-  vsShowError('');
-  if (selectedSkus.size === 0) { vsShowError('Select at least one product above.'); return; }
-  // Music is now optional
-
-  const products = [];
-  document.querySelectorAll('.selectable-card.selected').forEach(card => {
-    products.push({
-      sku: card.dataset.sku, title: card.dataset.title,
-      price: card.dataset.price, image: card.dataset.image,
-      description: card.dataset.description
-    });
-  });
-
-  const formats = vsSelectedFormat === 'all'
-    ? ['1920x1080', '1080x1350', '1080x1920', '1200x628', '1080x1080']
-    : [vsSelectedFormat];
-
-  const duration = document.getElementById('vsDurationSlider').value;
-  const ctaText = document.getElementById('vsCtaText').value.trim();
-  const tagline = document.getElementById('vsTagline').value.trim();
-  const logoPosition = document.getElementById('vsLogoPosition').value;
-  const logoSize = document.getElementById('vsLogoSize').value;
-
-  const btn = document.getElementById('vsGenerateBtn');
-  btn.disabled = true;
-
-  document.getElementById('loadingOverlay').classList.add('active');
-  document.getElementById('loadingText').textContent = formats.length > 1
-    ? `Creating ${formats.length} video formats...`
-    : 'Creating video ad...';
-  document.getElementById('loadingDetail').textContent = 'Uploading music...';
-  document.getElementById('loadingBar').style.width = '5%';
-
-  let progressCount = 0;
-  let progressInterval = null;
-
-  // If user uploaded their own file, pre-upload it first so the generate
-  // request contains only small JSON (avoids Railway's 30s upload timeout)
-  const getMusicToken = () => {
-    if (!vsUploadedFile) return Promise.resolve(null);
-    const fd = new FormData();
-    fd.append('music_file', vsUploadedFile);
-    return fetch('/upload-music-temp', { method: 'POST', body: fd })
-      .then(r => {
-        if (!r.ok) {
-          return r.text().then(t => {
-            try { const j = JSON.parse(t); throw new Error(j.error || `HTTP ${r.status}`); }
-            catch(e2) { if (e2.message.startsWith('HTTP')) throw e2; throw new Error(`Upload error (${r.status})`); }
-          });
-        }
-        return r.json();
-      })
-      .then(data => {
-        if (data.error) throw new Error(data.error);
-        return data.token;
-      });
-  };
-
-  getMusicToken().then(musicToken => {
-    document.getElementById('loadingDetail').textContent = 'Initializing...';
-    progressInterval = setInterval(() => {
-      progressCount += Math.random() * 15;
-      if (progressCount > 90) progressCount = 90;
-      document.getElementById('loadingBar').style.width = progressCount + '%';
-      const stage = Math.floor((progressCount / 90) * 3);
-      const stages = ['Initializing...', 'Processing frames...', 'Encoding videos...'];
-      document.getElementById('loadingDetail').textContent = stages[stage] || 'Finishing up...';
-    }, 800);
-
-  // Generate all format versions
-  const generateFormat = (formatIdx) => {
-    if (formatIdx >= formats.length) {
-      clearInterval(progressInterval);
-      document.getElementById('loadingBar').style.width = '100%';
-      document.getElementById('loadingDetail').textContent = 'Complete!';
-      return Promise.resolve();
-    }
-
-    const formData = new FormData();
-    formData.append('products',  JSON.stringify(products));
-    formData.append('style',     vsSelectedStyle);
-    formData.append('duration',  duration);
-    formData.append('template',  vsSelectedTemplate);
-    formData.append('format',    formats[formatIdx]);
-    formData.append('cta_text', ctaText);
-    formData.append('tagline', tagline);
-    formData.append('logo_position', logoPosition);
-    formData.append('logo_size', logoSize);
-
-    // ── AI Voiceover settings ──
-    const voEnabled = document.getElementById('vsVoiceoverToggle').checked;
-    formData.append('voiceover', voEnabled ? 'on' : 'off');
-    if (voEnabled) {
-      formData.append('voice_script', document.getElementById('vsVoiceScript').value.trim());
-      formData.append('store_name_vo', document.getElementById('vsStoreNameVo').value.trim());
-      formData.append('voice_select', document.getElementById('vsVoiceSelect').value);
-    }
-
-    if (musicToken) {
-      formData.append('music_token', musicToken);
-    } else if (vsSelectedTrack) {
-      formData.append('music_track', vsSelectedTrack);
-    }
-
-    if (vsLogoFile) {
-      formData.append('logo_file', vsLogoFile);
-    }
-
-    return fetch('/generate-video-ad', { method: 'POST', body: formData })
-      .then(r => {
-        // Check if response is OK, if not, get text first
-        if (!r.ok) {
-          return r.text().then(text => {
-            try {
-              const json = JSON.parse(text);
-              throw new Error(json.error || `HTTP ${r.status}`);
-            } catch (e) {
-              throw new Error(`Server error (${r.status}): ${text.substring(0, 200)}`);
-            }
-          });
-        }
-        return r.json();
-      })
-      .then(data => {
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        // Accumulate results and continue to next format
-        if (!window.vsAllResults) window.vsAllResults = [];
-        window.vsAllResults = window.vsAllResults.concat(data.files);
-        
-        progressCount = Math.min(90, 10 + (formatIdx + 1) * (80 / formats.length));
-        document.getElementById('loadingBar').style.width = progressCount + '%';
-        document.getElementById('loadingDetail').textContent = 
-          `Processing format ${formatIdx + 1}/${formats.length}...`;
-        
-        return generateFormat(formatIdx + 1);
-      });
-  };
-
-  generateFormat(0)
-    .then(() => {
-      document.getElementById('loadingOverlay').classList.remove('active');
-      btn.disabled = false;
-      btn.innerHTML = '🎬 Create Video Ad';
-      if (window.vsAllResults && window.vsAllResults.length > 0) {
-        vsShowResults(window.vsAllResults);
-        window.vsAllResults = [];
-      }
-    })
-    .catch(e => {
-      clearInterval(progressInterval);
-      document.getElementById('loadingOverlay').classList.remove('active');
-      btn.disabled = false;
-      btn.innerHTML = '🎬 Create Video Ad';
-      vsShowError('Error: ' + (e.message || e));
-    });
-  }).catch(e => {
-    document.getElementById('loadingOverlay').classList.remove('active');
-    btn.disabled = false;
-    vsShowError('Music upload failed: ' + (e.message || e));
-  });
-}
-
-function vsShowResults(files) {
-  const list = document.getElementById('vsResultsList');
-  list.innerHTML = '';
-  files.forEach(f => {
-    const card = document.createElement('div');
-    card.className = 'vs-video-card';
-
-    const header = document.createElement('div');
-    header.className = 'vs-video-card-header';
-
-    const titleSpan = document.createElement('span');
-    titleSpan.className = 'vs-video-title';
-    titleSpan.textContent = '🎬 ' + f.product_title;
-
-    const dlLink = document.createElement('a');
-    dlLink.href = '/download-ad/' + encodeURIComponent(f.filename);
-    dlLink.className = 'btn-dl-video';
-    dlLink.textContent = '⬇️ Download MP4';
-
-    header.appendChild(titleSpan);
-    header.appendChild(dlLink);
-
-    const video = document.createElement('video');
-    video.src = '/ads/' + encodeURIComponent(f.filename);
-    video.controls = true;
-    video.autoplay = false;
-    video.muted = false;
-    video.loop = true;
-    video.style.cssText = 'width:100%; display:block; max-height:480px; background:#000;';
-
-    card.appendChild(header);
-    card.appendChild(video);
-    list.appendChild(card);
-  });
-  const results = document.getElementById('vsResults');
-  results.classList.add('visible');
-  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// Load music library on page load
-function vsLoadMusicLibrary() {
-  fetch('/music')
-  .then(r => r.json())
-  .then(tracks => {
-    const grid = document.getElementById('vsMusicGrid');
-    if (!tracks.length) { grid.innerHTML = '<div style="color:#aaa;font-size:0.88rem;">No tracks in library yet.</div>'; return; }
-    grid.innerHTML = '';
-    tracks.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'vs-track-card';
-
-      const playBtn = document.createElement('button');
-      playBtn.className = 'vs-play-btn';
-      const playIcon = document.createElement('span');
-      playIcon.className = 'vs-play-icon';
-      playIcon.textContent = '▶️';
-      playBtn.appendChild(playIcon);
-      playBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        vsPlayPreview(playBtn, t.filename);
-      });
-
-      const nameDiv = document.createElement('div');
-      nameDiv.className = 'vs-track-name';
-      nameDiv.title = t.filename;
-      nameDiv.textContent = t.display_name;
-
-      card.appendChild(playBtn);
-      card.appendChild(nameDiv);
-      card.onclick = () => vsSelectTrack(card, t.filename);
-      grid.appendChild(card);
-    });
-  })
-  .catch(() => {
-    document.getElementById('vsMusicGrid').innerHTML = '<div style="color:#e53e3e;font-size:0.88rem;">Could not load music library.</div>';
-  });
-}
-
-// Re-evaluate generate button when product selection changes (hook into existing updateUI)
-const _origUpdateUI = updateUI;
-updateUI = function() { _origUpdateUI(); vsUpdateGenerateBtn(); };
-
-document.addEventListener('DOMContentLoaded', () => {
-  vsLoadMusicLibrary();
-  vsUpdateTemplatePreview('default');
-  // Script character counter
-  const vsScript = document.getElementById('vsVoiceScript');
-  const vsCounter = document.getElementById('vsScriptCharCount');
-  if (vsScript && vsCounter) {
-    vsScript.addEventListener('input', function() {
-      vsCounter.textContent = this.value.length + ' / 2000 chars';
-      vsCounter.style.color = this.value.length > 1500 ? '#e53e3e' : '#999';
-    });
-  }
-});
-
-// ── AI Voiceover Controls ──────────────────────────────────────────────
-const vsVoToggle = document.getElementById('vsVoiceoverToggle');
-const vsVoSettings = document.getElementById('vsVoiceSettings');
-if (vsVoToggle && vsVoSettings) {
-  vsVoToggle.addEventListener('change', function() {
-    vsVoSettings.style.display = this.checked ? 'block' : 'none';
-  });
-}
-
-// ✨ Rewrite voice script with Claude AI
-function vsRewriteScript() {
-  var textarea = document.getElementById("vsVoiceScript");
-  var draft = textarea.value.trim();
-  var status = document.getElementById("vsRewriteStatus");
-  var btn = document.getElementById("vsRewriteBtn");
-  if (!draft) { status.textContent = "✏️ Type something first, then click rewrite."; return; }
-  btn.disabled = true; btn.style.opacity = "0.5";
-  status.textContent = "✨ Claude is polishing your script...";
-  fetch("/rewrite-voice-script", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: "draft=" + encodeURIComponent(draft)
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    if (data.error) { status.textContent = "⚠️ " + data.error; }
-    else { textarea.value = data.script; status.textContent = "✅ Script rewritten!"; }
-  })
-  .catch(function(e) { status.textContent = "⚠️ Rewrite failed: " + e.message; })
-  .finally(function() { btn.disabled = false; btn.style.opacity = "1"; });
-}
-
-function vsPreviewVoice() {
-  const status = document.getElementById('vsVoiceStatus');
-  const voice = document.getElementById('vsVoiceSelect').value;
-  const storeName = document.getElementById('vsStoreNameVo').value.trim() || 'Your Store';
-  status.textContent = 'Generating preview...';
-  
-  // Use the Web Speech API for a quick preview (browser-side, instant)
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(
-      `Welcome to ${storeName}. We have amazing deals today. Check out our latest products!`
-    );
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    
-    // Try to find a matching voice
-    const voices = speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      const preferred = voices.find(v => v.lang.startsWith('en-US') && v.name.toLowerCase().includes('guy'))
-        || voices.find(v => v.lang.startsWith('en-US'))
-        || voices[0];
-      utterance.voice = preferred;
-    }
-    
-    speechSynthesis.speak(utterance);
-    status.textContent = '🔊 Playing preview...';
-    setTimeout(() => { status.textContent = ''; }, 5000);
-  } else {
-    status.textContent = '⚠️ Browser doesn not support speech synthesis';
-  }
-}
-
-// ── Speech-to-Text (Mic) ───────────────────────────────────────────────
-let vsMicRecognition = null;
-let vsMicActive = false;
-
-function vsToggleMic() {
-  var textarea = document.getElementById('vsVoiceScript');
-  var status = document.getElementById('vsVoiceStatus');
-  var btn = document.getElementById('vsMicBtn');
-  var done = false;
-
-  if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
-    status.textContent = '⚠️ Browser doesn\'t support Speech Recognition';
-    status.style.color = '#e74c3c';
-    return;
-  }
-
-  if (vsMicActive) {
-    // Stop listening
-    if (vsMicRecognition) vsMicRecognition.stop();
-    vsMicActive = false;
-    btn.style.color = '';
-    btn.textContent = '🎤 Dictate';
-    status.textContent = '';
-    return;
-  }
-
-  // Start listening
-  try {
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    vsMicRecognition = new SR();
-    vsMicRecognition.continuous = true;
-    vsMicRecognition.interimResults = false;
-    vsMicRecognition.lang = 'en-US';
-
-    vsMicRecognition.onresult = function(event) {
-      if (done) return;
-      var r = event.results[event.results.length - 1];
-      if (r && r.isFinal) {
-        done = true;
-        vsMicActive = false;
-        btn.style.color = '';
-        btn.textContent = '🎤 Dictate';
-        var transcript = r[0].transcript.trim();
-        if (transcript.length > 0) {
-          var existing = textarea.value;
-          if (existing.length > 0 && !/[.!? \n ]$/.test(existing)) {
-            transcript = ' ' + transcript;
-          }
-          textarea.value = existing + transcript;
-          status.textContent = '✅ Added';
-          setTimeout(function() { status.textContent = ''; }, 2000);
-        }
-      }
-    };
-
-    vsMicRecognition.onerror = function(event) {
-      if (event.error === 'no-speech') return;
-      done = true;
-      vsMicActive = false;
-      btn.style.color = '';
-      btn.textContent = '🎤 Dictate';
-      var msg = '❌ ' + event.error;
-      if (event.error === 'not-allowed') msg = '❌ Mic blocked — allow mic access';
-      status.textContent = msg;
-      status.style.color = '#e74c3c';
-    };
-
-    vsMicRecognition.onend = function() {
-      vsMicActive = false;
-      btn.style.color = '';
-      btn.textContent = '🎤 Dictate';
-    };
-
-    vsMicRecognition.start();
-    vsMicActive = true;
-    btn.style.color = '#e74c3c';
-    btn.textContent = '⏹️ Stop';
-    status.textContent = ' Listening — speak your script...';
-    status.style.color = '#4a7c59';
-  } catch (e) {
-    status.textContent = '⚠️ Could not start mic: ' + e.message;
-    status.style.color = '#e74c3c';
-  }
 }
 </script>
 {% endblock %}

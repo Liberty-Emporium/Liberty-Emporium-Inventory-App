@@ -217,8 +217,7 @@
                 {% if not session.get('is_guest') %}
                 <a href="{{ url_for('dashboard') }}">Dashboard</a>
                 <a href="{{ url_for('new_product') }}">Add Product</a>
-                <a href="{{ url_for('ad_generator') }}">Ad Generator</a>
-                <a href="{{ url_for('ad_vault') }}">Ad Vault</a>
+                <a href="{{ url_for('ad_generator') }}">Picture Ads</a>
                 <a href="{{ url_for('listing_generator') }}">Listings</a>
                 {% endif %}
                 {% if session.get('username') == 'admin' %}
