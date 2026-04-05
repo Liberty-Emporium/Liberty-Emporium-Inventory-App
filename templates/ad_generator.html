@@ -1982,76 +1982,56 @@ function vsToggleMic() {
     return;
   }
 
-  // Start listening
+  // Start listening — ONE sentence per tap, NO auto-restart
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   vsMicRecognition = new SR();
-  vsMicRecognition.continuous = false;  // One sentence at a time — no duplicates
+  vsMicRecognition.continuous = false;
   vsMicRecognition.interimResults = false;
   vsMicRecognition.lang = 'en-US';
+  var done = false;
 
   vsMicRecognition.onstart = function() {
     vsMicActive = true;
     btn.style.color = '#e74c3c';
-    btn.title = 'Listening... click to stop';
-    status.textContent = '🔴 Listening... speak now. Click the mic again when done.';
+    btn.title = 'Listening... tap to stop';
+    status.textContent = '🔴 Listening...';
     status.style.color = '#e74c3c';
     status.style.fontWeight = '700';
   };
 
-  var lastResultHandled = -1;
-
-  var micActive = true;
-
   vsMicRecognition.onresult = function(event) {
-    // ONLY the very last final result — never loop
-    var lastIdx = event.results.length - 1;
-    var r = event.results[lastIdx];
-    if (r && r.isFinal && micActive) {
+    if (done) return;
+    var r = event.results[event.results.length - 1];
+    if (r && r.isFinal) {
+      done = true;
       var transcript = r[0].transcript.trim();
       if (transcript.length > 0) {
         var existing = textarea.value;
-        if (existing.length > 0 && !/[.!?\n ]$/.test(existing)) {
+        if (existing.length > 0 && !/[.!? \n ]$/.test(existing)) {
           transcript = ' ' + transcript;
         }
         textarea.value = existing + transcript;
-        status.textContent = '✅ Added — tap mic to speak more';
+        status.textContent = '✅ Added — tap mic for more';
       }
-      // Auto-restart for next sentence
-      micActive = false;
-      setTimeout(function() {
-        if (vsMicActive && vsMicRecognition) {
-          micActive = true;
-          try { vsMicRecognition.start(); } catch(e) {}
-        }
-      }, 400);
     }
   };
 
   vsMicRecognition.onerror = function(event) {
-    if (event.error === 'no-speech') {
-      return; // auto-restart in onend
-    }
+    if (event.error === 'no-speech') return; // harmless, keep listening
+    done = true;
     vsMicActive = false;
-    micActive = false;
     btn.style.color = '';
     var msg = '❌ ' + event.error;
-    if (event.error === 'not-allowed') msg = '❌ Mic blocked — allow in browser settings';
+    if (event.error === 'not-allowed') msg = '❌ Mic blocked';
     status.textContent = msg;
     status.style.color = '#e74c3c';
   };
 
   vsMicRecognition.onend = function() {
-    if (!micActive) return; // was a deliberate stop or error
-    // Auto-restart if still active
-    setTimeout(function() {
-      if (vsMicActive && micActive && vsMicRecognition) {
-        try { vsMicRecognition.start(); } catch(e) {}
-      }
-    }, 300);
+    vsMicActive = false;
+    btn.style.color = '';
   };
 
-  micActive = true;
   vsMicRecognition.start();
-}
-</script>
+}</script>
 {% endblock %}
