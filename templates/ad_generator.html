@@ -1985,8 +1985,8 @@ function vsToggleMic() {
   // Start listening
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   vsMicRecognition = new SR();
-  vsMicRecognition.continuous = true;
-  vsMicRecognition.interimResults = true;
+  vsMicRecognition.continuous = false;  // One sentence at a time — no duplicates
+  vsMicRecognition.interimResults = false;
   vsMicRecognition.lang = 'en-US';
 
   vsMicRecognition.onstart = function() {
@@ -2000,43 +2000,57 @@ function vsToggleMic() {
 
   var lastResultHandled = -1;
 
+  var micActive = true;
+
   vsMicRecognition.onresult = function(event) {
-    // Only process the newest final result — prevent duplicates
-    for (var i = event.resultIndex; i < event.results.length; i++) {
-      if (event.results[i].isFinal && i > lastResultHandled) {
-        var transcript = event.results[i][0].transcript.trim();
-        if (transcript.length > 0) {
-          var existing = textarea.value;
-          textarea.value = existing + (existing && !existing.endsWith('.') && !existing.endsWith('!') && !existing.endsWith('?') && !existing.endsWith('\n') && !existing.endsWith(' ') ? ' ' : '') + transcript;
-          status.textContent = '✅ Added to script! Keep speaking or click mic to stop.';
+    // ONLY the very last final result — never loop
+    var lastIdx = event.results.length - 1;
+    var r = event.results[lastIdx];
+    if (r && r.isFinal && micActive) {
+      var transcript = r[0].transcript.trim();
+      if (transcript.length > 0) {
+        var existing = textarea.value;
+        if (existing.length > 0 && !/[.!?\n ]$/.test(existing)) {
+          transcript = ' ' + transcript;
         }
-        lastResultHandled = i;
+        textarea.value = existing + transcript;
+        status.textContent = '✅ Added — tap mic to speak more';
       }
+      // Auto-restart for next sentence
+      micActive = false;
+      setTimeout(function() {
+        if (vsMicActive && vsMicRecognition) {
+          micActive = true;
+          try { vsMicRecognition.start(); } catch(e) {}
+        }
+      }, 400);
     }
   };
 
   vsMicRecognition.onerror = function(event) {
+    if (event.error === 'no-speech') {
+      return; // auto-restart in onend
+    }
     vsMicActive = false;
+    micActive = false;
     btn.style.color = '';
-    var msg = '❌ Error: ' + event.error;
-    if (event.error === 'not-allowed') msg = '❌ Microphone access denied. Please allow mic access in your browser settings.';
-    else if (event.error === 'no-speech') msg = '❌ No speech detected. Try speaking louder or closer to the mic.';
-    else if (event.error === 'network') msg = '❌ Network error. Check your internet connection.';
+    var msg = '❌ ' + event.error;
+    if (event.error === 'not-allowed') msg = '❌ Mic blocked — allow in browser settings';
     status.textContent = msg;
     status.style.color = '#e74c3c';
-    status.style.fontWeight = '700';
-    console.log('Mic error:', event.error);
   };
 
   vsMicRecognition.onend = function() {
-    vsMicActive = false;
-    btn.style.color = '';
-    // Only clear status if it's the normal "listening" message
-    if (status.textContent.includes('🔴') || status.textContent.includes('Listening')) {
-      status.textContent = '';
-    }
+    if (!micActive) return; // was a deliberate stop or error
+    // Auto-restart if still active
+    setTimeout(function() {
+      if (vsMicActive && micActive && vsMicRecognition) {
+        try { vsMicRecognition.start(); } catch(e) {}
+      }
+    }, 300);
   };
 
+  micActive = true;
   vsMicRecognition.start();
 }
 </script>
