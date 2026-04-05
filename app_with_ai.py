@@ -2178,7 +2178,7 @@ def admin_settings():
     key = get_ai_api_key()
     masked = ''
     if key:
-        masked = key[:6] + '•' * (max(0, len(key) - 10)) + key[-4:]
+        masked = f'{key[:8]}••••••••••••••{key[-4:]}'
     if request.method == 'POST':
         new_key = request.form.get('anthropic_api_key', '').strip()
         if new_key:
