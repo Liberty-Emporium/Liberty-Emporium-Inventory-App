@@ -1998,16 +1998,20 @@ function vsToggleMic() {
     status.style.fontWeight = '700';
   };
 
+  var lastResultHandled = -1;
+
   vsMicRecognition.onresult = function(event) {
-    var transcript = '';
+    // Only process the newest final result — prevent duplicates
     for (var i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
-    }
-    if (event.results[event.results.length - 1].isFinal) {
-      // Append to existing text
-      var existing = textarea.value;
-      textarea.value = existing + (existing && !existing.endsWith('\n') && !existing.endsWith(' ') ? ' ' : '') + transcript;
-      status.textContent = '✅ Added to script! Keep speaking or click mic to stop.';
+      if (event.results[i].isFinal && i > lastResultHandled) {
+        var transcript = event.results[i][0].transcript.trim();
+        if (transcript.length > 0) {
+          var existing = textarea.value;
+          textarea.value = existing + (existing && !existing.endsWith('.') && !existing.endsWith('!') && !existing.endsWith('?') && !existing.endsWith('\n') && !existing.endsWith(' ') ? ' ' : '') + transcript;
+          status.textContent = '✅ Added to script! Keep speaking or click mic to stop.';
+        }
+        lastResultHandled = i;
+      }
     }
   };
 
