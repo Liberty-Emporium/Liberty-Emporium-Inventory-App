@@ -705,84 +705,203 @@ def ad_generator():
 @app.route('/generate-ads', methods=['POST'])
 @login_required
 def generate_ads():
+    """Generate gorgeous JPEG picture ads using Pillow."""
+    from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+    import textwrap as _tw
+
     data     = request.get_json() or {}
-    if not data:
-        return jsonify({'error': 'No product data provided.'}), 400
     products = data.get('products', [])
     style    = data.get('style', 'elegant')
-    use_json_response = request.headers.get('Accept') == 'application/json' or request.is_json
+    fmt      = data.get('format', 'square')
+    cta_text = data.get('cta_text', '').strip()
+    store_nm = (data.get('store_name', '') or STORE_NAME or 'Liberty Emporium').strip()
 
-    style_configs = {
-        'elegant': {'bg': '#1a1a2e', 'accent': '#f0c040', 'header': '#16213e'},
-        'bright':  {'bg': '#ffffff', 'accent': '#e74c3c', 'header': '#2c3e50'},
-        'nature':  {'bg': '#2d4a3e', 'accent': '#a8d5a2', 'header': '#1a3329'},
-        'modern':  {'bg': '#2c3e50', 'accent': '#3498db', 'header': '#1a252f'},
+    if not products:
+        return jsonify({'error': 'No products provided.'}), 400
+
+    # ── Canvas sizes ─────────────────────────────────────────────────────────
+    sizes = {
+        'square':   (1080, 1080),
+        'portrait': (1080, 1350),
+        'story':    (1080, 1920),
     }
-    cfg     = style_configs.get(style, style_configs['elegant'])
-    bg_hex  = cfg['bg']
-    acc_hex = cfg['accent']
-    hdr_hex = cfg['header']
+    W, H = sizes.get(fmt, (1080, 1080))
+
+    # ── Style palettes ───────────────────────────────────────────────────────
+    palettes = {
+        'elegant': {
+            'grad':   (10, 10, 28),
+            'accent': (240, 192, 64),
+            'text':   (255, 255, 255),
+            'sub':    (200, 200, 225),
+        },
+        'vivid': {
+            'grad':   (170, 25, 25),
+            'accent': (255, 220, 60),
+            'text':   (255, 255, 255),
+            'sub':    (255, 195, 195),
+        },
+        'forest': {
+            'grad':   (18, 55, 35),
+            'accent': (120, 210, 120),
+            'text':   (235, 255, 235),
+            'sub':    (165, 215, 165),
+        },
+        'ocean': {
+            'grad':   (10, 38, 90),
+            'accent': (90, 195, 255),
+            'text':   (255, 255, 255),
+            'sub':    (155, 205, 255),
+        },
+        'warm': {
+            'grad':   (72, 35, 8),
+            'accent': (255, 182, 65),
+            'text':   (255, 248, 228),
+            'sub':    (220, 188, 135),
+        },
+    }
+    pal = palettes.get(style, palettes['elegant'])
+
+    font_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+    font_reg  = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+
+    def _font(path, size):
+        try:
+            return _Font.truetype(path, size)
+        except Exception:
+            return _Font.load_default()
+
+    def _txt_w(font, text):
+        try:
+            return int(font.getlength(text))
+        except AttributeError:
+            try:
+                return font.getsize(text)[0]
+            except Exception:
+                return len(text) * max(8, font.size // 2)
+
+    def _shadow(draw, text, x, y, font, color, off=3):
+        draw.text((x + off, y + off), text, font=font, fill=(0, 0, 0, 130))
+        draw.text((x, y), text, font=font, fill=color)
 
     generated = []
     for p in products:
-        sku           = p.get('sku', 'UNKNOWN')
-        title         = p.get('title', 'Untitled')
-        price         = p.get('price', '0.00')
-        description   = p.get('description', '')
-        image_url     = p.get('image', '')
-        product_url   = f"https://liberty-emporium-inventory-demo-app-production.up.railway.app/product/{sku}"
+        sku   = p.get('sku', 'UNKNOWN')
+        title = p.get('title', 'Untitled')
+        desc  = (p.get('description', '') or '').strip()
+        image_url = p.get('image', '')
+        try:
+            pf = float(p.get('price', '0'))
+            price_str = f"${int(pf)}" if pf == int(pf) else f"${pf:.2f}"
+        except Exception:
+            price_str = f"${p.get('price', '0')}"
 
-        ts            = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        html_filename = f"ad_{sku}_{ts}.html"
-        html_filepath = os.path.join(ADS_FOLDER, html_filename)
+        r_g, g_g, b_g = pal['grad']
 
+        # 1. Base canvas filled with gradient colour
+        canvas = _Img.new('RGB', (W, H), (r_g, g_g, b_g))
+
+        # 2. Product photo — cover-crop (slight top bias so subject stays visible)
         if image_url:
-            img_tag = f'<img src="{image_url}" alt="{title}" class="ad-img">'
-        else:
-            img_tag = f'<div style="background:{hdr_hex};height:300px;display:flex;align-items:center;justify-content:center;color:{acc_hex};font-size:4rem;">🏪</div>'
+            img_fname = image_url.split('/')[-1]
+            img_fpath = os.path.join(UPLOAD_FOLDER, img_fname)
+            if os.path.exists(img_fpath):
+                try:
+                    prod = _Img.open(img_fpath)
+                    prod = fix_image_orientation(prod).convert('RGB')
+                    scale = max(W / prod.width, H / prod.height)
+                    nw = int(prod.width  * scale)
+                    nh = int(prod.height * scale)
+                    prod = prod.resize((nw, nh), _Img.LANCZOS)
+                    cx = (nw - W) // 2
+                    cy = max(0, int((nh - H) * 0.25))   # favour upper portion
+                    canvas.paste(prod.crop((cx, cy, cx + W, cy + H)))
+                except Exception:
+                    pass
 
-        html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{title} — Liberty Emporium</title>
-  <style>
-    * {{ margin:0; padding:0; box-sizing:border-box; }}
-    body {{ background:{bg_hex}; font-family:'Segoe UI',sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }}
-    .ad-wrap {{ width:600px; background:{hdr_hex}; border-radius:16px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.5); }}
-    .ad-img {{ width:100%; display:block; }}
-    .ad-body {{ padding:1.5rem; }}
-    .ad-title {{ color:{acc_hex}; font-size:1.4rem; font-weight:700; margin-bottom:0.5rem; }}
-    .ad-price {{ color:white; font-size:2rem; font-weight:900; margin-bottom:0.75rem; }}
-    .ad-desc  {{ color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:1rem; }}
-    .ad-footer {{ background:{hdr_hex}; padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; border-top:1px solid rgba(255,255,255,0.1); }}
-    .ad-address {{ color:{acc_hex}; font-size:0.85rem; }}
-    .view-btn {{ background:{acc_hex}; color:{bg_hex}; border:none; padding:0.75rem 1.75rem; border-radius:8px; font-size:1rem; font-weight:bold; cursor:pointer; text-decoration:none; display:inline-block; }}
-    .view-btn:hover {{ opacity:0.85; }}
-  </style>
-</head>
-<body>
-  <div class="ad-wrap">
-    {img_tag}
-    <div class="ad-body">
-      <div class="ad-title">{title}</div>
-      <div class="ad-price">${price}</div>
-      <div class="ad-desc">{description[:200]}</div>
-    </div>
-    <div class="ad-footer">
-      <div class="ad-address">📍 125 W Swannanoa Ave, Liberty NC 27298</div>
-      <a href="{product_url}" class="view-btn" target="_blank">🛍️ View Product</a>
-    </div>
-  </div>
-</body>
-</html>"""
-        with open(html_filepath, 'w') as hf:
-            hf.write(html_content)
-        generated.append({'filename': html_filename, 'product_title': title, 'type': 'html'})
+        # 3. Dark gradient vignette — transparent at top, opaque at bottom
+        vign = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
+        vd   = _Draw.Draw(vign)
+        gs   = int(H * 0.35)
+        for row in range(gs, H):
+            t     = (row - gs) / (H - gs)
+            alpha = int(252 * min(1.0, t ** 0.55))
+            vd.line([(0, row), (W - 1, row)], fill=(r_g, g_g, b_g, alpha))
+        canvas = _Img.alpha_composite(canvas.convert('RGBA'), vign).convert('RGB')
 
-    if use_json_response:
-        return jsonify({'success': True, 'files': generated})
-    return render_template('ads.html', generated=[g['filename'] for g in generated], **ctx())
+        # 4. Text
+        draw = _Draw.Draw(canvas)
+
+        sz_store = max(24, int(W * 0.026))
+        sz_title = max(54, int(W * 0.068))
+        sz_price = max(82, int(W * 0.108))
+        sz_desc  = max(24, int(W * 0.024))
+        sz_cta   = max(24, int(W * 0.026))
+
+        f_store = _font(font_bold, sz_store)
+        f_title = _font(font_bold, sz_title)
+        f_price = _font(font_bold, sz_price)
+        f_desc  = _font(font_reg,  sz_desc)
+        f_cta   = _font(font_reg,  sz_cta)
+
+        accent = pal['accent']
+        white  = pal['text']
+        sub    = pal['sub']
+        pad_x  = int(W * 0.06)
+
+        # Store-name badge — top-left pill
+        badge_y  = int(H * 0.040)
+        store_tw = _txt_w(f_store, store_nm)
+        bx0, by0 = pad_x - 12, badge_y - 8
+        bx1, by1 = pad_x + store_tw + 12, badge_y + sz_store + 8
+        pill = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
+        pd   = _Draw.Draw(pill)
+        try:
+            pd.rounded_rectangle([bx0, by0, bx1, by1], radius=9,
+                                  fill=(r_g, g_g, b_g, 200))
+        except AttributeError:
+            pd.rectangle([bx0, by0, bx1, by1], fill=(r_g, g_g, b_g, 200))
+        canvas = _Img.alpha_composite(canvas.convert('RGBA'), pill).convert('RGB')
+        draw   = _Draw.Draw(canvas)
+        draw.text((pad_x, badge_y), store_nm, font=f_store, fill=accent)
+
+        # Build text from bottom up
+        y = H - int(H * 0.044)
+
+        # Thin divider + CTA / address line
+        footer_text = cta_text if cta_text else '125 W Swannanoa Ave · Liberty, NC'
+        div_y = y - sz_cta - 14
+        draw.line([(pad_x, div_y), (pad_x + int(W * 0.88), div_y)],
+                  fill=tuple(max(0, int(c * 0.55)) for c in accent), width=2)
+        draw.text((pad_x, y - sz_cta - 6), footer_text, font=f_cta, fill=sub)
+        y -= sz_cta + 22
+
+        # Description (1 line)
+        if desc:
+            chars_d = max(15, int((W * 0.88) / (sz_desc * 0.56)))
+            d_lines = _tw.wrap(desc[:120], width=chars_d)[:1]
+            for line in d_lines:
+                _shadow(draw, line, pad_x, y - sz_desc, f_desc, sub, off=2)
+                y -= sz_desc + 14
+
+        # Price — large and bold
+        _shadow(draw, price_str, pad_x, y - sz_price, f_price, white, off=4)
+        y -= sz_price + 12
+
+        # Title — up to 2 lines, drawn upward
+        chars_t = max(8, int((W * 0.88) / (sz_title * 0.56)))
+        t_lines = _tw.wrap(title, width=chars_t)[:2]
+        for line in reversed(t_lines):
+            _shadow(draw, line, pad_x, y - sz_title, f_title, accent, off=3)
+            y -= sz_title + 6
+
+        # 5. Save as JPEG
+        ts     = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        jfname = f'ad_{sku}_{style}_{fmt}_{ts}.jpg'
+        canvas.convert('RGB').save(os.path.join(ADS_FOLDER, jfname), 'JPEG', quality=95)
+        generated.append({'filename': jfname, 'product_title': title})
+
+    return jsonify({'success': True, 'files': generated})
 
 @app.route('/ads/<filename>')
 def view_ad(filename):
@@ -792,939 +911,6 @@ def view_ad(filename):
 @login_required
 def download_ad(filename):
     return send_from_directory(ADS_FOLDER, filename, as_attachment=True)
-
-# ── Music Library ─────────────────────────────────────────────────────────────
-@app.route('/music')
-@login_required
-def list_music():
-    tracks = []
-    for fname in sorted(os.listdir(MUSIC_FOLDER)):
-        if fname.lower().endswith('.mp3'):
-            display = os.path.splitext(fname)[0]
-            display = display.replace('-', ' ').replace('_', ' ')
-            display = ' '.join(w.capitalize() for w in display.split())
-            if len(display) > 40:
-                display = display[:40]
-            tracks.append({'filename': fname, 'display_name': display})
-    return jsonify(tracks)
-
-
-@app.route('/music/<filename>')
-@login_required
-def serve_music(filename):
-    return send_from_directory(MUSIC_FOLDER, filename)
-
-@app.route('/upload-music-temp', methods=['POST'])
-def upload_music_temp():
-    """Receives a music file upload and stores it in a temp location.
-    Returns a token the client passes back to /generate-video-ad."""
-    import tempfile as _tf
-    try:
-        if 'music_file' not in request.files:
-            return jsonify({'error': 'No file provided.'}), 400
-        f = request.files['music_file']
-        if not f or f.filename == '':
-            return jsonify({'error': 'No file selected.'}), 400
-        if f.content_length and f.content_length > 20 * 1024 * 1024:
-            return jsonify({'error': 'File must be under 20 MB.'}), 400
-        upload_dir = os.path.join(DATA_DIR, 'uploads')
-        os.makedirs(upload_dir, exist_ok=True)
-        # Use a unique filename based on time + random
-        import uuid, time
-        fname = f"music_{int(time.time())}_{uuid.uuid4().hex[:8]}.mp3"
-        fpath = os.path.join(upload_dir, fname)
-        f.save(fpath)
-        if os.path.getsize(fpath) > 20 * 1024 * 1024:
-            os.unlink(fpath)
-            return jsonify({'error': 'File must be under 20 MB.'}), 400
-        return jsonify({'token': fname})
-    except Exception as e:
-        app.logger.error(f"Music upload error: {e}", exc_info=True)
-        return jsonify({'error': f'Upload failed: {str(e)}'}), 500
-
-def _draw_text_layer(W, H, store_name, title, price, description, cta_text, tagline,
-                     font_bold_path, font_reg_path, template_config):
-    """Return a transparent RGBA PIL Image with all text for a full-bleed ad."""
-    from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
-    import textwrap as _tw
-
-    layer = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
-    draw  = _Draw.Draw(layer)
-
-    # Scale fonts by width for visual impact — hard clip prevents overflow
-    sz_store = max(18, int(W * 0.016))
-    sz_title = max(48, int(W * 0.048))
-    sz_price = max(64, int(W * 0.072))
-    sz_desc  = max(20, int(W * 0.020))
-    sz_cta   = max(24, int(W * 0.026))
-
-    try:
-        f_store = _Font.truetype(font_reg_path,  sz_store)
-        f_title = _Font.truetype(font_bold_path, sz_title)
-        f_price = _Font.truetype(font_bold_path, sz_price)
-        f_desc  = _Font.truetype(font_reg_path,  sz_desc)
-        f_cta   = _Font.truetype(font_bold_path, sz_cta)
-    except Exception:
-        default = _Font.load_default()
-        f_store = f_title = f_price = f_desc = f_cta = default
-
-    def _hex(h, a=255):
-        h = h.lstrip('#')
-        return tuple(int(h[i:i+2], 16) for i in (0, 2, 4)) + (a,)
-
-    accent = _hex(template_config['accent'])
-    white  = (255, 255, 255, 255)
-    dimmed = (200, 200, 220, 255)
-    desc_c = (220, 220, 235, 255)
-    shadow = (0, 0, 0, 160)
-
-    # Hard clip: never draw text below this line
-    bottom_limit = H - int(H * 0.02)
-
-    def _txt(pos, text, font, fill):
-        """Draw text with drop shadow. Silently skips if below bottom_limit."""
-        if pos[1] + font.size > bottom_limit:
-            return
-        sx = max(1, font.size // 30)
-        sy = max(1, font.size // 30)
-        draw.text((pos[0] + sx, pos[1] + sy), text, font=font, fill=shadow)
-        draw.text(pos, text, font=font, fill=fill)
-
-    grad_top = int(H * 0.50)   # gradient covers bottom 50% — enough room for big text
-    x = int(W * 0.05)
-    y = grad_top + int(H * 0.020)
-
-    _txt((x, y), store_name, f_store, dimmed)
-    y += sz_store + max(6, int(sz_store * 0.4))
-
-    chars_t = max(10, int((W * 0.88) / (sz_title * 0.58)))
-    for line in _tw.wrap(title, width=chars_t)[:2]:
-        _txt((x, y), line, f_title, accent)
-        y += sz_title + max(4, int(sz_title * 0.08))
-    y += max(4, int(sz_title * 0.10))
-
-    _txt((x, y), f'${price}', f_price, white)
-    y += sz_price + max(6, int(sz_price * 0.12))
-
-    if description:
-        chars_d = max(15, int((W * 0.88) / (sz_desc * 0.58)))
-        for line in _tw.wrap(description, width=chars_d)[:1]:  # 1 line only
-            _txt((x, y), line, f_desc, desc_c)
-            y += sz_desc + max(4, int(sz_desc * 0.2))
-        y += max(4, int(sz_desc * 0.2))
-
-    if cta_text:
-        chars_c = max(10, int((W * 0.88) / (sz_cta * 0.58)))
-        for line in _tw.wrap(cta_text, width=chars_c)[:2]:
-            _txt((x, y), line, f_cta, accent)
-            y += sz_cta + max(4, int(sz_cta * 0.2))
-
-    if tagline:
-        ty = H - sz_store - int(H * 0.025)
-        _txt((x, ty), tagline, f_store, (180, 180, 200, 255))
-
-    return layer
-
-
-# ── AI Voiceover for Video Ads ────────────────────────────────────────────────
-
-def _build_humanlike_script(product, store_name, index):
-    """Build a natural-sounding, conversational ad script for one product.
-    
-    Uses light SSML — only pauses for pacing. No pitch warping or rate shifting.
-    Let the neural voice do its thing naturally.
-    """
-    title = product.get('title', 'this item')
-    price = product.get('price', '0.00')
-    desc = product.get('description', '')
-    condition = product.get('condition', '')
-    category = product.get('category', '')
-    
-    # Clean condition for speech
-    cond = condition.lower() if condition else ''
-    cond = cond.replace('new', 'brand new').replace('good', 'good shape').replace('like new', 'almost new')
-    
-    # Conversational product descriptions
-    product_lines = [
-        f"Take a look at this <emphasis level='moderate'>{title}</emphasis>.<break time='300ms'/>",
-        f"Check this out — <emphasis level='moderate'>{title}</emphasis>.<break time='300ms'/>",
-        f"Now this one's really nice — <emphasis level='moderate'>{title}</emphasis>.<break time='300ms'/>",
-    ]
-    
-    # Build script piece by piece
-    # Only include description if it exists and is short
-    desc_text = ""
-    if desc:
-        # Truncate and clean
-        clean_desc = desc.strip().rstrip('.')
-        if len(clean_desc) > 100:
-            clean_desc = clean_desc[:97] + "..."
-        desc_text = f"<break time='200ms'/>{clean_desc}."
-    
-    # Condition
-    cond_text = ""
-    if cond:
-        cond_text = f"<break time='200ms'/>It's in {cond} condition."
-    
-    # Price
-    # Make price sound natural
-    try:
-        price_num = float(price)
-        if price_num == int(price_num):
-            price_speech = f"${int(price_num)}"
-        else:
-            price_speech = f"${price_num:.2f}"
-    except:
-        price_speech = f"${price}"
-    
-    price_text = f"<break time='250ms'/>Only <emphasis level='strong'>{price_speech}</emphasis>."
-    
-    # Assemble — each script must be a complete <speak>…</speak> block
-    intro = [
-        f"Welcome to <emphasis level='moderate'>{store_name}</emphasis>.<break time='400ms'/>We've got something special today.<break time='300ms'/>",
-        f"Hey there, welcome to <emphasis level='moderate'>{store_name}</emphasis>!<break time='300ms'/>Let me show you what we've got.<break time='200ms'/>",
-    ]
-
-    outro = [
-        f"<break time='500ms'/>That's what's waiting for you at <emphasis level='moderate'>{store_name}</emphasis>.<break time='300ms'/>Come see us today.",
-        f"<break time='500ms'/>Stop by <emphasis level='moderate'>{store_name}</emphasis> and grab these deals while they last.<break time='200ms'/>See you soon!",
-    ]
-
-    line = product_lines[index % len(product_lines)]
-
-    # First product gets intro, last gets outro — always wrap in <speak>
-    if index == 0:
-        body = intro[0] + line + desc_text + cond_text + price_text
-    else:
-        body = line + desc_text + cond_text + price_text + outro[index % len(outro)]
-
-    return f"<speak>{body}</speak>"
-
-
-def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en-US-ChristopherNeural'):
-    """Generate a natural-sounding voiceover for one product using Edge TTS."""
-    import asyncio
-    import edge_tts
-    
-    try:
-        # Try nest_asyncio first (for Flask compatibility)
-        import nest_asyncio
-        nest_asyncio.apply()
-    except ImportError:
-        pass
-    
-    # Build conversational script with SSML
-    script = _build_humanlike_script(product, store_name, index)
-    
-    # Generate TTS
-    out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
-    tmp_files.append(out_file)
-    
-    try:
-        communicate = edge_tts.Communicate(script, voice)
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(communicate.save(out_file))
-        loop.close()
-        
-        if not os.path.exists(out_file) or os.path.getsize(out_file) < 100:
-            return None, 0, ''
-        
-        # Get duration
-        result = subprocess.run(
-            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-             '-of', 'default=noprint_wrappers=1:nokey=1', out_file],
-            capture_output=True, text=True
-        )
-        duration = float(result.stdout.strip())
-        return out_file, duration, script
-    except Exception as e:
-        app.logger.warning(f"Voiceover failed: {e}")
-        if os.path.exists(out_file):
-            os.unlink(out_file)
-        return None, 0, ''
-
-
-# ── Free Royalty-Free Music Generation ────────────────────────────────────────
-
-def _generate_custom_voiceover(text, tmp_files, voice='en-US-ChristopherNeural'):
-    """Generate voiceover from a custom user-written script using Edge TTS."""
-    import asyncio
-    import edge_tts
-
-    try:
-        import nest_asyncio
-        nest_asyncio.apply()
-    except ImportError:
-        pass
-
-    out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
-    tmp_files.append(out_file)
-
-    # Wrap in SSML for natural delivery (skip if already wrapped)
-    if text.strip().startswith('<speak>'):
-        script = text
-    else:
-        script = f'<speak>{text}</speak>'
-
-    try:
-        communicate = edge_tts.Communicate(script, voice)
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(communicate.save(out_file))
-        loop.close()
-        
-        result = subprocess.run(
-            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-             '-of', 'default=noprint_wrappers=1:nokey=1', out_file],
-            capture_output=True, text=True
-        )
-        duration = float(result.stdout.strip())
-        return out_file, duration
-    except Exception as e:
-        app.logger.warning(f"Custom voiceover failed: {e}")
-        return None, 0
-
-
-def _generate_builtin_music(duration_seconds, tmp_files, ffmpeg_path='ffmpeg'):
-    """Generate a simple upbeat royalty-free music track using ffmpeg tone synthesis."""
-    import shutil as _shutil
-    if ffmpeg_path == 'ffmpeg':
-        ffmpeg_path = _shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
-
-    out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
-    tmp_files.append(out_file)
-
-    # Generate a pleasant 4-chord loop: C-G-Am-F pattern with simple melody
-    # Using sine waves with envelope for a soft, professional sound
-    total_dur = max(duration_seconds, 15)
-
-    # Create a simple but pleasant background: alternating bass notes + soft pad
-    cmd = [
-        ffmpeg_path, '-y',
-        '-f', 'lavfi', '-i', f'sine=frequency=220:duration={total_dur}:sample_rate=44100',
-        '-f', 'lavfi', '-i', f'sine=frequency=330:duration={total_dur}:sample_rate=44100',
-        '-filter_complex',
-        f'[0:a]volume=0.35[a0];[1:a]volume=0.20[a1];[a0][a1]amix=inputs=2:duration=longest[aout]',
-        '-map', '[aout]',
-        '-b:a', '128k',
-        out_file,
-    ]
-    
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-        if result.returncode != 0:
-            app.logger.warning(f"Builtin music generation failed: {result.stderr[-300:]}")
-        if os.path.exists(out_file) and os.path.getsize(out_file) > 1000:
-            return out_file
-        app.logger.warning(f"Builtin music file too small or missing: {out_file}")
-    except Exception as e:
-        app.logger.warning(f"Builtin music generation exception: {e}")
-
-    return None
-
-
-# ── Professional Video Intro/Outro Cards ──────────────────────────────────────
-
-def _hex_rgb_for(h):
-    h = h.lstrip('#')
-    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-
-
-def _draw_text_with_shadow(draw, text, pos, font, color):
-    """Draw text with subtle shadow for depth."""
-    x, y = pos
-    draw.text((x + 1, y + 1), text, font=font, fill=(0, 0, 0, 160))
-    if len(color) == 3:
-        color = color + (255,)
-    draw.text((x, y), text, font=font, fill=color)
-
-
-def _fit_font_size(text, font_path, max_width, max_size):
-    """Find the largest font size that fits within max_width."""
-    from PIL import ImageFont as _Font
-    size = max_size
-    while size > 12:
-        font = _Font.truetype(font_path, size)
-        bbox = font.getbbox(text)
-        w = bbox[2] - bbox[0]
-        if w <= max_width - 40:
-            return size
-        size -= 2
-    return 24
-
-
-def _make_intro_card(W, H, store_name, tagline, template_config, font_bold_path, font_reg_path):
-    """Create an intro card for the video ad."""
-    from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
-    
-    accent_rgb = _hex_rgb_for(template_config['bg_dark'])
-    accent = _hex_rgb_for(template_config['accent'])
-    
-    layer = _Img.new('RGB', (W, H), accent_rgb)
-    draw = _Draw.Draw(layer)
-    
-    cx, cy = W // 2, H // 2
-    
-    # Subtle darker radial gradient
-    max_r = max(W, H)
-    for r in range(max_r, 0, -3):
-        alpha_int = max(0, int(40 - 40 * r / max_r))
-        if alpha_int > 5:
-            darker = tuple(max(0, c - alpha_int) for c in accent_rgb)
-            draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=darker)
-    
-    # Accent line
-    line_y = cy - 10
-    draw.line([(int(W * 0.3), line_y), (int(W * 0.7), line_y)], fill=accent, width=2)
-    
-    # Store name
-    font_sz = _fit_font_size(store_name or 'Your Store', font_bold_path, W, int(W * 0.7))
-    font = _Font.truetype(font_bold_path, font_sz)
-    bbox = draw.textbbox((0, 0), store_name or 'Your Store', font=font)
-    w_text = bbox[2] - bbox[0]
-    h_text = bbox[3] - bbox[1]
-    
-    x = (W - w_text) // 2
-    y = cy - h_text - 15
-    _draw_text_with_shadow(draw, store_name or 'Your Store', (x, y), font, (255, 255, 255))
-    
-    # Tagline
-    if tagline and len(tagline.strip()) > 2:
-        font_sz_t = max(18, int(font_sz * 0.5))
-        font_t = _Font.truetype(font_reg_path, font_sz_t)
-        bbox_t = draw.textbbox((0, 0), tagline.strip(), font=font_t)
-        w_t = bbox_t[2] - bbox_t[0]
-        _draw_text_with_shadow(draw, tagline.strip(), ((W - w_t) // 2, cy + 20), font_t, (200, 200, 220))
-    
-    return layer
-
-
-def _make_outro_card(W, H, store_name, cta_text, template_config, font_bold_path, font_reg_path):
-    """Create a call-to-action outro card for the video ad."""
-    from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
-    
-    accent_rgb = _hex_rgb_for(template_config['bg_dark'])
-    accent = _hex_rgb_for(template_config['accent'])
-    overlay_text = _hex_rgb_for(template_config['overlay_text'])
-    
-    layer = _Img.new('RGB', (W, H), accent_rgb)
-    draw = _Draw.Draw(layer)
-    
-    cx, cy = W // 2, H // 2
-    max_r = max(W, H)
-    for r in range(max_r, 0, -3):
-        alpha_int = max(0, int(60 - 60 * r / max_r))
-        if alpha_int > 5:
-            darker = tuple(max(0, c - alpha_int) for c in accent_rgb)
-            draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=darker)
-    
-    # Accent bar
-    bar_h = 3
-    draw.rectangle([(int(W * 0.3), cy - 30), (int(W * 0.7), cy - 30 + bar_h * 2)], fill=accent)
-    
-    # "Available Now" label
-    avail_sz = max(24, int(W * 0.022))
-    avail_font = _Font.truetype(font_reg_path, avail_sz)
-    available_text = "Available Now"
-    bbox = draw.textbbox((0, 0), available_text, font=avail_font)
-    w = bbox[2] - bbox[0]
-    _draw_text_with_shadow(draw, available_text, ((W - w) // 2, int(H * 0.28)), avail_font, accent)
-    
-    # Store name
-    name_sz = _fit_font_size(store_name or 'Your Store', font_bold_path, W, int(W * 0.6))
-    name_font = _Font.truetype(font_bold_path, name_sz)
-    bbox = draw.textbbox((0, 0), store_name or 'Your Store', font=name_font)
-    w = bbox[2] - bbox[0]
-    _draw_text_with_shadow(draw, store_name or 'Your Store', ((W - w) // 2, int(H * 0.38)), name_font, (255, 255, 255))
-    
-    # CTA text
-    if cta_text:
-        cta_sz = max(20, int(W * 0.02))
-        cta_font = _Font.truetype(font_reg_path, cta_sz)
-        tw = __import__('textwrap').TextWrapper(width=60)
-        lines = tw.wrap(cta_text)
-        ty = cy + 10
-        for line in lines[:3]:
-            bbox = draw.textbbox((0, 0), line, font=cta_font)
-            w = bbox[2] - bbox[0]
-            _draw_text_with_shadow(draw, line, ((W - w) // 2, ty), cta_font, overlay_text)
-            ty += cta_sz + 8
-    
-    return layer
-
-
-@app.route('/generate-video-ad', methods=['POST'])
-@login_required
-def generate_video_ad():
-    import subprocess, tempfile, textwrap, shutil as _shutil, asyncio
-
-    try:
-        # ── Parse inputs ──────────────────────────────────────────────────────
-        products  = json.loads(request.form.get('products', '[]'))
-        style     = request.form.get('style', 'slideshow')
-        try:
-            duration = max(10, min(60, int(request.form.get('duration', 30))))
-        except (ValueError, TypeError):
-            duration = 30
-        template  = request.form.get('template', 'default')
-        format_str = request.form.get('format', '1920x1080')
-        cta_text  = request.form.get('cta_text', '').strip()
-        tagline   = request.form.get('tagline', '').strip()
-        logo_position = request.form.get('logo_position', 'top-right')
-        logo_size = request.form.get('logo_size', 'medium')
-        enable_voiceover = request.form.get('voiceover', 'off') == 'on'
-        store_name_vo = request.form.get('store_name_vo', '').strip()
-        voice_select = request.form.get('voice_select', 'en-US-GuyNeural')
-        
-        # Voiceover toggle
-        enable_voiceover = request.form.get('voiceover', 'off') == 'on'
-        store_name_vo  = request.form.get('store_name_vo', '').strip()
-
-        # ── Template color schemes ─────────────────────────────────────────────
-        templates = {
-            'default':       {'accent': '#f0c040', 'bg_dark': '#1a1a2e', 'overlay_text': '#f0f0f5'},
-            'holiday':       {'accent': '#ff2d2d', 'bg_dark': '#0d3d22', 'overlay_text': '#ffff00'},
-            'valentine':     {'accent': '#ff1493', 'bg_dark': '#4a0e4e', 'overlay_text': '#ffb6c1'},
-            'spring':        {'accent': '#00d084', 'bg_dark': '#f5f5f5', 'overlay_text': '#2d5f3f'},
-            'summer':        {'accent': '#ffa500', 'bg_dark': '#003d82', 'overlay_text': '#fff76d'},
-            'fall':          {'accent': '#ff7f50', 'bg_dark': '#3d2817', 'overlay_text': '#ffe4b5'},
-            'blackfriday':   {'accent': '#ffff00', 'bg_dark': '#000000', 'overlay_text': '#ff6600'},
-            'backtoschool':  {'accent': '#4169e1', 'bg_dark': '#1a1a38', 'overlay_text': '#fff176'},
-        }
-
-        # ── Format dimensions ──────────────────────────────────────────────────
-        formats = {
-            '1920x1080': (1920, 1080),
-            '1080x1350': (1080, 1350),
-            '1080x1920': (1080, 1920),
-            '1200x628':  (1200, 628),
-            '1080x1080': (1080, 1080),
-        }
-
-        template_config = templates.get(template, templates['default'])
-        video_size = formats.get(format_str, formats['1920x1080'])
-
-        # Determine music path
-        music_file_upload = request.files.get('music_file')
-        music_track_name  = request.form.get('music_track', '').strip()
-        music_token       = request.form.get('music_token', '').strip()
-        # JS sends the string "null" when no track is selected — treat as empty
-        if music_track_name in ('null', 'undefined', 'none', 'None'):
-            music_track_name = ''
-        if music_token in ('null', 'undefined'):
-            music_token = ''
-
-        if not products:
-            return jsonify({'error': 'No products provided.'})
-        if not music_file_upload and not music_track_name and not music_token and not enable_voiceover:
-            return jsonify({'error': 'Please select a music track or enable the AI voiceover.'})
-
-        # Find ffmpeg — works on both apt (/usr/bin) and nixpacks installs
-        ffmpeg_path = _shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
-        if not os.path.exists(ffmpeg_path):
-            return jsonify({'error': 'ffmpeg not found on this server.'})
-
-        generated = []
-        tmp_files = []
-
-        # ── AI Voiceover: generate narration per product ──────────────────────
-        voiceover_durations = []
-        custom_voice_script = request.form.get('voice_script', '').strip()
-        
-        if enable_voiceover:
-            if custom_voice_script:
-                # Use user's custom script — one big narration piece
-                vo_file, vo_dur = _generate_custom_voiceover(
-                    custom_voice_script, tmp_files, voice_select
-                )
-                if vo_file:
-                    voiceover_durations.append({
-                        'file': vo_file, 
-                        'duration': vo_dur,
-                        'script': custom_voice_script,
-                        'is_custom': True
-                    })
-                if vo_file:
-                    # Adjust duration to fit voiceover
-                    duration = max(duration, int(vo_dur + 3))
-            elif store_name_vo:
-                # Use auto-generated per-product narration
-                for i, p in enumerate(products):
-                    vo_file, vo_dur, vo_script = _generate_product_voiceover(
-                        p, store_name_vo, tmp_files, i, voice_select
-                    )
-                    if vo_file:
-                        voiceover_durations.append({'file': vo_file, 'duration': vo_dur, 'script': vo_script})
-                    else:
-                        voiceover_durations.append(None)
-                
-                # Adjust duration to fit voiceovers
-                valid_vo = [vd for vd in voiceover_durations if vd is not None]
-                if valid_vo:
-                    total_voice = sum(vd['duration'] for vd in valid_vo)
-                    duration = max(duration, int(total_voice + 3))
-
-        # Resolve music path — ALWAYS ensure we have audio
-        music_path = None
-        if music_token:
-            # Pre-uploaded via /upload-music-temp
-            music_path = os.path.join(DATA_DIR, 'uploads', os.path.basename(music_token))
-            if not os.path.exists(music_path):
-                music_path = None
-            else:
-                tmp_files.append(music_path)  # clean up after generation
-        elif music_file_upload:
-            # Direct file upload
-            tmp_music = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
-            music_file_upload.save(tmp_music.name)
-            tmp_files.append(tmp_music.name)
-            if os.path.getsize(tmp_music.name) > 20 * 1024 * 1024:
-                return jsonify({'error': 'Uploaded MP3 must be under 20 MB.'})
-            music_path = tmp_music.name
-        elif music_track_name and music_track_name != 'none':
-            # Built-in track
-            music_path = os.path.join(MUSIC_FOLDER, os.path.basename(music_track_name))
-            if not os.path.exists(music_path):
-                music_path = None  # Will fall through to auto-generate
-
-        # If user selected music but file wasn't found, generate fallback
-        # Do NOT generate fallback when user chose voiceover-only (no music selected)
-        user_wanted_music = bool(music_file_upload or music_track_name or music_token)
-        if not music_path and user_wanted_music:
-            app.logger.info("Selected music track not found, generating fallback music")
-            generated_music = _generate_builtin_music(duration, tmp_files, ffmpeg_path)
-            if generated_music:
-                music_path = generated_music
-                tmp_files.append(generated_music)
-            else:
-                app.logger.warning("Fallback music generation also failed")
-
-        # Save uploaded logo to a temp file if provided
-        logo_path = None
-        logo_file_upload = request.files.get('logo_file')
-        if logo_file_upload:
-            tmp_logo = tempfile.NamedTemporaryFile(suffix=os.path.splitext(logo_file_upload.filename)[1], delete=False)
-            logo_file_upload.save(tmp_logo.name)
-            tmp_files.append(tmp_logo.name)
-            if os.path.getsize(tmp_logo.name) > 5 * 1024 * 1024:
-                return jsonify({'error': 'Logo must be under 5 MB.'})
-            logo_path = tmp_logo.name
-
-        W, H = video_size
-
-        from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
-
-        def _hex_rgb(h):
-            h = h.lstrip('#')
-            return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-
-        bg_dark_rgb = _hex_rgb(template_config['bg_dark'])
-        font_bold   = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-
-        # Check if fonts exist on this server (they may not on Railway without fonts-dejavu-core)
-        font_exists = os.path.exists(font_bold)
-
-        font_reg    = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-
-        # ── Build one bg+text image pair per product ──────────────────────────
-        bg_files   = []   # paths to bg JPEG files
-        text_files = []   # paths to text PNG files
-        titles     = []
-
-        for p in products:
-            sku         = p.get('sku', 'UNKNOWN')
-            title       = p.get('title', 'Untitled')
-            price       = p.get('price', '0.00')
-            description = p.get('description', '')
-            image_url   = p.get('image', '')
-            titles.append(title)
-
-            # Start with solid bg_dark fill
-            bg_frame = _Img.new('RGB', (W, H), color=bg_dark_rgb)
-
-            # Contain product photo: full product always visible, letterboxed with bg_dark
-            if image_url:
-                img_filename = image_url.split('/')[-1]
-                img_path = os.path.join(UPLOAD_FOLDER, img_filename)
-                if os.path.exists(img_path):
-                    try:
-                        prod_img = _Img.open(img_path)
-                        prod_img = fix_image_orientation(prod_img)
-                        prod_img = prod_img.convert('RGB')
-                        scale = min(W / prod_img.width, H / prod_img.height)
-                        new_w = int(prod_img.width * scale)
-                        new_h = int(prod_img.height * scale)
-                        prod_img = prod_img.resize((new_w, new_h), _Img.LANCZOS)
-                        px = (W - new_w) // 2
-                        py = (H - new_h) // 2
-                        bg_frame.paste(prod_img, (px, py))
-                    except Exception:
-                        pass
-
-            # Dark gradient overlay: bottom 50%, always black-based
-            grad_h = int(H * 0.50)
-            grad_y = H - grad_h
-            grad_img  = _Img.new('RGBA', (W, grad_h), (0, 0, 0, 0))
-            grad_draw = _Draw.Draw(grad_img)
-            for row in range(grad_h):
-                alpha = int(240 * row / grad_h)
-                grad_draw.line([(0, row), (W - 1, row)], fill=(0, 0, 0, alpha))
-            bg_frame = bg_frame.convert('RGBA')
-            bg_frame.paste(grad_img, (0, grad_y), grad_img)
-            bg_frame = bg_frame.convert('RGB')
-
-            # Logo on background layer (optional)
-            if logo_path and os.path.exists(logo_path):
-                try:
-                    logo_img = _Img.open(logo_path)
-                    logo_img = fix_image_orientation(logo_img)
-                    logo_img = logo_img.convert('RGBA')
-                    size_map = {'small': 60, 'medium': 90, 'large': 120}
-                    target_size = int(size_map.get(logo_size, 90) * (W / 1280.0))
-                    logo_img.thumbnail((target_size, target_size), _Img.LANCZOS)
-                    padding = int(W * 0.015)
-                    pos_map = {
-                        'top-left':     (padding, padding),
-                        'top-right':    (W - logo_img.width - padding, padding),
-                        'bottom-left':  (padding, H - logo_img.height - padding),
-                        'bottom-right': (W - logo_img.width - padding, H - logo_img.height - padding),
-                    }
-                    pos = pos_map.get(logo_position, pos_map['top-right'])
-                    bg_frame = bg_frame.convert('RGBA')
-                    bg_frame.paste(logo_img, pos, logo_img)
-                    bg_frame = bg_frame.convert('RGB')
-                except Exception:
-                    pass
-
-            # Text layer: transparent RGBA PNG, text only
-            text_layer = _draw_text_layer(
-                W, H,
-                store_name='Liberty Emporium',
-                title=title, price=price,
-                description=description,
-                cta_text=cta_text,
-                tagline=tagline,
-                font_bold_path=font_bold,
-                font_reg_path=font_reg,
-                template_config=template_config,
-            )
-
-            tmp_bg   = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
-            tmp_text = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-            bg_frame.save(tmp_bg.name,     'JPEG', quality=92)
-            text_layer.save(tmp_text.name, 'PNG')
-            tmp_files.extend([tmp_bg.name, tmp_text.name])
-            bg_files.append(tmp_bg.name)
-            text_files.append(tmp_text.name)
-
-        # ── Professional video generation with intro, crossfades & progress ───
-        n = len(bg_files)
-        # Reserve 2.5s for intro + 3s for outro
-        intro_dur = 2.5
-        outro_dur = 3.0
-        product_dur = max(duration - intro_dur - outro_dur, 6.0)
-        t_per = round(product_dur / n, 3)
-        crossfade_dur = min(0.8, t_per * 0.25)  # 25% of per-product time, max 0.8s
-
-        # Create intro card image
-        store_display = request.form.get('store_name', 'Your Store').strip()
-        intro_img = _make_intro_card(W, H, store_display, tagline, template_config, font_bold, font_reg)
-        tmp_intro = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
-        intro_img.save(tmp_intro.name, 'JPEG', quality=95)
-        tmp_files.append(tmp_intro.name)
-
-        # Create outro card image
-        outro_cta = cta_text or 'Available Now — Visit Our Store Today!'
-        outro_img = _make_outro_card(W, H, store_display, outro_cta, template_config, font_bold, font_reg)
-        tmp_outro = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
-        outro_img.save(tmp_outro.name, 'JPEG', quality=95)
-        tmp_files.append(tmp_outro.name)
-
-        # Total timeline (accounting for crossfade overlaps: n+1 transitions)
-        total_dur = intro_dur + (n * t_per) + outro_dur - (n + 1) * crossfade_dur
-        fps = 25
-
-        ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        template_sfx = f'_{template}' if template != 'default' else ''
-        format_sfx = f'_{format_str}' if format_str != '1920x1080' else ''
-        sku_str = products[0].get('sku', 'UNKNOWN') if len(products) == 1 else f"{n}products"
-        out_name = f'video_ad_{sku_str}{template_sfx}{format_sfx}_{ts}.mp4'
-        out_path = os.path.join(ADS_FOLDER, out_name)
-
-        # Build Ken Burns zoom directions: simple, tested expressions
-        kb_configs = []
-        directions = [
-            ("zoompan=z='if(lte(on,1),1.0,zoom+0.003)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
-             "zoom in slowly from center"),
-            ("zoompan=z='if(lte(on,1),1.15,max(zoom-0.003,1.0))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'",
-             "zoom out slowly from center"),
-            ("zoompan=z='min(zoom+0.003,1.3)':x='if(lte(on,1),0,x+iw/100)':y='ih/2-(ih/zoom/2)'",
-             "pan left to right"),
-            ("zoompan=z='min(zoom+0.003,1.3)':x='if(lte(on,1),iw/5,max(0,x-iw/100))':y='ih/2-(ih/zoom/2)'",
-             "pan right to left"),
-        ]
-
-        # Build ffmpeg inputs: intro + N bg + N text + outro [+ voiceover] [+ music]
-        cmd = [ffmpeg_path, '-y']
-        cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(intro_dur), '-i', tmp_intro.name]
-        for i in range(n):
-            cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(t_per), '-i', bg_files[i]]
-            cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(t_per), '-i', text_files[i]]
-        cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(outro_dur), '-i', tmp_outro.name]
-        
-        audio_inputs = 0  # track how many audio inputs we add
-
-        # Add voiceover audio if enabled
-        if enable_voiceover and voiceover_durations:
-            for vd in voiceover_durations:
-                if vd and vd.get('file'):
-                    cmd += ['-i', vd['file']]
-                    audio_inputs += 1
-
-        # Add music if available
-        if music_path:
-            cmd += ['-i', music_path]
-            audio_inputs += 1
-
-        # FALLBACK: if we still have no audio (e.g. TTS failed, no music selected),
-        # generate background music so the video always has sound
-        if audio_inputs == 0:
-            app.logger.info("No audio sources available — generating fallback background music")
-            fallback_music = _generate_builtin_music(total_dur, tmp_files, ffmpeg_path)
-            if fallback_music:
-                cmd += ['-i', fallback_music]
-                audio_inputs += 1
-            else:
-                # Last resort: generate a silent audio track so the video container
-                # always has an audio stream (some players misbehave without one)
-                app.logger.warning("Fallback music failed — generating silent audio track")
-                silent_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
-                tmp_files.append(silent_file)
-                try:
-                    subprocess.run([
-                        ffmpeg_path, '-y',
-                        '-f', 'lavfi', '-i', f'anullsrc=r=44100:cl=stereo',
-                        '-t', str(total_dur), '-b:a', '128k', silent_file,
-                    ], capture_output=True, text=True, timeout=30)
-                    if os.path.exists(silent_file) and os.path.getsize(silent_file) > 100:
-                        cmd += ['-i', silent_file]
-                        audio_inputs += 1
-                except Exception as e:
-                    app.logger.error(f"Silent audio generation failed: {e}")
-
-        music_and_vo_start = 1 + 2 * n + 1  # after intro + 2*N + outro
-
-        # Build filter_complex
-        parts = []
-
-        # Intro card: simple hold
-        parts.append(f"[0:v]fps={fps}[intro]")
-
-        # For each product: optionally apply Ken Burns + overlay text + progress bar
-        for i in range(n):
-            bg_idx = 1 + 2*i
-            txt_idx = 2 + 2*i
-
-            # Ken Burns with varying direction per product
-            if style == 'kenburns':
-                dur_frames = int(t_per * fps)
-                zoom_expr = directions[i % len(directions)][0]
-                parts.append(
-                    f"[{bg_idx}:v]{zoom_expr}:d={dur_frames}:s={W}x{H}:fps={fps}[kb{i}]"
-                )
-                bg_ref = f"kb{i}"
-            else:
-                parts.append(f"[{bg_idx}:v]fps={fps}[bg{i}]")
-                bg_ref = f"bg{i}"
-
-            # Text overlay with fade-in
-            parts.append(f"[{txt_idx}:v]fade=in:st=0:d=0.8:alpha=1[txt{i}]")
-            parts.append(f"[{bg_ref}][txt{i}]overlay=0:0[prod{i}]")
-
-        # Outro card
-        outro_idx = 1 + 2 * n
-        parts.append(f"[{outro_idx}:v]fps={fps}[outro]")
-
-        # Chain: intro -> xfade products -> outro
-        # First: intro + product0 with xfade
-        parts.append(f"[intro][prod0]xfade=transition=fade:duration={crossfade_dur}:offset={intro_dur - crossfade_dur}[chain0]")
-
-        for i in range(1, n):
-            prev = f"chain{i-1}"
-            # Each previous xfade reduces total duration by crossfade_dur,
-            # so offset into chain must account for all (i+1) crossfades so far
-            prev_offset = intro_dur + i * t_per - (i + 1) * crossfade_dur
-            parts.append(f"[{prev}][prod{i}]xfade=transition=fade:duration={crossfade_dur}:offset={prev_offset:.3f}[chain{i}]")
-
-        # Chain last product with outro
-        last_chain = f"chain{n-1}" if n > 1 else f"chain0"
-        # Account for all n previous crossfades (intro→prod0 + (n-1) inter-product)
-        outro_offset = intro_dur + n * t_per - (n + 1) * crossfade_dur
-        parts.append(f"[{last_chain}][outro]xfade=transition=fade:duration={crossfade_dur}:offset={outro_offset:.3f}[outv]")
-
-        # Add progress bar: thin colored line at bottom that grows
-        bar_h = max(4, int(H * 0.004))
-        bar_y = H - bar_h - 2
-        accent_rgb = _hex_rgb(template_config['accent'])
-        parts.append(
-            f"[outv]drawbox=x=0:y={bar_y}:w=iw*t/{total_dur:.3f}:h={bar_h}:color='0x{template_config['accent'].lstrip('#')}'@0.95:t=fill[final]"
-        )
-        map_label = '[final]'
-
-        # Build filter_complex string
-        fc = ';'.join(parts)
-
-        # Handle audio: voiceover, music, both, or neither
-        if audio_inputs == 0:
-            # No audio sources
-            fc_final = fc
-            audio_args = ['-an']  # no audio track
-        elif audio_inputs == 1:
-            # Single audio source — direct map
-            first_audio_idx = music_and_vo_start
-            fc_final = fc
-            audio_args = ['-map', f'{first_audio_idx}:a', '-c:a', 'aac', '-b:a', '128k', '-shortest']
-        else:
-            # Multiple audio sources — mix them into one
-            mix_inputs = ''
-            for i in range(audio_inputs):
-                mix_inputs += f'[{music_and_vo_start + i}:a]'
-            fc_final = fc + ';' + mix_inputs + f'amix=inputs={audio_inputs}:duration=longest:dropout_transition=0[mixed_a]'
-            audio_args = ['-map', '[mixed_a]', '-c:a', 'aac', '-b:a', '128k', '-shortest']
-
-        cmd += [
-            '-filter_complex', fc_final,
-            '-map', map_label,
-        ] + audio_args + [
-            '-c:v', 'libx264', '-preset', 'medium', '-crf', '22',
-            '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
-            out_path,
-        ]
-
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        except subprocess.TimeoutExpired:
-            return jsonify({'error': 'Video generation timed out (try a shorter duration or smaller format).'})
-        if result.returncode != 0:
-            return jsonify({'error': f'ffmpeg failed: {result.stderr[-800:]}'})
-
-        generated.append({'filename': out_name, 'product_title': ' · '.join(titles)})
-
-        # ── Return all generated files ─────────────────────────────────────────
-        return jsonify({'success': True, 'files': generated})
-
-    except Exception as e:
-        import traceback
-        app.logger.error(f"Video generation error: {str(e)}\n" + traceback.format_exc())
-        return jsonify({'error': f'Video generation failed: {str(e)}'}), 500
-
-    finally:
-        for _f in (tmp_files if 'tmp_files' in dir() else []):
-            try:
-                os.unlink(_f)
-            except Exception:
-                pass
 
 # ── Listing Generator ─────────────────────────────────────────────────────────
 @app.route('/listing-generator')
@@ -2166,68 +1352,6 @@ def manual_backup():
     _backup_inventory()
     flash('Manual backup created!', 'success')
     return redirect(url_for('admin_backups'))
-
-# ── Ad Vault (Video Storage) ──────────────────────────────────────────────────
-@app.route('/ad-vault')
-@login_required
-def ad_vault():
-    """Display all generated video ads."""
-    videos = []
-    if os.path.exists(ADS_FOLDER):
-        for filename in os.listdir(ADS_FOLDER):
-            if filename.lower().endswith('.mp4'):
-                filepath = os.path.join(ADS_FOLDER, filename)
-                try:
-                    size_bytes = os.path.getsize(filepath)
-                    size_mb = round(size_bytes / (1024 * 1024), 2)
-                    mod_time = os.path.getmtime(filepath)
-                    mod_date = datetime.datetime.fromtimestamp(mod_time).strftime('%Y-%m-%d %H:%M:%S')
-                    
-                    # Parse filename to extract SKU and template
-                    # Format: video_ad_{SKU}_{TEMPLATE}_{FORMAT}_{TIMESTAMP}.mp4
-                    parts = filename.replace('video_ad_', '').replace('.mp4', '').split('_')
-                    sku = parts[0] if parts else 'Unknown'
-                    
-                    videos.append({
-                        'filename': filename,
-                        'sku': sku,
-                        'size_mb': size_mb,
-                        'mod_date': mod_date,
-                        'display_name': filename.replace('.mp4', '').replace('video_ad_', '')
-                    })
-                except Exception:
-                    pass
-    
-    # Sort by modification time (newest first)
-    videos.sort(key=lambda v: v['mod_date'], reverse=True)
-    
-    return render_template('ad_vault.html', videos=videos, **ctx())
-
-@app.route('/confirm-delete-video/<filename>')
-@login_required
-def confirm_delete_video(filename):
-    if session.get('is_guest'):
-        flash('Guests cannot delete videos.', 'error')
-        return redirect(url_for('dashboard'))
-    return render_template('confirm_delete.html', filename=filename,
-        delete_type='video', back_url=url_for('ad_vault'), **ctx())
-
-@app.route('/ad-vault/delete/<filename>', methods=['POST'])
-@login_required
-@admin_required
-def delete_video(filename):
-    """Delete a video from the ad vault."""
-    if not filename.endswith('.mp4'):
-        return jsonify({'error': 'Invalid file type'}), 400
-    
-    filepath = os.path.join(ADS_FOLDER, filename)
-    if os.path.exists(filepath) and os.path.isfile(filepath):
-        try:
-            os.remove(filepath)
-            return jsonify({'success': True, 'message': f'Video deleted: {filename}'})
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-    return jsonify({'error': 'File not found'}), 404
 
 # ── Debug ─────────────────────────────────────────────────────────────────────
 @app.route('/debug')
