@@ -1049,16 +1049,25 @@ def _generate_custom_voiceover(text, tmp_files, voice='en-US-ChristopherNeural')
     """Generate voiceover from a custom user-written script using Edge TTS."""
     import asyncio
     import edge_tts
-    
+
+    try:
+        import nest_asyncio
+        nest_asyncio.apply()
+    except ImportError:
+        pass
+
     out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
     tmp_files.append(out_file)
-    
+
     # Wrap in minimal SSML for natural delivery
     script = f'<speak>{text}</speak>'
-    
+
     try:
         communicate = edge_tts.Communicate(script, voice)
-        asyncio.run(communicate.save(out_file))
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(communicate.save(out_file))
+        loop.close()
         
         result = subprocess.run(
             ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
@@ -1520,8 +1529,8 @@ def generate_video_ad():
         outro_img.save(tmp_outro.name, 'JPEG', quality=95)
         tmp_files.append(tmp_outro.name)
 
-        # Total timeline
-        total_dur = intro_dur + (n * t_per) + outro_dur
+        # Total timeline (accounting for crossfade overlaps: n+1 transitions)
+        total_dur = intro_dur + (n * t_per) + outro_dur - (n + 1) * crossfade_dur
         fps = 25
 
         ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -1553,19 +1562,28 @@ def generate_video_ad():
         cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(outro_dur), '-i', tmp_outro.name]
         
         audio_inputs = 0  # track how many audio inputs we add
-        
+
         # Add voiceover audio if enabled
         if enable_voiceover and voiceover_durations:
             for vd in voiceover_durations:
                 if vd and vd.get('file'):
                     cmd += ['-i', vd['file']]
                     audio_inputs += 1
-        
+
         # Add music if available
         if music_path:
             cmd += ['-i', music_path]
             audio_inputs += 1
-        
+
+        # FALLBACK: if we still have no audio (e.g. TTS failed, no music selected),
+        # generate background music so the video always has sound
+        if audio_inputs == 0:
+            app.logger.info("No audio sources available — generating fallback background music")
+            fallback_music = _generate_builtin_music(total_dur, tmp_files)
+            if fallback_music:
+                cmd += ['-i', fallback_music]
+                audio_inputs += 1
+
         music_and_vo_start = 1 + 2 * n + 1  # after intro + 2*N + outro
 
         # Build filter_complex
@@ -1605,12 +1623,15 @@ def generate_video_ad():
 
         for i in range(1, n):
             prev = f"chain{i-1}"
-            prev_offset = intro_dur + sum(t_per for _ in range(i)) - crossfade_dur
+            # Each previous xfade reduces total duration by crossfade_dur,
+            # so offset into chain must account for all (i+1) crossfades so far
+            prev_offset = intro_dur + i * t_per - (i + 1) * crossfade_dur
             parts.append(f"[{prev}][prod{i}]xfade=transition=fade:duration={crossfade_dur}:offset={prev_offset:.3f}[chain{i}]")
 
         # Chain last product with outro
         last_chain = f"chain{n-1}" if n > 1 else f"chain0"
-        outro_offset = intro_dur + (n * t_per) - crossfade_dur
+        # Account for all n previous crossfades (intro→prod0 + (n-1) inter-product)
+        outro_offset = intro_dur + n * t_per - (n + 1) * crossfade_dur
         parts.append(f"[{last_chain}][outro]xfade=transition=fade:duration={crossfade_dur}:offset={outro_offset:.3f}[outv]")
 
         # Add progress bar: thin colored line at bottom that grows
