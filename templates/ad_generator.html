@@ -499,12 +499,12 @@
        data-category="{{ product.Category | default('') | e }}"
        data-condition="{{ product.Condition | default('') | e }}"
        data-description="{{ product.Description | default('') | e }}"
-       data-image="{{ url_for('uploaded_file', filename=product.Image) if product.Image else '' }}"
+       data-image="{{ url_for('serve_upload', filename=product.Image) if product.Image else '' }}"
        onclick="toggleCard(this)">
     <div class="select-checkbox">✓</div>
     <div class="card-img">
       {% if product.Image %}
-        <img src="{{ url_for('uploaded_file', filename=product.Image) }}" alt="{{ product.Title }}" loading="lazy">
+        <img src="{{ url_for('serve_upload', filename=product.Image) }}" alt="{{ product.Title }}" loading="lazy">
       {% else %}
         <span class="no-img-text">No photo</span>
       {% endif %}
