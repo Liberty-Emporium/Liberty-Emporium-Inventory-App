@@ -979,24 +979,26 @@ def _build_humanlike_script(product, store_name, index):
     
     price_text = f"<break time='250ms'/>Only <emphasis level='strong'>{price_speech}</emphasis>."
     
-    # Assemble
+    # Assemble — each script must be a complete <speak>…</speak> block
     intro = [
-        f"<speak>Welcome to <emphasis level='moderate'>{store_name}</emphasis>.<break time='400ms'/>We've got something special today.<break time='300ms'/>",
-        f"<speak>Hey there, welcome to <emphasis level='moderate'>{store_name}</emphasis>!<break time='300ms'/>Let me show you what we've got.<break time='200ms'/>",
+        f"Welcome to <emphasis level='moderate'>{store_name}</emphasis>.<break time='400ms'/>We've got something special today.<break time='300ms'/>",
+        f"Hey there, welcome to <emphasis level='moderate'>{store_name}</emphasis>!<break time='300ms'/>Let me show you what we've got.<break time='200ms'/>",
     ]
-    
+
     outro = [
-        f"<break time='500ms'/>That's what's waiting for you at <emphasis level='moderate'>{store_name}</emphasis>.<break time='300ms'/>Come see us today.</speak>",
-        f"<break time='500ms'/>Stop by <emphasis level='moderate'>{store_name}</emphasis> and grab these deals while they last.<break time='200ms'/>See you soon!</speak>",
+        f"<break time='500ms'/>That's what's waiting for you at <emphasis level='moderate'>{store_name}</emphasis>.<break time='300ms'/>Come see us today.",
+        f"<break time='500ms'/>Stop by <emphasis level='moderate'>{store_name}</emphasis> and grab these deals while they last.<break time='200ms'/>See you soon!",
     ]
-    
+
     line = product_lines[index % len(product_lines)]
-    
-    # First product gets intro, last gets outro
+
+    # First product gets intro, last gets outro — always wrap in <speak>
     if index == 0:
-        return intro[0] + line + desc_text + cond_text + price_text
+        body = intro[0] + line + desc_text + cond_text + price_text
     else:
-        return line + desc_text + cond_text + price_text + (outro[index % len(outro)] if index > 0 else "")
+        body = line + desc_text + cond_text + price_text + outro[index % len(outro)]
+
+    return f"<speak>{body}</speak>"
 
 
 def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en-US-ChristopherNeural'):
@@ -1049,16 +1051,28 @@ def _generate_custom_voiceover(text, tmp_files, voice='en-US-ChristopherNeural')
     """Generate voiceover from a custom user-written script using Edge TTS."""
     import asyncio
     import edge_tts
-    
+
+    try:
+        import nest_asyncio
+        nest_asyncio.apply()
+    except ImportError:
+        pass
+
     out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
     tmp_files.append(out_file)
-    
-    # Wrap in minimal SSML for natural delivery
-    script = f'<speak>{text}</speak>'
-    
+
+    # Wrap in SSML for natural delivery (skip if already wrapped)
+    if text.strip().startswith('<speak>'):
+        script = text
+    else:
+        script = f'<speak>{text}</speak>'
+
     try:
         communicate = edge_tts.Communicate(script, voice)
-        asyncio.run(communicate.save(out_file))
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(communicate.save(out_file))
+        loop.close()
         
         result = subprocess.run(
             ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
@@ -1072,34 +1086,41 @@ def _generate_custom_voiceover(text, tmp_files, voice='en-US-ChristopherNeural')
         return None, 0
 
 
-def _generate_builtin_music(duration_seconds, tmp_files):
+def _generate_builtin_music(duration_seconds, tmp_files, ffmpeg_path='ffmpeg'):
     """Generate a simple upbeat royalty-free music track using ffmpeg tone synthesis."""
+    import shutil as _shutil
+    if ffmpeg_path == 'ffmpeg':
+        ffmpeg_path = _shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
+
     out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
     tmp_files.append(out_file)
-    
+
     # Generate a pleasant 4-chord loop: C-G-Am-F pattern with simple melody
     # Using sine waves with envelope for a soft, professional sound
     total_dur = max(duration_seconds, 15)
-    
+
     # Create a simple but pleasant background: alternating bass notes + soft pad
     cmd = [
-        'ffmpeg', '-y',
+        ffmpeg_path, '-y',
         '-f', 'lavfi', '-i', f'sine=frequency=220:duration={total_dur}:sample_rate=44100',
         '-f', 'lavfi', '-i', f'sine=frequency=330:duration={total_dur}:sample_rate=44100',
         '-filter_complex',
-        f'[0:a]volume=0.08[a0];[1:a]volume=0.04[a1];[a0][a1]amix=inputs=2:duration=longest[aout]',
+        f'[0:a]volume=0.35[a0];[1:a]volume=0.20[a1];[a0][a1]amix=inputs=2:duration=longest[aout]',
         '-map', '[aout]',
         '-b:a', '128k',
         out_file,
     ]
     
     try:
-        subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        if result.returncode != 0:
+            app.logger.warning(f"Builtin music generation failed: {result.stderr[-300:]}")
         if os.path.exists(out_file) and os.path.getsize(out_file) > 1000:
             return out_file
-    except Exception:
-        pass
-    
+        app.logger.warning(f"Builtin music file too small or missing: {out_file}")
+    except Exception as e:
+        app.logger.warning(f"Builtin music generation exception: {e}")
+
     return None
 
 
@@ -1372,7 +1393,7 @@ def generate_video_ad():
         user_wanted_music = bool(music_file_upload or music_track_name or music_token)
         if not music_path and user_wanted_music:
             app.logger.info("Selected music track not found, generating fallback music")
-            generated_music = _generate_builtin_music(duration, tmp_files)
+            generated_music = _generate_builtin_music(duration, tmp_files, ffmpeg_path)
             if generated_music:
                 music_path = generated_music
                 tmp_files.append(generated_music)
@@ -1520,8 +1541,8 @@ def generate_video_ad():
         outro_img.save(tmp_outro.name, 'JPEG', quality=95)
         tmp_files.append(tmp_outro.name)
 
-        # Total timeline
-        total_dur = intro_dur + (n * t_per) + outro_dur
+        # Total timeline (accounting for crossfade overlaps: n+1 transitions)
+        total_dur = intro_dur + (n * t_per) + outro_dur - (n + 1) * crossfade_dur
         fps = 25
 
         ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -1553,19 +1574,45 @@ def generate_video_ad():
         cmd += ['-loop', '1', '-framerate', str(fps), '-t', str(outro_dur), '-i', tmp_outro.name]
         
         audio_inputs = 0  # track how many audio inputs we add
-        
+
         # Add voiceover audio if enabled
         if enable_voiceover and voiceover_durations:
             for vd in voiceover_durations:
                 if vd and vd.get('file'):
                     cmd += ['-i', vd['file']]
                     audio_inputs += 1
-        
+
         # Add music if available
         if music_path:
             cmd += ['-i', music_path]
             audio_inputs += 1
-        
+
+        # FALLBACK: if we still have no audio (e.g. TTS failed, no music selected),
+        # generate background music so the video always has sound
+        if audio_inputs == 0:
+            app.logger.info("No audio sources available — generating fallback background music")
+            fallback_music = _generate_builtin_music(total_dur, tmp_files, ffmpeg_path)
+            if fallback_music:
+                cmd += ['-i', fallback_music]
+                audio_inputs += 1
+            else:
+                # Last resort: generate a silent audio track so the video container
+                # always has an audio stream (some players misbehave without one)
+                app.logger.warning("Fallback music failed — generating silent audio track")
+                silent_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
+                tmp_files.append(silent_file)
+                try:
+                    subprocess.run([
+                        ffmpeg_path, '-y',
+                        '-f', 'lavfi', '-i', f'anullsrc=r=44100:cl=stereo',
+                        '-t', str(total_dur), '-b:a', '128k', silent_file,
+                    ], capture_output=True, text=True, timeout=30)
+                    if os.path.exists(silent_file) and os.path.getsize(silent_file) > 100:
+                        cmd += ['-i', silent_file]
+                        audio_inputs += 1
+                except Exception as e:
+                    app.logger.error(f"Silent audio generation failed: {e}")
+
         music_and_vo_start = 1 + 2 * n + 1  # after intro + 2*N + outro
 
         # Build filter_complex
@@ -1605,12 +1652,15 @@ def generate_video_ad():
 
         for i in range(1, n):
             prev = f"chain{i-1}"
-            prev_offset = intro_dur + sum(t_per for _ in range(i)) - crossfade_dur
+            # Each previous xfade reduces total duration by crossfade_dur,
+            # so offset into chain must account for all (i+1) crossfades so far
+            prev_offset = intro_dur + i * t_per - (i + 1) * crossfade_dur
             parts.append(f"[{prev}][prod{i}]xfade=transition=fade:duration={crossfade_dur}:offset={prev_offset:.3f}[chain{i}]")
 
         # Chain last product with outro
         last_chain = f"chain{n-1}" if n > 1 else f"chain0"
-        outro_offset = intro_dur + (n * t_per) - crossfade_dur
+        # Account for all n previous crossfades (intro→prod0 + (n-1) inter-product)
+        outro_offset = intro_dur + n * t_per - (n + 1) * crossfade_dur
         parts.append(f"[{last_chain}][outro]xfade=transition=fade:duration={crossfade_dur}:offset={outro_offset:.3f}[outv]")
 
         # Add progress bar: thin colored line at bottom that grows
