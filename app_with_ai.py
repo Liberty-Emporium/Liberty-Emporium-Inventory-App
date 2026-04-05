@@ -1288,6 +1288,11 @@ def generate_video_ad():
         music_file_upload = request.files.get('music_file')
         music_track_name  = request.form.get('music_track', '').strip()
         music_token       = request.form.get('music_token', '').strip()
+        # JS sends the string "null" when no track is selected — treat as empty
+        if music_track_name in ('null', 'undefined', 'none', 'None'):
+            music_track_name = ''
+        if music_token in ('null', 'undefined'):
+            music_token = ''
 
         if not products:
             return jsonify({'error': 'No products provided.'})

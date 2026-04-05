@@ -1760,7 +1760,7 @@ function vsGenerate() {
 
     if (musicToken) {
       formData.append('music_token', musicToken);
-    } else {
+    } else if (vsSelectedTrack) {
       formData.append('music_track', vsSelectedTrack);
     }
 
