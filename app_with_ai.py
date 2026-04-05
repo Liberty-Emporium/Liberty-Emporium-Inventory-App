@@ -979,24 +979,26 @@ def _build_humanlike_script(product, store_name, index):
     
     price_text = f"<break time='250ms'/>Only <emphasis level='strong'>{price_speech}</emphasis>."
     
-    # Assemble
+    # Assemble — each script must be a complete <speak>…</speak> block
     intro = [
-        f"<speak>Welcome to <emphasis level='moderate'>{store_name}</emphasis>.<break time='400ms'/>We've got something special today.<break time='300ms'/>",
-        f"<speak>Hey there, welcome to <emphasis level='moderate'>{store_name}</emphasis>!<break time='300ms'/>Let me show you what we've got.<break time='200ms'/>",
+        f"Welcome to <emphasis level='moderate'>{store_name}</emphasis>.<break time='400ms'/>We've got something special today.<break time='300ms'/>",
+        f"Hey there, welcome to <emphasis level='moderate'>{store_name}</emphasis>!<break time='300ms'/>Let me show you what we've got.<break time='200ms'/>",
     ]
-    
+
     outro = [
-        f"<break time='500ms'/>That's what's waiting for you at <emphasis level='moderate'>{store_name}</emphasis>.<break time='300ms'/>Come see us today.</speak>",
-        f"<break time='500ms'/>Stop by <emphasis level='moderate'>{store_name}</emphasis> and grab these deals while they last.<break time='200ms'/>See you soon!</speak>",
+        f"<break time='500ms'/>That's what's waiting for you at <emphasis level='moderate'>{store_name}</emphasis>.<break time='300ms'/>Come see us today.",
+        f"<break time='500ms'/>Stop by <emphasis level='moderate'>{store_name}</emphasis> and grab these deals while they last.<break time='200ms'/>See you soon!",
     ]
-    
+
     line = product_lines[index % len(product_lines)]
-    
-    # First product gets intro, last gets outro
+
+    # First product gets intro, last gets outro — always wrap in <speak>
     if index == 0:
-        return intro[0] + line + desc_text + cond_text + price_text
+        body = intro[0] + line + desc_text + cond_text + price_text
     else:
-        return line + desc_text + cond_text + price_text + (outro[index % len(outro)] if index > 0 else "")
+        body = line + desc_text + cond_text + price_text + outro[index % len(outro)]
+
+    return f"<speak>{body}</speak>"
 
 
 def _generate_product_voiceover(product, store_name, tmp_files, index, voice='en-US-ChristopherNeural'):
@@ -1059,8 +1061,11 @@ def _generate_custom_voiceover(text, tmp_files, voice='en-US-ChristopherNeural')
     out_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False).name
     tmp_files.append(out_file)
 
-    # Wrap in minimal SSML for natural delivery
-    script = f'<speak>{text}</speak>'
+    # Wrap in SSML for natural delivery (skip if already wrapped)
+    if text.strip().startswith('<speak>'):
+        script = text
+    else:
+        script = f'<speak>{text}</speak>'
 
     try:
         communicate = edge_tts.Communicate(script, voice)
