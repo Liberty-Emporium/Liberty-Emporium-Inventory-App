@@ -113,8 +113,8 @@ def get_ai_api_key():
     if key:
         return key
 
-    # 3. Fall back to environment variable
-    return get_ai_api_key()
+    # 3. Fall back to environment variable (avoid infinite recursion)
+    return os.environ.get('ANTHROPIC_API_KEY', '').strip()
 
 def save_ai_api_key(key):
     """Save the Claude API key. Stored in-app (not in env vars)."""
