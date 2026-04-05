@@ -1291,8 +1291,8 @@ def generate_video_ad():
 
         if not products:
             return jsonify({'error': 'No products provided.'})
-        if not music_file_upload and not music_track_name and not music_token:
-            return jsonify({'error': 'No music track selected.'})
+        if not music_file_upload and not music_track_name and not music_token and not enable_voiceover:
+            return jsonify({'error': 'Please select a music track or enable the AI voiceover.'})
 
         # Find ffmpeg — works on both apt (/usr/bin) and nixpacks installs
         ffmpeg_path = _shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
@@ -1362,9 +1362,11 @@ def generate_video_ad():
             if not os.path.exists(music_path):
                 music_path = None  # Will fall through to auto-generate
 
-        # If no music file found, auto-generate one — silence is worse than bad music
-        if not music_path:
-            app.logger.info("No music track available, generating fallback music")
+        # If user selected music but file wasn't found, generate fallback
+        # Do NOT generate fallback when user chose voiceover-only (no music selected)
+        user_wanted_music = bool(music_file_upload or music_track_name or music_token)
+        if not music_path and user_wanted_music:
+            app.logger.info("Selected music track not found, generating fallback music")
             generated_music = _generate_builtin_music(duration, tmp_files)
             if generated_music:
                 music_path = generated_music
