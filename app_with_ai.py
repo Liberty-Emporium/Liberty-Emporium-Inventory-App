@@ -1946,19 +1946,80 @@ def payment_plan(plan):
 
 @app.route('/start-trial', methods=['GET', 'POST'])
 def start_trial():
-    """Start a 14-day free trial — no payment collected. Jay follows up after trial ends."""
+    """Provision a real client store for the trial signup and log them in."""
     if request.method == 'POST':
         store_name    = request.form.get('store_name', '').strip()
         contact_email = request.form.get('contact_email', '').strip()
-        slug          = request.form.get('slug', '').strip()
-        trial_start   = datetime.datetime.now().isoformat()
-        trial_end     = (datetime.datetime.now() + datetime.timedelta(days=14)).isoformat()
+        contact_name  = request.form.get('contact_name', '').strip()
+        slug          = request.form.get('slug', '').strip() or slugify(store_name)
+        primary_color = request.form.get('color', '#2e7d6e').strip()
+        industry      = request.form.get('industry', 'general').strip()
+        tagline       = request.form.get('tagline', '').strip()
 
-        # Save as a lead so Jay can follow up
+        if not store_name or not contact_email:
+            flash('Store name and email are required.', 'error')
+            return redirect(url_for('wizard'))
+
+        # Ensure slug is unique as a directory
+        base_slug = slug
+        counter = 1
+        while os.path.exists(os.path.join(CUSTOMERS_DIR, slug)):
+            slug = f'{base_slug}-{counter}'
+            counter += 1
+
+        # Provision real store directory (same as overseer_create_client)
+        store_dir = os.path.join(CUSTOMERS_DIR, slug)
+        os.makedirs(os.path.join(store_dir, 'uploads'), exist_ok=True)
+        os.makedirs(os.path.join(store_dir, 'backups'), exist_ok=True)
+
+        trial_start = datetime.datetime.now().isoformat()
+        trial_end   = (datetime.datetime.now() + datetime.timedelta(days=14)).isoformat()
+
+        config = {
+            'store_name':    store_name,
+            'slug':          slug,
+            'primary_color': primary_color,
+            'industry':      industry,
+            'tagline':       tagline,
+            'plan':          'trial',
+            'status':        'active',
+            'contact_name':  contact_name,
+            'contact_email': contact_email,
+            'trial_start':   trial_start,
+            'trial_end':     trial_end,
+            'created_at':    trial_start,
+        }
+        save_client_config(slug, config)
+
+        # Empty inventory
+        inv_path = os.path.join(store_dir, 'inventory.csv')
+        fieldnames = ['SKU','Title','Description','Category','Condition','Price',
+                      'Cost Paid','Status','Date Added','Images','Section','Shelf']
+        with open(inv_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+            writer.writeheader()
+
+        # Generate temp password and create login
+        import secrets as _sec
+        temp_password = _sec.token_urlsafe(8)
+        users_path = os.path.join(store_dir, 'users.json')
+        users = {
+            contact_email: {
+                'password':   hash_password(temp_password),
+                'role':       'client',
+                'store_slug': slug,
+                'created_at': trial_start,
+            }
+        }
+        with open(users_path, 'w') as f:
+            json.dump(users, f, indent=2)
+
+        # Save trial lead so Jay can follow up
         leads = load_leads()
         leads.append({
             'store_name':    store_name,
             'contact_email': contact_email,
+            'contact_name':  contact_name,
             'slug':          slug,
             'trial_start':   trial_start,
             'trial_end':     trial_end,
@@ -1968,13 +2029,15 @@ def start_trial():
         })
         save_leads(leads)
 
-        trial_end_display = datetime.datetime.fromisoformat(trial_end).strftime('%B %d, %Y')
-        ctx_data = ctx()
-        ctx_data['store_name'] = store_name
-        ctx_data['contact_email'] = contact_email
-        ctx_data['trial_end'] = trial_end_display
-        ctx_data['slug'] = slug
-        return render_template('trial_confirmation.html', **ctx_data)
+        # Log them in automatically
+        session.clear()
+        session['logged_in']  = True
+        session['email']      = contact_email
+        session['role']       = 'client'
+        session['store_slug'] = slug
+
+        flash(f'Welcome to your store! Your login is {contact_email} / {temp_password} — save this to log in next time.', 'success')
+        return redirect(url_for('dashboard'))
     return redirect(url_for('wizard'))
 
 @app.route('/pay-success')

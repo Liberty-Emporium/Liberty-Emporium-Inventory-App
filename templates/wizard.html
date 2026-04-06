@@ -435,7 +435,11 @@
                     <form method="POST" action="/start-trial" style="margin:0;">
                         <input type="hidden" name="store_name" id="trialStoreName">
                         <input type="hidden" name="contact_email" id="trialEmail">
+                        <input type="hidden" name="contact_name" id="trialContactName">
                         <input type="hidden" name="slug" id="trialSlug">
+                        <input type="hidden" name="color" id="trialColor">
+                        <input type="hidden" name="industry" id="trialIndustry">
+                        <input type="hidden" name="tagline" id="trialTagline">
                         <button type="submit" style="width:100%; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0.85rem; border-radius:10px; font-weight:700; font-size:0.95rem; cursor:pointer; box-shadow:0 4px 14px rgba(16,185,129,0.35);">Start Free Trial →</button>
                     </form>
                 </div>
@@ -582,7 +586,11 @@
                 document.getElementById('successUrl').textContent = resp.url || ('/store/' + slug);
                 document.getElementById('trialStoreName').value = data.store_name;
                 document.getElementById('trialEmail').value = data.contact_email || '';
+                document.getElementById('trialContactName').value = data.contact_name || '';
                 document.getElementById('trialSlug').value = slug;
+                document.getElementById('trialColor').value = data.color || '#2e7d6e';
+                document.getElementById('trialIndustry').value = data.industry || 'general';
+                document.getElementById('trialTagline').value = data.tagline || '';
             })
             .catch(function() {
                 clearInterval(msgInterval);
