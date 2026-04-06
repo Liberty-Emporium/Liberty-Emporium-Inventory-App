@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ cfg.store_name }} — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f3ef;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+    }
+
+    .login-banner {
+      background: {{ cfg.primary_color or '#1a1a2e' }};
+      padding: 2.5rem 2rem 2rem;
+      text-align: center;
+    }
+
+    .login-banner h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      color: white;
+      margin-bottom: 0.3rem;
+      line-height: 1.2;
+    }
+
+    .login-banner p {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.88rem;
+    }
+
+    .login-body {
+      padding: 2rem;
+    }
+
+    .login-body h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      color: #1a1a2e;
+      margin-bottom: 1.5rem;
+    }
+
+    .field { margin-bottom: 1.1rem; }
+
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 1.5px solid #d1c9bc;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: {{ cfg.primary_color or '#1a1a2e' }};
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 0.85rem;
+      background: {{ cfg.primary_color or '#1a1a2e' }};
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+
+    .btn-login:hover { opacity: 0.88; }
+
+    .error-msg {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.85rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .login-footer {
+      text-align: center;
+      padding: 1rem 2rem 1.75rem;
+      font-size: 0.78rem;
+      color: #9ca3af;
+    }
+
+    .login-footer a {
+      color: {{ cfg.primary_color or '#1a1a2e' }};
+      font-weight: 600;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-banner">
+      <h1>{{ cfg.store_name }}</h1>
+      {% if cfg.tagline %}<p>{{ cfg.tagline }}</p>{% else %}<p>Inventory Management</p>{% endif %}
+    </div>
+    <div class="login-body">
+      <h2>Sign In to Your Store</h2>
+
+      {% if error %}
+      <div class="error-msg">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/store/{{ slug }}/login">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" name="username" placeholder="you@email.com" required autofocus>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-login">Sign In →</button>
+      </form>
+    </div>
+    <div class="login-footer">
+      Need help? <a href="mailto:leprograms@protonmail.com">Contact Jay at Liberty Emporium</a>
+    </div>
+  </div>
+</body>
+</html>

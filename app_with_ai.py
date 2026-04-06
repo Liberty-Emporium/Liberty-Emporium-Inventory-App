@@ -607,6 +607,52 @@ def login():
         flash('Invalid username or password.', 'error')
     return render_template('login.html', **ctx())
 
+@app.route('/store/<slug>/login', methods=['GET', 'POST'])
+def store_login(slug):
+    """Branded login page for a specific client store."""
+    cfg = load_client_config(slug)
+    if not cfg:
+        flash('Store not found.', 'error')
+        return redirect(url_for('login'))
+
+    if session.get('logged_in') and session.get('store_slug') == slug:
+        return redirect(url_for('my_store'))
+
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        users_path = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+        if os.path.exists(users_path):
+            try:
+                with open(users_path) as f:
+                    store_users = json.load(f)
+            except Exception:
+                store_users = {}
+        else:
+            store_users = {}
+
+        if username in store_users and store_users[username].get('password') == hash_password(password):
+            su = store_users[username]
+            if su.get('status') == 'suspended':
+                error = 'Your account has been suspended. Contact support.'
+            elif cfg.get('status') == 'suspended':
+                error = 'This store has been suspended. Contact support.'
+            else:
+                session['logged_in']  = True
+                session['username']   = username
+                session['email']      = username
+                session['is_guest']   = False
+                session['role']       = 'client'
+                session['store_slug'] = slug
+                session.permanent     = True
+                app.permanent_session_lifetime = datetime.timedelta(hours=8)
+                return redirect(url_for('my_store'))
+        else:
+            error = 'Invalid email or password.'
+
+    return render_template('store_login.html', cfg=cfg, error=error, slug=slug)
+
 @app.route('/logout')
 def logout():
     session.clear()
