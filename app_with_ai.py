@@ -587,7 +587,7 @@ def new_product():
             if file and allowed_file(file.filename):
                 ext      = file.filename.rsplit('.', 1)[1].lower()
                 filename = f"{sku}_{uuid.uuid4().hex[:8]}.{ext}"
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
+                file.save(os.path.join(get_store_paths(active_store_slug())['uploads'], filename))
                 images.append(filename)
         product = {
             'SKU':         sku,
@@ -628,7 +628,7 @@ def edit_product(sku):
             if file and allowed_file(file.filename):
                 ext      = file.filename.rsplit('.', 1)[1].lower()
                 filename = f"{sku}_{uuid.uuid4().hex[:8]}.{ext}"
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
+                file.save(os.path.join(get_store_paths(active_store_slug())['uploads'], filename))
                 existing = [i.strip() for i in product.get('Images','').split(',') if i.strip()]
                 existing.append(filename)
                 product['Images'] = ','.join(existing)
@@ -679,7 +679,8 @@ def delete_product(sku):
 # ── Images ────────────────────────────────────────────────────────────────────
 @app.route('/uploads/<filename>')
 def serve_upload(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    uploads_dir = get_store_paths(active_store_slug())['uploads']
+    return send_from_directory(uploads_dir, filename)
 
 @app.route('/confirm-delete-image/<sku>/<filename>')
 @login_required
@@ -702,7 +703,7 @@ def delete_image(sku):
             imgs.remove(filename)
             products[idx]['Images'] = ','.join(imgs)
             save_inventory(products)
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            filepath = os.path.join(get_store_paths(active_store_slug())['uploads'], filename)
             if os.path.exists(filepath):
                 os.remove(filepath)
     return redirect(url_for('edit_product', sku=sku))
@@ -726,7 +727,7 @@ def save_image(sku):
     if image_data and filename:
         header, encoded = image_data.split(',', 1)
         img_bytes = base64.b64decode(encoded)
-        filepath  = os.path.join(UPLOAD_FOLDER, filename)
+        filepath  = os.path.join(get_store_paths(active_store_slug())['uploads'], filename)
         with open(filepath, 'wb') as f:
             f.write(img_bytes)
         return jsonify({'success': True})
@@ -959,7 +960,7 @@ def generate_ads():
             photo_h = int(H * 0.55)
             if image_url:
                 img_fname = image_url.split('/')[-1]
-                img_fpath = os.path.join(UPLOAD_FOLDER, img_fname)
+                img_fpath = os.path.join(get_store_paths(active_store_slug())['uploads'], img_fname)
                 if os.path.exists(img_fpath):
                     try:
                         prod  = _Img.open(img_fpath)
