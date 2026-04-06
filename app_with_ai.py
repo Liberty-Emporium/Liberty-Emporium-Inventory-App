@@ -1714,6 +1714,13 @@ def customer_store(slug):
         **ctx())
 
 # ── Payment Routes ───────────────────────────────────────────────────────────
+@app.route('/debug-stripe')
+def debug_stripe():
+    sk = os.environ.get('STRIPE_SECRET_KEY', 'NOT SET')
+    pk = os.environ.get('STRIPE_PUBLIC_KEY', 'NOT SET')
+    file_sk, file_pk = get_stripe_keys()
+    return f"<pre>ENV STRIPE_SECRET_KEY: {sk[:20] if sk != 'NOT SET' else 'NOT SET'}\nENV STRIPE_PUBLIC_KEY: {pk[:20] if pk != 'NOT SET' else 'NOT SET'}\nget_stripe_keys() secret: {file_sk[:20] if file_sk else 'EMPTY'}\nget_stripe_keys() public: {file_pk[:20] if file_pk else 'EMPTY'}</pre>"
+
 @app.route('/pay/<plan>')
 def payment_plan(plan):
     """Redirect to checkout for the chosen pricing tier."""
