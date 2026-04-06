@@ -1,6 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Store Branding | {{ store_name }}{% endblock %}
+
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🎨</div>
+  <div class="ht-label">Store Branding — How-To Guide</div>
+  <h2>Make the App Yours</h2>
+  <p>The Branding page controls how your store looks everywhere in the app — the name, tagline, colors, and logo shown to customers and staff.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🏪</div>
+  <div class="ht-label">Step 1 — Store Identity</div>
+  <h2>Store Name & Tagline</h2>
+  <ol>
+    <li>Enter your <strong>Store Name</strong> — this appears in the nav, dashboard, and all pages.</li>
+    <li>Add a <strong>Tagline</strong> (optional) — a short phrase that describes your store.</li>
+    <li>Set your <strong>Contact Email</strong> for customer inquiries.</li>
+  </ol>
+  <div class="ht-tip">Keep your store name short — it fits better in the navigation bar.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🎨</div>
+  <div class="ht-label">Step 2 — Colors & Logo</div>
+  <h2>Colors & Logo</h2>
+  <ol>
+    <li>Pick a <strong>Primary Color</strong> — this sets the main theme across buttons, headers, and accents.</li>
+    <li>Upload a <strong>Logo</strong> image if you have one (PNG or JPG recommended).</li>
+    <li>Click <strong>Save Branding</strong> — changes apply immediately across the whole app.</li>
+  </ol>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:600px; margin:2rem auto; padding:0 1rem;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:0.5rem;">
         <h1 style="font-size:1.4rem;">🎨 Store Branding</h1>

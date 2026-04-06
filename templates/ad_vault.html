@@ -2,7 +2,38 @@
 
 {% block title %}Ad Vault — Liberty Emporium{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🗄️</div>
+  <div class="ht-label">Ad Vault — How-To Guide</div>
+  <h2>Your Saved Ads</h2>
+  <p>The Ad Vault stores every JPEG ad you've generated. Download them to post on Facebook, Instagram, or print in-store — any time.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⬇️</div>
+  <div class="ht-label">Downloading Ads</div>
+  <h2>Download an Ad</h2>
+  <ol>
+    <li>Find the ad you want in the grid.</li>
+    <li>Click <strong>⬇️ Download</strong> — the JPEG saves to your device.</li>
+    <li>Click the image itself to open the full-size version in a new tab.</li>
+  </ol>
+  <div class="ht-tip">All ads are 1080×1080px — perfect for Instagram, Facebook, and in-store displays.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🗑️</div>
+  <div class="ht-label">Managing Ads</div>
+  <h2>Deleting Old Ads</h2>
+  <ol>
+    <li>Click <strong>🗑️ Delete</strong> on any ad you no longer need.</li>
+    <li>Confirm the deletion — this cannot be undone.</li>
+  </ol>
+  <div class="ht-tip">Generate fresh ads any time from the Ad Generator page. Old ads stay here until you delete them.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <style>
   .vault-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:2px solid #e8e0d4; }
   .vault-header h1 { font-family:'Playfair Display',serif; font-size:2.2rem; color:#1a1a2e; }

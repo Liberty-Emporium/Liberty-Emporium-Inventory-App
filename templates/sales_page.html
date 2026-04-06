@@ -1,6 +1,39 @@
 {% extends 'base.html' %}
 {% block title %}{{ store_config.store_name }} — RetailTrack Inventory Management{% endblock %}
+
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🛍️</div>
+  <div class="ht-label">Seasonal Sale — How-To Guide</div>
+  <h2>Run a Seasonal Sale</h2>
+  <p>The Seasonal Sale page lets you put a category of products on sale at a discounted price and display them as a branded sale event.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🏷️</div>
+  <div class="ht-label">Step 1 — Set Up the Sale</div>
+  <h2>Configure Your Sale</h2>
+  <ol>
+    <li>Go to <strong>Seasonal Sale</strong> in the admin menu.</li>
+    <li>Pick the <strong>category</strong> to put on sale.</li>
+    <li>Set the <strong>discount percentage</strong>.</li>
+    <li>Give it a sale name (e.g. "Summer Clearance").</li>
+  </ol>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📢</div>
+  <div class="ht-label">Step 2 — Share It</div>
+  <h2>Share Your Sale Page</h2>
+  <ol>
+    <li>Copy the sale page URL from your browser.</li>
+    <li>Post it on Facebook, Instagram, or text it to customers.</li>
+    <li>Customers see a branded page with all discounted items and prices.</li>
+  </ol>
+  <div class="ht-tip">The sale page works on mobile — customers can browse and contact you directly from it.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <style>
   .sales-page { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
   .hero {

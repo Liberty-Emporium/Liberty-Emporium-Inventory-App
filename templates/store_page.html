@@ -2,9 +2,35 @@
 
 {% block title %}{{ store_name or 'Your Store' }} — RetailTrack Demo{% endblock %}
 
-{% block howto_slides %}{% endblock %}
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🏪</div>
+  <div class="ht-label">Demo Store — How-To Guide</div>
+  <h2>This Is Your Personalized Demo</h2>
+  <p>This page shows what your customers would see — a branded storefront with your store name, colors, and sample inventory pre-loaded.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🛍️</div>
+  <div class="ht-label">What's Here</div>
+  <h2>Your Store's Public Page</h2>
+  <ul>
+    <li>Your <strong>store name and tagline</strong> at the top</li>
+    <li><strong>Sample products</strong> from your selected industry</li>
+    <li>Each product shows the photo, title, price, and condition</li>
+    <li>A <strong>contact button</strong> for customers to reach you</li>
+  </ul>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🚀</div>
+  <div class="ht-label">Ready to Buy?</div>
+  <h2>Get the Real Version</h2>
+  <p>This demo runs on sample data. When you purchase, Jay sets it up with your real inventory, your real photos, and your actual products.</p>
+  <div class="ht-tip">Share this demo URL with anyone — it's a live link that works on any device.</div>
+</div>
+{% endblock %}
 
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:1100px; margin:0 auto; padding:2rem 1rem;">
     
     <!-- Store Header -->

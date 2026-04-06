@@ -2,7 +2,40 @@
 
 {% block title %}Admin — Customer Leads{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">📊</div>
+  <div class="ht-label">Customer Leads — How-To Guide</div>
+  <h2>Track Your Demo Requests</h2>
+  <p>Every time someone completes the wizard and builds a personalized demo, their contact info is saved here automatically as a lead.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📋</div>
+  <div class="ht-label">Reading the Leads</div>
+  <h2>What Each Lead Shows</h2>
+  <ul>
+    <li><strong>Store Name</strong> — what they named their demo store</li>
+    <li><strong>Contact</strong> — their name, email, and phone</li>
+    <li><strong>Industry</strong> — what type of store they selected</li>
+    <li><strong>Demo URL</strong> — link to their personalized demo</li>
+    <li><strong>Date</strong> — when they signed up</li>
+  </ul>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📬</div>
+  <div class="ht-label">Following Up</div>
+  <h2>Next Steps with a Lead</h2>
+  <ol>
+    <li>Click their <strong>Demo URL</strong> to see exactly what they saw.</li>
+    <li>Email them directly using the address shown.</li>
+    <li>Send them the pricing page link: <code>/wizard</code></li>
+  </ol>
+  <div class="ht-tip">Hot leads are people who completed all 4 steps of the wizard — they're already sold on the idea.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:900px; margin:0 auto; padding:2rem 1rem;">
     <h1 style="color:#0f172a;">📊 Customer Leads</h1>
     <p style="color:#6b7280; margin-bottom:2rem;">People who've requested a demo of RetailTrack</p>

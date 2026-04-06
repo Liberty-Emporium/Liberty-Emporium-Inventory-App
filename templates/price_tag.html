@@ -1,7 +1,39 @@
 {% extends 'base.html' %}
 {% block title %}Price Tag - {{ product.Title }} | Liberty Emporium{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🏷️</div>
+  <div class="ht-label">Price Tag — How-To Guide</div>
+  <h2>Print Physical Price Tags</h2>
+  <p>This page generates a print-ready price tag for <strong>{{ product.Title }}</strong>. Pick your size, preview it, then print or save as PDF.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📐</div>
+  <div class="ht-label">Step 1 — Choose Size</div>
+  <h2>Pick Your Tag Size</h2>
+  <ul>
+    <li><strong>Small</strong> — fits on a shelf label or small item</li>
+    <li><strong>Medium</strong> — standard hang tag size</li>
+    <li><strong>Large</strong> — great for furniture or big-ticket items</li>
+  </ul>
+  <div class="ht-tip">Medium works for most thrift store items.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🖨️</div>
+  <div class="ht-label">Step 2 — Print</div>
+  <h2>Print or Save as PDF</h2>
+  <ol>
+    <li>Click <strong>🖨️ Print Tag</strong> in the top right.</li>
+    <li>In the print dialog, choose your printer or select <strong>"Save as PDF"</strong>.</li>
+    <li>Set margins to <strong>None</strong> for the cleanest output.</li>
+  </ol>
+  <div class="ht-tip">The tag is designed to fit on standard label paper. The navigation and buttons won't print — only the tag itself.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:800px; margin:0 auto;">
     <a href="{{ url_for('view_product', sku=product.SKU) }}" class="back-link">&larr; Back to Product</a>
 

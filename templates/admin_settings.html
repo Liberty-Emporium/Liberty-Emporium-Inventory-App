@@ -2,7 +2,39 @@
 
 {% block title %}App Settings | {{ store_name }}{% endblock %}
 
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">⚙️</div>
+  <div class="ht-label">App Settings — How-To Guide</div>
+  <h2>Configure Your App</h2>
+  <p>Settings is where you connect the AI features and payment system. You only need to do this once.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🤖</div>
+  <div class="ht-label">Step 1 — Claude API Key</div>
+  <h2>Set Your AI API Key</h2>
+  <ol>
+    <li>Go to <strong>console.anthropic.com</strong> and create a free account.</li>
+    <li>Generate an API key (starts with <code>sk-ant-</code>).</li>
+    <li>Paste it into the <strong>Anthropic API Key</strong> field and click Save.</li>
+  </ol>
+  <div class="ht-tip">This key powers AI photo analysis and AI ad copy. New accounts get $5 free credits — enough for thousands of analyses.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">💳</div>
+  <div class="ht-label">Step 2 — Stripe Keys</div>
+  <h2>Enable Stripe Payments</h2>
+  <ol>
+    <li>Go to <strong>dashboard.stripe.com/apikeys</strong>.</li>
+    <li>Copy your <strong>Secret Key</strong> (sk_live_...) and <strong>Publishable Key</strong> (pk_live_...).</li>
+    <li>Add both as environment variables in your <strong>Railway project → Variables</strong> tab.</li>
+  </ol>
+  <div class="ht-tip">Railway resets files on every deploy — keys must be set as Railway env vars to survive restarts.</div>
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <div style="max-width:640px; margin:2rem auto;">
     <h1 style="text-align:center; margin-bottom:2rem; color:#2c3e50;">⚙️ App Settings</h1>
     
