@@ -2394,11 +2394,13 @@ def overseer_assistant_send_email():
     subject = data.get('subject', '').strip()
     body    = data.get('body', '').strip()
     if not to or not subject or not body:
-        return jsonify({'success': False, 'error': 'to, subject, and body are required.'})
+        return jsonify({'success': False, 'error': 'to, subject, and body are required.'}), 400
+    if '@' not in to or '.' not in to.split('@')[-1]:
+        return jsonify({'success': False, 'error': 'Invalid email address.'}), 400
     ok, err = send_smtp_email(to, subject, body)
     if ok:
         return jsonify({'success': True, 'message': f'Sent to {to}'})
-    return jsonify({'success': False, 'error': err})
+    return jsonify({'success': False, 'error': err}), 422
 
 
 @app.route('/overseer/assistant/alerts', methods=['POST'])
@@ -2406,7 +2408,11 @@ def overseer_assistant_send_email():
 @overseer_required
 def overseer_assistant_alerts():
     """Return pre-generated alert cards for trials expiring within 3 days."""
-    leads = load_leads()
+    try:
+        leads = load_leads()
+    except Exception as e:
+        app.logger.error("Failed to load leads in alerts: %s", e)
+        return jsonify({'alerts': []}), 500
     today = datetime.datetime.now()
     alerts = []
     for lead in leads:
