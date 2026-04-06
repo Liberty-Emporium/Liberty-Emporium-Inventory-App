@@ -132,6 +132,41 @@ def save_ai_api_key(key):
     with open(app_config_file, 'w') as f:
         json.dump(config, f, indent=2)
 
+def get_stripe_keys():
+    """Load Stripe keys from app_config.json, falling back to env vars."""
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    secret = ''
+    public = ''
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file) as f:
+                cfg = json.load(f)
+            secret = cfg.get('stripe_secret_key', '').strip()
+            public = cfg.get('stripe_public_key', '').strip()
+        except Exception:
+            pass
+    return (
+        secret or os.environ.get('STRIPE_SECRET_KEY', ''),
+        public or os.environ.get('STRIPE_PUBLIC_KEY', ''),
+    )
+
+def save_stripe_keys(secret, public):
+    """Persist Stripe keys to app_config.json."""
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    config = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file) as f:
+                config = json.load(f)
+        except Exception:
+            pass
+    if secret is not None:
+        config['stripe_secret_key'] = secret.strip()
+    if public is not None:
+        config['stripe_public_key'] = public.strip()
+    with open(app_config_file, 'w') as f:
+        json.dump(config, f, indent=2)
+
 # ── Store Configuration (white-label) ─────────────────────────────────────────
 STORE_CONFIG_FILE = os.path.join(DATA_DIR, 'store_config.json')
 
@@ -1488,30 +1523,22 @@ def admin_settings():
         return redirect(url_for('admin_settings'))
     return render_template('admin_settings.html',
         masked_key=masked, has_key=bool(key),
-        stripe_secret_key=STRIPE_SECRET_KEY,
-        stripe_public_key=STRIPE_PUBLIC_KEY,
+        stripe_secret_key=get_stripe_keys()[0],
+        stripe_public_key=get_stripe_keys()[1],
         **ctx())
 
 @app.route('/admin/settings/stripe', methods=['POST'])
 @login_required
 @admin_required
 def admin_settings_stripe():
-    global STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY, stripe_enabled
     clear = request.form.get('clear_stripe') == '1'
     if clear:
-        STRIPE_SECRET_KEY = ''
-        STRIPE_PUBLIC_KEY = ''
+        save_stripe_keys('', '')
+        flash('Stripe keys cleared.', 'warning')
     else:
         pub = request.form.get('stripe_public_key', '').strip()
         sec = request.form.get('stripe_secret_key', '').strip()
-        if pub:
-            STRIPE_PUBLIC_KEY = pub
-        if sec:
-            STRIPE_SECRET_KEY = sec
-    stripe_enabled = bool(STRIPE_SECRET_KEY and (STRIPE_SECRET_KEY.startswith('sk_live_') or STRIPE_SECRET_KEY.startswith('sk_test_')))
-    if clear:
-        flash('Stripe keys cleared.', 'warning')
-    else:
+        save_stripe_keys(sec or None, pub or None)
         flash('Stripe keys saved! Payments are now enabled.', 'success')
     return redirect(url_for('admin_settings'))
 
@@ -1696,11 +1723,15 @@ def payment_plan(plan):
         'enterprise': {'name': 'Enterprise', 'price': 799, 'email': 'leprograms@protonmail.com'},
     }
     p = plans.get(plan, plans['pro'])
-    
+
+    # Load keys fresh from file/env on every request (not stale startup globals)
+    secret_key, _ = get_stripe_keys()
+    is_stripe_ready = bool(secret_key and (secret_key.startswith('sk_live_') or secret_key.startswith('sk_test_')))
+
     # If Stripe is configured, do a proper checkout session
-    if stripe_enabled and STRIPE_SECRET_KEY:
+    if is_stripe_ready:
         import stripe
-        stripe.api_key = STRIPE_SECRET_KEY
+        stripe.api_key = secret_key
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -1718,7 +1749,6 @@ def payment_plan(plan):
                 mode='payment',
                 success_url=url_for('payment_success', _external=True),
                 cancel_url=url_for('wizard', _external=True),
-                customer_email=plan,  # placeholder
                 metadata={'plan': plan},
             )
             return redirect(checkout_session.url, code=303)
