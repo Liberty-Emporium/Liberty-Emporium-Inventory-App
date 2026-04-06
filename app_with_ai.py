@@ -1969,13 +1969,12 @@ def start_trial():
         save_leads(leads)
 
         trial_end_display = datetime.datetime.fromisoformat(trial_end).strftime('%B %d, %Y')
-        return render_template('trial_confirmation.html',
-            store_name=store_name,
-            contact_email=contact_email,
-            trial_end=trial_end_display,
-            slug=slug,
-            **ctx()
-        )
+        ctx_data = ctx()
+        ctx_data['store_name'] = store_name
+        ctx_data['contact_email'] = contact_email
+        ctx_data['trial_end'] = trial_end_display
+        ctx_data['slug'] = slug
+        return render_template('trial_confirmation.html', **ctx_data)
     return redirect(url_for('wizard'))
 
 @app.route('/pay-success')
