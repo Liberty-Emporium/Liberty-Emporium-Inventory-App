@@ -448,6 +448,9 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if not session.get('logged_in'):
+            slug = session.get('store_slug')
+            if slug:
+                return redirect(f'/store/{slug}/login')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated
@@ -655,8 +658,10 @@ def store_login(slug):
 
 @app.route('/logout')
 def logout():
+    slug = session.get('store_slug')
     session.clear()
-    flash('You have been logged out.', 'success')
+    if slug:
+        return redirect(f'/store/{slug}/login')
     return redirect(url_for('login'))
 
 @app.route('/guest')
