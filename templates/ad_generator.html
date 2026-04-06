@@ -646,7 +646,10 @@ function generateAds() {
     }),
   }).then(response => {
     if (!response.ok) {
-      return response.json().then(d => { throw new Error(d.error || 'Server error'); });
+      return response.text().then(t => {
+        try { const d = JSON.parse(t); throw new Error(d.error || 'Server error ' + response.status); }
+        catch(e) { if (e.message.startsWith('Server error')) throw e; throw new Error('Server error ' + response.status); }
+      });
     }
 
     const reader  = response.body.getReader();

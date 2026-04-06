@@ -11,7 +11,7 @@ import tempfile
 import threading
 import time
 from flask import (Flask, render_template, request, redirect, url_for,
-                   session, flash, jsonify, send_file, send_from_directory)
+                   session, flash, jsonify, send_file, send_from_directory, make_response)
 from werkzeug.utils import secure_filename
 
 # Load .env file
@@ -759,7 +759,9 @@ def generate_ad_copy(title, price, category, condition, description, api_key):
 @login_required
 def ad_generator():
     products = load_inventory()
-    return render_template('ad_generator.html', products=products, **ctx())
+    resp = make_response(render_template('ad_generator.html', products=products, **ctx()))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    return resp
 
 @app.route('/generate-ads', methods=['POST'])
 @login_required
