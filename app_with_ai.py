@@ -834,7 +834,8 @@ def generate_ads():
             r_g, g_g, b_g = pal['grad']
             canvas = _Img.new('RGB', (W, H), (r_g, g_g, b_g))
 
-            # Product photo
+            # Product photo — fills top 62% of canvas, text area below stays clear
+            photo_h = int(H * 0.62)
             if image_url:
                 img_fname = image_url.split('/')[-1]
                 img_fpath = os.path.join(UPLOAD_FOLDER, img_fname)
@@ -842,13 +843,13 @@ def generate_ads():
                     try:
                         prod  = _Img.open(img_fpath)
                         prod  = fix_image_orientation(prod).convert('RGB')
-                        scale = max(W / prod.width, H / prod.height)
+                        scale = max(W / prod.width, photo_h / prod.height)
                         nw    = int(prod.width  * scale)
                         nh    = int(prod.height * scale)
                         prod  = prod.resize((nw, nh), _Img.LANCZOS)
                         cx    = (nw - W) // 2
-                        cy    = max(0, int((nh - H) * 0.25))
-                        canvas.paste(prod.crop((cx, cy, cx + W, cy + H)))
+                        cy    = (nh - photo_h) // 2
+                        canvas.paste(prod.crop((cx, cy, cx + W, cy + photo_h)))
                     except Exception:
                         pass
 
