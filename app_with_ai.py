@@ -79,7 +79,7 @@ CUSTOMERS_DIR  = os.path.join(DATA_DIR, 'customers')
 PENDING_FILE   = os.path.join(DATA_DIR, 'pending_users.json')
 SALE_FILE      = os.path.join(DATA_DIR, 'sale_state.json')
 
-for d in [UPLOAD_FOLDER, BACKUP_FOLDER, ADS_FOLDER, MUSIC_FOLDER]:
+for d in [UPLOAD_FOLDER, BACKUP_FOLDER, ADS_FOLDER, MUSIC_FOLDER, CUSTOMERS_DIR]:
     os.makedirs(d, exist_ok=True)
 
 # Seed data files into DATA_DIR from BASE_DIR if not already present
@@ -1952,7 +1952,7 @@ def start_trial():
         contact_email = request.form.get('contact_email', '').strip()
         slug          = request.form.get('slug', '').strip()
         trial_start   = datetime.datetime.now().isoformat()
-        trial_end     = (datetime.datetime.now() + datetime.timedelta(days=14)).strftime('%B %d, %Y')
+        trial_end     = (datetime.datetime.now() + datetime.timedelta(days=14)).isoformat()
 
         # Save as a lead so Jay can follow up
         leads = load_leads()
@@ -1968,10 +1968,11 @@ def start_trial():
         })
         save_leads(leads)
 
+        trial_end_display = datetime.datetime.fromisoformat(trial_end).strftime('%B %d, %Y')
         return render_template('trial_confirmation.html',
             store_name=store_name,
             contact_email=contact_email,
-            trial_end=trial_end,
+            trial_end=trial_end_display,
             slug=slug,
             **ctx()
         )
