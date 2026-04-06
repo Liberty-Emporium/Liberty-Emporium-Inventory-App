@@ -320,38 +320,47 @@ def save_pending(pending):
         json.dump(pending, f, indent=2)
 
 def load_inventory():
-    if not os.path.exists(INVENTORY_FILE):
+    paths = get_store_paths(active_store_slug())
+    inv_file = paths['inventory']
+    uploads  = paths['uploads']
+    if not os.path.exists(inv_file):
         return []
-    with open(INVENTORY_FILE, newline='', encoding='utf-8') as f:
+    with open(inv_file, newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         products = list(reader)
     for p in products:
         imgs = [i.strip() for i in p.get('Images','').split(',') if i.strip()]
         p['image_list']   = imgs
-        p['valid_images'] = [i for i in imgs if os.path.exists(os.path.join(UPLOAD_FOLDER, i))]
+        p['valid_images'] = [i for i in imgs if os.path.exists(os.path.join(uploads, i))]
     return products
 
 def save_inventory(products):
+    paths = get_store_paths(active_store_slug())
+    inv_file = paths['inventory']
     fieldnames = ['SKU','Title','Description','Category','Condition','Price',
                   'Cost Paid','Status','Date Added','Images','Section','Shelf']
     _backup_inventory()
-    with open(INVENTORY_FILE, 'w', newline='', encoding='utf-8') as f:
+    with open(inv_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
         writer.writerows(products)
 
 def _backup_inventory():
-    if not os.path.exists(INVENTORY_FILE):
+    paths    = get_store_paths(active_store_slug())
+    inv_file = paths['inventory']
+    bak_dir  = paths['backups']
+    if not os.path.exists(inv_file):
         return
+    os.makedirs(bak_dir, exist_ok=True)
     ts  = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    dst = os.path.join(BACKUP_FOLDER, f'inventory_{ts}.csv')
-    shutil.copy2(INVENTORY_FILE, dst)
+    dst = os.path.join(bak_dir, f'inventory_{ts}.csv')
+    shutil.copy2(inv_file, dst)
     backups = sorted(
-        [f for f in os.listdir(BACKUP_FOLDER) if f.endswith('.csv')],
+        [f for f in os.listdir(bak_dir) if f.endswith('.csv')],
         reverse=True
     )
     for old in backups[MAX_BACKUPS:]:
-        os.remove(os.path.join(BACKUP_FOLDER, old))
+        os.remove(os.path.join(bak_dir, old))
 
 def get_stats():
     products    = load_inventory()
