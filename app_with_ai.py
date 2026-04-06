@@ -1747,8 +1747,8 @@ def payment_plan(plan):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=url_for('payment_success', _external=True),
-                cancel_url=url_for('wizard', _external=True),
+                success_url=request.host_url.rstrip('/') + '/pay-success',
+                cancel_url=request.host_url.rstrip('/') + '/wizard',
                 metadata={'plan': plan},
             )
             return redirect(checkout_session.url, code=303)
