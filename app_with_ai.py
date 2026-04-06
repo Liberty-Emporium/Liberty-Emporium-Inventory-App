@@ -1851,14 +1851,7 @@ def customer_store(slug):
 # ── Payment Routes ───────────────────────────────────────────────────────────
 @app.route('/pay/<plan>')
 def payment_plan(plan):
-    """Redirect to checkout for the chosen pricing tier."""
-    plans = {
-        'starter': {'name': 'Starter', 'price': 299},
-        'pro':     {'name': 'Pro',     'price': 499},
-        'enterprise': {'name': 'Enterprise', 'price': 799},
-    }
-    p = plans.get(plan, plans['pro'])
-
+    """Redirect to Stripe checkout — $99 setup fee, then $20/month after 14-day trial."""
     try:
         secret_key, _ = get_stripe_keys()
         is_stripe_ready = bool(secret_key and (secret_key.startswith('sk_live_') or secret_key.startswith('sk_test_')))
@@ -1868,31 +1861,48 @@ def payment_plan(plan):
             stripe.api_key = secret_key
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'usd',
-                        'product_data': {
-                            'name': f"RetailTrack {p['name']}",
-                            'description': f"One-time purchase — RetailTrack {p['name']} plan",
+                line_items=[
+                    {
+                        'price_data': {
+                            'currency': 'usd',
+                            'product_data': {
+                                'name': 'RetailTrack — Setup Fee',
+                                'description': 'One-time setup fee. Includes store configuration, branding, and onboarding.',
+                            },
+                            'unit_amount': 9900,
                         },
-                        'unit_amount': p['price'] * 100,
+                        'quantity': 1,
                     },
-                    'quantity': 1,
-                }],
-                mode='payment',
+                    {
+                        'price_data': {
+                            'currency': 'usd',
+                            'product_data': {
+                                'name': 'RetailTrack — Monthly Subscription',
+                                'description': '$20/month — 14-day free trial included. Cancel any time.',
+                            },
+                            'recurring': {'interval': 'month'},
+                            'unit_amount': 2000,
+                        },
+                        'quantity': 1,
+                    },
+                ],
+                mode='subscription',
+                subscription_data={
+                    'trial_period_days': 14,
+                },
                 success_url=request.host_url.rstrip('/') + '/pay-success',
                 cancel_url=request.host_url.rstrip('/') + '/wizard',
                 metadata={'plan': plan},
             )
             return redirect(checkout_session.url, code=303)
     except Exception as e:
-        app.logger.error(f"Stripe error for plan {plan}: {e}")
+        app.logger.error(f"Stripe error: {e}")
         return f"Payment setup error: {e}", 500
 
     # Fallback: mailto if no Stripe keys configured
     from urllib.parse import quote
-    subject = quote(f"RetailTrack {p['name']} - ${p['price']}")
-    body = quote(f"Hi Jay, I'd like to purchase the RetailTrack {p['name']} plan (${p['price']}). Thanks!")
+    subject = quote("RetailTrack — Get Started")
+    body = quote("Hi Jay, I'd like to get started with RetailTrack ($99 setup + $20/month). Thanks!")
     return redirect(f"mailto:leprograms@protonmail.com?subject={subject}&body={body}")
 
 @app.route('/pay-success')
