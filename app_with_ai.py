@@ -391,6 +391,27 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
+def overseer_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        if session.get('role') != 'overseer':
+            flash('Overseer access required.', 'error')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated
+
+def client_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('logged_in') or not session.get('store_slug'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
 def ctx():
     return dict(
         store_name=STORE_NAME,
