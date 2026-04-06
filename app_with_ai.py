@@ -850,21 +850,21 @@ def generate_ads():
                     except Exception:
                         pass
 
-            # Vignette
+            # Vignette — starts at 58% down so top half of photo stays clear
             vign = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
             vd   = _Draw.Draw(vign)
-            gs   = int(H * 0.35)
+            gs   = int(H * 0.58)
             for row in range(gs, H):
                 t     = (row - gs) / (H - gs)
-                alpha = int(252 * min(1.0, t ** 0.55))
+                alpha = int(252 * min(1.0, t ** 0.65))
                 vd.line([(0, row), (W - 1, row)], fill=(r_g, g_g, b_g, alpha))
             canvas = _Img.alpha_composite(canvas.convert('RGBA'), vign).convert('RGB')
 
             draw    = _Draw.Draw(canvas)
-            sz_headline = max(54, int(W * 0.068))
-            sz_price    = max(82, int(W * 0.108))
-            sz_desc     = max(24, int(W * 0.024))
-            sz_cta      = max(24, int(W * 0.026))
+            sz_headline = max(42, int(W * 0.052))
+            sz_price    = max(62, int(W * 0.080))
+            sz_desc     = max(22, int(W * 0.022))
+            sz_cta      = max(20, int(W * 0.022))
 
             f_headline = _font(font_bold, sz_headline)
             f_price    = _font(font_bold, sz_price)
