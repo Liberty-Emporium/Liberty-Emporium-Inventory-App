@@ -2212,6 +2212,177 @@ def my_store():
         **ctx()
     )
 
+# ── Overseer Assistant ────────────────────────────────────────────────────────
+def build_assistant_context():
+    """Build a live business snapshot string for the AI system prompt."""
+    stores = list_client_stores()
+    leads  = load_leads()
+    today  = datetime.datetime.now()
+
+    # Enrich trial leads with days remaining
+    trial_leads = [l for l in leads if l.get('type') == 'trial']
+    for t in trial_leads:
+        try:
+            end = datetime.datetime.fromisoformat(t.get('trial_end') or t.get('created_at', today.isoformat()))
+            t['_days_remaining'] = (end.date() - today.date()).days
+        except Exception:
+            t['_days_remaining'] = None
+
+    active_stores    = [s for s in stores if s.get('status') == 'active']
+    suspended_stores = [s for s in stores if s.get('status') == 'suspended']
+    expiring_soon    = [t for t in trial_leads if t.get('_days_remaining') is not None and 0 <= t['_days_remaining'] <= 7]
+    overdue_trials   = [t for t in trial_leads if t.get('_days_remaining') is not None and t['_days_remaining'] < 0]
+
+    mrr        = len(active_stores) * 20
+    setup_fees = len(stores) * 99
+
+    lines = [
+        f"Today's date: {today.strftime('%B %d, %Y')}",
+        "",
+        "PAYING CLIENTS (provisioned stores):",
+    ]
+    if stores:
+        for s in stores:
+            lines.append(
+                f"  - {s.get('store_name','?')} (slug: {s.get('slug','?')}, plan: {s.get('plan','?')}, "
+                f"status: {s.get('status','?')}, email: {s.get('contact_email','?')}, "
+                f"created: {s.get('created_at','?')[:10]})"
+            )
+    else:
+        lines.append("  (none yet)")
+
+    lines += ["", "TRIAL SIGNUPS:"]
+    if trial_leads:
+        for t in trial_leads:
+            dr = t.get('_days_remaining')
+            dr_str = (f"{dr} days remaining" if dr is not None and dr >= 0
+                      else (f"EXPIRED {abs(dr)} days ago" if dr is not None else "unknown"))
+            lines.append(
+                f"  - {t.get('store_name','?')} | {t.get('contact_email','?')} | "
+                f"trial ends: {(t.get('trial_end','?') or '?')[:10]} ({dr_str})"
+            )
+    else:
+        lines.append("  (none yet)")
+
+    lines += [
+        "",
+        "BUSINESS SUMMARY:",
+        f"  Total provisioned clients: {len(stores)}",
+        f"  Active: {len(active_stores)}  Suspended: {len(suspended_stores)}",
+        f"  Trial signups: {len(trial_leads)}",
+        f"  Expiring within 7 days: {len(expiring_soon)}",
+        f"  Overdue (trial expired, not converted): {len(overdue_trials)}",
+        f"  Monthly recurring revenue: ${mrr}",
+        f"  All-time setup fees collected: ${setup_fees}",
+    ]
+
+    return "\n".join(lines)
+
+
+@app.route('/overseer/assistant/chat', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_assistant_chat():
+    data    = request.get_json(force=True)
+    message = data.get('message', '').strip()
+    if not message:
+        return jsonify({'reply': 'Please type a message.', 'type': 'text'})
+
+    api_key = get_ai_api_key()
+    if not api_key:
+        return jsonify({'reply': 'No AI API key configured. Add it in Admin Settings.', 'type': 'text'})
+
+    context = build_assistant_context()
+    system_prompt = f"""You are the Overseer Assistant for RetailTrack, a SaaS inventory management app run by Jay Alexander (Liberty Emporium Programs).
+
+{context}
+
+You help Jay run his business. You can:
+1. Answer questions about clients, trials, and revenue using the data above.
+2. Draft follow-up emails — return them as JSON on its own line: {{"type":"email","to":"client@email.com","subject":"...","body":"..."}}
+3. Trigger actions — return them as JSON on its own line: {{"action":"suspend","slug":"store-slug"}} or {{"action":"unsuspend","slug":"store-slug"}} or {{"action":"reset_password","slug":"store-slug"}}
+
+Rules:
+- Be concise and direct. Jay is busy.
+- When drafting emails, be warm and professional — sign off as "— Jay, Liberty Emporium Programs"
+- For suspend/unsuspend/reset_password, output ONLY the JSON on its own line (no extra text on that line).
+- Never suggest deleting a store — that requires manual confirmation.
+- If you don't know something, say so honestly."""
+
+    payload = {
+        'model': 'claude-haiku-4-5-20251001',
+        'max_tokens': 600,
+        'system': system_prompt,
+        'messages': [{'role': 'user', 'content': message}],
+    }
+
+    try:
+        import urllib.request as _ur
+        req = _ur.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=json.dumps(payload).encode(),
+            headers={
+                'Content-Type': 'application/json',
+                'x-api-key': api_key,
+                'anthropic-version': '2023-06-01',
+            }
+        )
+        with _ur.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+        reply_text = result['content'][0]['text'].strip()
+    except Exception as e:
+        return jsonify({'reply': f'AI error: {e}', 'type': 'text'})
+
+    # Parse reply — look for action or email JSON on its own line
+    import re as _re
+    for line in reply_text.splitlines():
+        line = line.strip()
+        if line.startswith('{') and line.endswith('}'):
+            try:
+                parsed = json.loads(line)
+                if 'action' in parsed:
+                    slug   = parsed.get('slug', '')
+                    action = parsed.get('action', '')
+                    cfg    = load_client_config(slug)
+                    if not cfg:
+                        return jsonify({'reply': f'Store "{slug}" not found.', 'type': 'text'})
+                    if action == 'suspend':
+                        cfg['status'] = 'suspended'
+                        save_client_config(slug, cfg)
+                        return jsonify({'reply': f'✅ **{cfg["store_name"]}** has been suspended.', 'type': 'text'})
+                    elif action == 'unsuspend':
+                        cfg['status'] = 'active'
+                        save_client_config(slug, cfg)
+                        return jsonify({'reply': f'✅ **{cfg["store_name"]}** is now active.', 'type': 'text'})
+                    elif action == 'reset_password':
+                        import secrets as _sec
+                        users_file = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+                        if not os.path.exists(users_file):
+                            return jsonify({'reply': f'No users file found for {slug}.', 'type': 'text'})
+                        with open(users_file) as f:
+                            users = json.load(f)
+                        temp_pw = _sec.token_urlsafe(10)
+                        email   = cfg.get('contact_email', '')
+                        if email in users:
+                            users[email]['password'] = hash_password(temp_pw)
+                            with open(users_file, 'w') as f:
+                                json.dump(users, f, indent=2)
+                            return jsonify({'reply': f'✅ Password reset for **{cfg["store_name"]}**. New temp password: `{temp_pw}`', 'type': 'text'})
+                        return jsonify({'reply': 'User email not found in store users.', 'type': 'text'})
+                elif parsed.get('type') == 'email':
+                    return jsonify({
+                        'type':    'email',
+                        'reply':   "Here's a draft email for you to review:",
+                        'to':      parsed.get('to', ''),
+                        'subject': parsed.get('subject', ''),
+                        'body':    parsed.get('body', ''),
+                    })
+            except (json.JSONDecodeError, KeyError):
+                pass
+
+    return jsonify({'reply': reply_text, 'type': 'text'})
+
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     app.run(debug=True)
