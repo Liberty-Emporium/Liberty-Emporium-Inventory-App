@@ -168,6 +168,68 @@ def save_stripe_keys(secret, public):
     with open(app_config_file, 'w') as f:
         json.dump(config, f, indent=2)
 
+def get_smtp_config():
+    """Load SMTP credentials from app_config.json."""
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    defaults = {'smtp_host': '', 'smtp_port': 587, 'smtp_user': '', 'smtp_password': ''}
+    if not os.path.exists(app_config_file):
+        return defaults
+    try:
+        with open(app_config_file) as f:
+            cfg = json.load(f)
+        return {
+            'smtp_host':     cfg.get('smtp_host', ''),
+            'smtp_port':     int(cfg.get('smtp_port', 587)),
+            'smtp_user':     cfg.get('smtp_user', ''),
+            'smtp_password': cfg.get('smtp_password', ''),
+        }
+    except Exception:
+        return defaults
+
+def save_smtp_config(host, port, user, password):
+    """Persist SMTP credentials to app_config.json."""
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    config = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file) as f:
+                config = json.load(f)
+        except Exception:
+            pass
+    config['smtp_host']     = host.strip()
+    config['smtp_port']     = int(port)
+    config['smtp_user']     = user.strip()
+    config['smtp_password'] = password.strip()
+    with open(app_config_file, 'w') as f:
+        json.dump(config, f, indent=2)
+
+def send_smtp_email(to, subject, body):
+    """Send an email via SMTP using stored credentials.
+    Returns (True, '') on success or (False, error_message) on failure."""
+    cfg = get_smtp_config()
+    if not cfg['smtp_host'] or not cfg['smtp_user'] or not cfg['smtp_password']:
+        return False, 'SMTP not configured. Set credentials in Admin Settings.'
+    try:
+        import smtplib
+        from email.mime.text import MIMEText
+        msg = MIMEText(body, 'plain', 'utf-8')
+        msg['Subject'] = subject
+        msg['From']    = cfg['smtp_user']
+        msg['To']      = to
+        if cfg['smtp_port'] == 465:
+            with smtplib.SMTP_SSL(cfg['smtp_host'], 465, timeout=15) as server:
+                server.login(cfg['smtp_user'], cfg['smtp_password'])
+                server.sendmail(cfg['smtp_user'], [to], msg.as_string())
+        else:
+            with smtplib.SMTP(cfg['smtp_host'], cfg['smtp_port'], timeout=15) as server:
+                server.ehlo()
+                server.starttls()
+                server.login(cfg['smtp_user'], cfg['smtp_password'])
+                server.sendmail(cfg['smtp_user'], [to], msg.as_string())
+        return True, ''
+    except Exception as e:
+        return False, str(e)
+
 # ── Multi-tenant helpers ──────────────────────────────────────────────────────
 def get_store_paths(slug=None):
     """Return data paths for a given client store slug, or Liberty Emporium if None."""
