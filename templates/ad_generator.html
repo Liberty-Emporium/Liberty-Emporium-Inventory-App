@@ -616,84 +616,111 @@ function generateAds() {
       sku:         card.dataset.sku,
       title:       card.dataset.title,
       price:       card.dataset.price,
+      category:    card.dataset.category,
+      condition:   card.dataset.condition,
       description: card.dataset.description,
       image:       card.dataset.image,
     });
   });
 
-  const storeName = document.getElementById('storeNameInput').value.trim();
-  const ctaText   = document.getElementById('ctaInput').value.trim();
-
-  // Show loading
   const overlay = document.getElementById('loadingOverlay');
   const bar     = document.getElementById('loadingBar');
   const detail  = document.getElementById('loadingDetail');
-  overlay.classList.add('active');
-  bar.style.width = '0%';
-  detail.textContent = 'Rendering images…';
+  const section = document.getElementById('resultsSection');
+  const grid    = document.getElementById('resultsGrid');
 
-  let pct = 0;
-  const ticker = setInterval(() => {
-    pct = Math.min(pct + Math.random() * 18, 88);
-    bar.style.width = pct + '%';
-  }, 400);
+  overlay.classList.add('active');
+  bar.style.width = '5%';
+  detail.textContent = 'Writing ad copy with AI…';
+  grid.innerHTML = '';
+  section.classList.remove('visible');
 
   fetch('/generate-ads', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      products:   products,
-      style:      selectedStyle,
-      format:     selectedFmt,
-      store_name: storeName,
-      cta_text:   ctaText,
+      products: products,
+      style:    selectedStyle,
+      format:   selectedFmt,
     }),
-  })
-  .then(r => r.json())
-  .then(data => {
-    clearInterval(ticker);
-    bar.style.width = '100%';
+  }).then(response => {
+    if (!response.ok) {
+      return response.json().then(d => { throw new Error(d.error || 'Server error'); });
+    }
+
+    const reader  = response.body.getReader();
+    const decoder = new TextDecoder();
+    let   buffer  = '';
+    let   count   = 0;
+
+    function pump() {
+      reader.read().then(({ value, done: streamDone }) => {
+        if (streamDone) {
+          overlay.classList.remove('active');
+          return;
+        }
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete line
+
+        lines.forEach(line => {
+          if (!line.startsWith('data: ')) return;
+          const payload = line.slice(6).trim();
+          if (!payload) return;
+          try {
+            const data = JSON.parse(payload);
+            if (data.done) {
+              bar.style.width = '100%';
+              overlay.classList.remove('active');
+              return;
+            }
+            count++;
+            const pct = Math.min(95, 5 + (count / products.length) * 90);
+            bar.style.width = pct + '%';
+            detail.textContent = `Generated ${count} of ${products.length}…`;
+            appendResult(data);
+          } catch (e) {}
+        });
+        pump();
+      });
+    }
+    pump();
+
+  }).catch(err => {
     overlay.classList.remove('active');
-    if (data.error) { alert('Error: ' + data.error); return; }
-    showResults(data.files);
-  })
-  .catch(err => {
-    clearInterval(ticker);
-    overlay.classList.remove('active');
-    alert('Request failed: ' + err);
+    alert('Request failed: ' + err.message);
   });
 }
 
-function showResults(files) {
-  const grid = document.getElementById('resultsGrid');
-  grid.innerHTML = '';
-
-  files.forEach(f => {
-    const card = document.createElement('div');
-    card.className = 'result-card';
-
-    const img = document.createElement('img');
-    img.src = '/ads/' + encodeURIComponent(f.filename);
-    img.alt = f.product_title;
-    img.loading = 'lazy';
-
-    const footer = document.createElement('div');
-    footer.className = 'result-card-footer';
-    footer.innerHTML = `
-      <span class="result-title">${f.product_title}</span>
-      <div class="result-actions">
-        <a class="btn-open" href="/ads/${encodeURIComponent(f.filename)}" target="_blank">🔗 Open</a>
-        <a class="btn-dl"   href="/download-ad/${encodeURIComponent(f.filename)}" download>⬇️ Download</a>
-      </div>`;
-
-    card.appendChild(img);
-    card.appendChild(footer);
-    grid.appendChild(card);
-  });
-
+function appendResult(f) {
   const section = document.getElementById('resultsSection');
-  section.classList.add('visible');
-  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const grid    = document.getElementById('resultsGrid');
+
+  const card = document.createElement('div');
+  card.className = 'result-card';
+
+  const img = document.createElement('img');
+  img.src     = '/ads/' + encodeURIComponent(f.filename);
+  img.alt     = f.product_title;
+  img.loading = 'lazy';
+
+  const footer = document.createElement('div');
+  footer.className = 'result-card-footer';
+  footer.innerHTML = `
+    <span class="result-title">${f.product_title}</span>
+    <div class="result-actions">
+      <a class="btn-open" href="/ads/${encodeURIComponent(f.filename)}" target="_blank">🔗 Open</a>
+      <a class="btn-dl"   href="/download-ad/${encodeURIComponent(f.filename)}" download>⬇️ Download</a>
+    </div>`;
+
+  card.appendChild(img);
+  card.appendChild(footer);
+  grid.appendChild(card);
+
+  if (!section.classList.contains('visible')) {
+    section.classList.add('visible');
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 </script>
 {% endblock %}
