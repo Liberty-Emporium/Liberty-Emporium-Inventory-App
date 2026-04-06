@@ -352,7 +352,7 @@ function sendDraft(draftId, btn) {
     }
   })
   .catch(e => {
-    status.innerHTML = `<span style="color:#991b1b;">❌ ${e}</span>`;
+    status.innerHTML = `<span style="color:#991b1b;">❌ ${escHtml(String(e))}</span>`;
     btn.disabled     = false;
     btn.textContent  = '📨 Send Email';
   });
