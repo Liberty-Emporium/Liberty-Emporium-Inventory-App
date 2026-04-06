@@ -27,9 +27,15 @@
 
     .login-banner {
       background: {{ cfg.primary_color or '#1a1a2e' }};
+      {% if cfg.banner_url %}background-image: url('{{ cfg.banner_url }}'); background-size:cover; background-position:center;{% endif %}
       padding: 2.5rem 2rem 2rem;
       text-align: center;
+      position: relative;
     }
+    .login-banner::before {
+      {% if cfg.banner_url %}content:''; position:absolute; inset:0; background:rgba(0,0,0,0.45);{% else %}content:none;{% endif %}
+    }
+    .login-banner > * { position: relative; }
 
     .login-banner h1 {
       font-family: 'Playfair Display', serif;
@@ -126,6 +132,7 @@
 <body>
   <div class="login-card">
     <div class="login-banner">
+      {% if cfg.logo_url %}<img src="{{ cfg.logo_url }}" style="width:72px;height:72px;object-fit:cover;border-radius:12px;border:2px solid rgba(255,255,255,0.6);margin-bottom:0.75rem;display:block;margin-left:auto;margin-right:auto;">{% endif %}
       <h1>{{ cfg.store_name }}</h1>
       {% if cfg.tagline %}<p>{{ cfg.tagline }}</p>{% else %}<p>Inventory Management</p>{% endif %}
     </div>

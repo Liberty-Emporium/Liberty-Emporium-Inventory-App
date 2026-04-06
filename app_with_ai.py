@@ -2310,6 +2310,58 @@ def overseer_update_client(slug):
     return redirect(url_for('overseer_client_detail', slug=slug))
 
 # ── Client Dashboard ───────────────────────────────────────────────────────────
+@app.route('/my-store/branding', methods=['GET', 'POST'])
+@client_required
+def my_store_branding():
+    slug = session.get('store_slug')
+    cfg  = load_client_config(slug) or {}
+    store_dir   = os.path.join(CUSTOMERS_DIR, slug)
+    uploads_dir = os.path.join(store_dir, 'uploads')
+    os.makedirs(uploads_dir, exist_ok=True)
+
+    if request.method == 'POST':
+        # Text fields
+        cfg['store_name']       = request.form.get('store_name', cfg.get('store_name', '')).strip()
+        cfg['tagline']          = request.form.get('tagline', '').strip()
+        cfg['store_description']= request.form.get('store_description', '').strip()
+        cfg['primary_color']    = request.form.get('primary_color', cfg.get('primary_color', '#2e7d6e'))
+        cfg['secondary_color']  = request.form.get('secondary_color', cfg.get('secondary_color', '#1a1a2e'))
+        cfg['accent_color']     = request.form.get('accent_color', cfg.get('accent_color', '#10b981'))
+
+        # Logo upload
+        logo_file = request.files.get('logo')
+        if logo_file and logo_file.filename:
+            ext = os.path.splitext(logo_file.filename)[1].lower() or '.jpg'
+            logo_path = os.path.join(uploads_dir, f'logo{ext}')
+            logo_file.save(logo_path)
+            cfg['logo_url'] = f'/customer-upload/{slug}/logo{ext}'
+
+        # Banner upload
+        banner_file = request.files.get('banner')
+        if banner_file and banner_file.filename:
+            ext = os.path.splitext(banner_file.filename)[1].lower() or '.jpg'
+            banner_path = os.path.join(uploads_dir, f'banner{ext}')
+            banner_file.save(banner_path)
+            cfg['banner_url'] = f'/customer-upload/{slug}/banner{ext}'
+
+        save_client_config(slug, cfg)
+        flash('Branding saved!', 'success')
+        return redirect(url_for('my_store_branding'))
+
+    return render_template('store_branding.html', cfg=cfg, slug=slug, **ctx())
+
+
+@app.route('/customer-upload/<slug>/<filename>')
+def customer_upload(slug, filename):
+    """Serve branding assets (logo, banner) for a client store."""
+    import re
+    if not re.fullmatch(r'[a-z0-9][a-z0-9\-]{0,62}', slug):
+        return '', 404
+    safe_filename = os.path.basename(filename)
+    upload_dir = os.path.join(CUSTOMERS_DIR, slug, 'uploads')
+    return send_from_directory(upload_dir, safe_filename)
+
+
 @app.route('/my-store')
 @client_required
 def my_store():

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Store Branding — {{ cfg.store_name }}{% endblock %}
+{% block howto_slides %}{% endblock %}
+
+{% block content %}
+<style>
+  .br-wrap { max-width:760px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+  .br-header { margin-bottom:2rem; }
+  .br-header h1 { font-family:'Playfair Display',serif; font-size:2rem; color:#1a1a2e; margin:0 0 0.3rem; }
+  .br-header p { color:#7a7a8c; font-size:0.9rem; }
+  .br-card { background:white; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.08); padding:1.75rem 2rem; margin-bottom:1.5rem; }
+  .br-card h2 { font-family:'Playfair Display',serif; font-size:1.15rem; color:#1a1a2e; margin:0 0 1.25rem; padding-bottom:0.6rem; border-bottom:2px solid #f0ede8; }
+  .field { margin-bottom:1.1rem; }
+  .field label { display:block; font-size:0.8rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.35rem; }
+  .field input[type=text], .field input[type=email], .field textarea {
+    width:100%; padding:0.65rem 0.9rem; border:1.5px solid #d1c9bc; border-radius:10px;
+    font-size:0.92rem; font-family:inherit; box-sizing:border-box;
+  }
+  .field input:focus, .field textarea:focus { outline:none; border-color:#2e7d6e; }
+  .field textarea { min-height:80px; resize:vertical; }
+  .color-row { display:flex; gap:1rem; flex-wrap:wrap; }
+  .color-field { display:flex; flex-direction:column; gap:0.35rem; }
+  .color-field label { font-size:0.8rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.05em; }
+  .color-field input[type=color] { width:60px; height:44px; border:1.5px solid #d1c9bc; border-radius:8px; padding:2px; cursor:pointer; }
+  .upload-row { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  @media(max-width:600px){ .upload-row { grid-template-columns:1fr; } }
+  .upload-box { border:2px dashed #d1c9bc; border-radius:12px; padding:1.25rem; text-align:center; cursor:pointer; transition:border-color 0.15s; position:relative; }
+  .upload-box:hover { border-color:#2e7d6e; }
+  .upload-box input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .upload-box-preview { width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:0.5rem; display:none; }
+  .upload-box-preview.visible { display:block; }
+  .upload-icon { font-size:2rem; margin-bottom:0.3rem; }
+  .upload-label { font-size:0.82rem; font-weight:600; color:#555; }
+  .upload-sub { font-size:0.72rem; color:#9ca3af; margin-top:0.15rem; }
+
+  /* Live preview */
+  .preview-panel { border-radius:14px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.1); margin-bottom:1.5rem; }
+  .preview-banner {
+    height:120px;
+    background: var(--prev-primary, #2e7d6e);
+    display:flex; align-items:flex-end; justify-content:flex-start;
+    padding:0 1.5rem 0.75rem;
+    position:relative;
+    background-size:cover; background-position:center;
+  }
+  .preview-logo {
+    width:64px; height:64px; border-radius:12px;
+    background:rgba(255,255,255,0.2);
+    border:2px solid rgba(255,255,255,0.5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem; margin-right:1rem; flex-shrink:0;
+    overflow:hidden;
+  }
+  .preview-logo img { width:100%; height:100%; object-fit:cover; }
+  .preview-store-info { }
+  .preview-store-name { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; color:white; text-shadow:0 1px 4px rgba(0,0,0,0.4); line-height:1.1; }
+  .preview-tagline { font-size:0.78rem; color:rgba(255,255,255,0.8); }
+  .preview-body { background:white; padding:1rem 1.5rem; }
+  .preview-desc { font-size:0.82rem; color:#7a7a8c; font-style:italic; }
+  .preview-colors { display:flex; gap:0.5rem; margin-top:0.6rem; }
+  .preview-swatch { width:28px; height:28px; border-radius:50%; border:2px solid rgba(0,0,0,0.1); }
+
+  .btn-save { background:#1a1a2e; color:white; border:none; padding:0.8rem 2rem; border-radius:10px; font-weight:700; font-size:1rem; cursor:pointer; margin-top:0.5rem; }
+  .btn-save:hover { opacity:0.88; }
+  .back-link { display:inline-flex; align-items:center; gap:0.4rem; color:#7a7a8c; font-size:0.85rem; text-decoration:none; margin-bottom:1.25rem; }
+  .back-link:hover { color:#1a1a2e; }
+</style>
+
+<div class="br-wrap">
+  <a href="/my-store" class="back-link">← Back to Dashboard</a>
+
+  <div class="br-header">
+    <h1>🎨 Store Branding</h1>
+    <p>Customize how your store looks — your logo, banner, colors, and description.</p>
+  </div>
+
+  <!-- Live Preview -->
+  <div class="preview-panel" id="previewPanel">
+    <div class="preview-banner" id="prevBanner">
+      <div class="preview-logo" id="prevLogo">
+        {% if cfg.logo_url %}<img src="{{ cfg.logo_url }}" id="prevLogoImg">{% else %}<span id="prevLogoEmoji">🏪</span>{% endif %}
+      </div>
+      <div class="preview-store-info">
+        <div class="preview-store-name" id="prevName">{{ cfg.store_name }}</div>
+        <div class="preview-tagline" id="prevTagline">{{ cfg.tagline or '' }}</div>
+      </div>
+    </div>
+    <div class="preview-body">
+      <div class="preview-desc" id="prevDesc">{{ cfg.store_description or 'Your store description will appear here.' }}</div>
+      <div class="preview-colors">
+        <div class="preview-swatch" id="prevSwatchP" style="background:{{ cfg.primary_color or '#2e7d6e' }};"></div>
+        <div class="preview-swatch" id="prevSwatchS" style="background:{{ cfg.secondary_color or '#1a1a2e' }};"></div>
+        <div class="preview-swatch" id="prevSwatchA" style="background:{{ cfg.accent_color or '#10b981' }};"></div>
+      </div>
+    </div>
+  </div>
+
+  <form method="POST" action="/my-store/branding" enctype="multipart/form-data">
+
+    <!-- Store Info -->
+    <div class="br-card">
+      <h2>Store Info</h2>
+      <div class="field">
+        <label>Store Name</label>
+        <input type="text" name="store_name" value="{{ cfg.store_name }}" required id="inputName">
+      </div>
+      <div class="field">
+        <label>Tagline</label>
+        <input type="text" name="tagline" value="{{ cfg.tagline or '' }}" placeholder="e.g. Quality finds at unbeatable prices" id="inputTagline">
+      </div>
+      <div class="field">
+        <label>Store Description</label>
+        <textarea name="store_description" placeholder="Tell customers about your store..." id="inputDesc">{{ cfg.store_description or '' }}</textarea>
+      </div>
+    </div>
+
+    <!-- Colors -->
+    <div class="br-card">
+      <h2>Brand Colors</h2>
+      <div class="color-row">
+        <div class="color-field">
+          <label>Primary</label>
+          <input type="color" name="primary_color" value="{{ cfg.primary_color or '#2e7d6e' }}" id="colorP">
+        </div>
+        <div class="color-field">
+          <label>Secondary</label>
+          <input type="color" name="secondary_color" value="{{ cfg.secondary_color or '#1a1a2e' }}" id="colorS">
+        </div>
+        <div class="color-field">
+          <label>Accent</label>
+          <input type="color" name="accent_color" value="{{ cfg.accent_color or '#10b981' }}" id="colorA">
+        </div>
+      </div>
+    </div>
+
+    <!-- Images -->
+    <div class="br-card">
+      <h2>Logo &amp; Banner</h2>
+      <div class="upload-row">
+        <div>
+          <p style="font-size:0.8rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Logo</p>
+          {% if cfg.logo_url %}
+          <img src="{{ cfg.logo_url }}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;margin-bottom:0.5rem;display:block;">
+          {% endif %}
+          <div class="upload-box">
+            <input type="file" name="logo" accept="image/*" onchange="previewLogo(this)">
+            <img class="upload-box-preview" id="logoPreview">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-label">Upload Logo</div>
+            <div class="upload-sub">PNG or JPG, square recommended</div>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:0.8rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Banner</p>
+          {% if cfg.banner_url %}
+          <img src="{{ cfg.banner_url }}" style="width:100%;height:60px;object-fit:cover;border-radius:10px;margin-bottom:0.5rem;display:block;">
+          {% endif %}
+          <div class="upload-box">
+            <input type="file" name="banner" accept="image/*" onchange="previewBanner(this)">
+            <img class="upload-box-preview" id="bannerPreview">
+            <div class="upload-icon">🏞️</div>
+            <div class="upload-label">Upload Banner</div>
+            <div class="upload-sub">Wide image, 1200×300px ideal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-save">💾 Save Branding</button>
+  </form>
+</div>
+
+<script>
+// Live preview
+document.getElementById('inputName').addEventListener('input', e => {
+  document.getElementById('prevName').textContent = e.target.value || 'Your Store';
+});
+document.getElementById('inputTagline').addEventListener('input', e => {
+  document.getElementById('prevTagline').textContent = e.target.value;
+});
+document.getElementById('inputDesc').addEventListener('input', e => {
+  document.getElementById('prevDesc').textContent = e.target.value || 'Your store description will appear here.';
+});
+document.getElementById('colorP').addEventListener('input', e => {
+  document.getElementById('prevBanner').style.background = e.target.value;
+  document.getElementById('prevSwatchP').style.background = e.target.value;
+});
+document.getElementById('colorS').addEventListener('input', e => {
+  document.getElementById('prevSwatchS').style.background = e.target.value;
+});
+document.getElementById('colorA').addEventListener('input', e => {
+  document.getElementById('prevSwatchA').style.background = e.target.value;
+});
+
+function previewLogo(input) {
+  if (!input.files[0]) return;
+  const url = URL.createObjectURL(input.files[0]);
+  const prev = document.getElementById('logoPreview');
+  prev.src = url;
+  prev.classList.add('visible');
+  // Update banner logo
+  const logo = document.getElementById('prevLogo');
+  logo.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+}
+
+function previewBanner(input) {
+  if (!input.files[0]) return;
+  const url = URL.createObjectURL(input.files[0]);
+  const prev = document.getElementById('bannerPreview');
+  prev.src = url;
+  prev.classList.add('visible');
+  // Update banner background
+  document.getElementById('prevBanner').style.backgroundImage = `url('${url}')`;
+  document.getElementById('prevBanner').style.backgroundSize = 'cover';
+  document.getElementById('prevBanner').style.backgroundPosition = 'center';
+}
+</script>
+{% endblock %}
