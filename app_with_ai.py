@@ -8,6 +8,8 @@ import hashlib
 import datetime
 import io
 import tempfile
+import threading
+import time
 from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, jsonify, send_file, send_from_directory)
 from werkzeug.utils import secure_filename
@@ -765,7 +767,6 @@ def generate_ads():
     """Generate AI-written JPEG picture ads, streaming results via SSE."""
     from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
     import textwrap as _tw
-    import threading
 
     data     = request.get_json() or {}
     products = data.get('products', [])
@@ -798,13 +799,7 @@ def generate_ads():
 
     def _font(path, size):
         try:    return _Font.truetype(path, size)
-        except: return _Font.load_default()
-
-    def _txt_w(font, text):
-        try:    return int(font.getlength(text))
-        except AttributeError:
-            try:    return font.getsize(text)[0]
-            except: return len(text) * max(8, font.size // 2)
+        except Exception: return _Font.load_default()
 
     def _shadow(draw, text, x, y, font, color, off=3):
         draw.text((x + off, y + off), text, font=font, fill=(0, 0, 0, 130))
@@ -814,125 +809,132 @@ def generate_ads():
     lock    = threading.Lock()
 
     def render_one(p):
-        sku       = p.get('sku', 'UNKNOWN')
-        title     = p.get('title', 'Untitled')
-        desc      = (p.get('description', '') or '').strip()
-        image_url = p.get('image', '')
-        category  = p.get('category', '')
-        condition = p.get('condition', '')
+        sku   = p.get('sku', 'UNKNOWN')
+        title = p.get('title', 'Untitled')
         try:
-            pf = float(p.get('price', '0'))
-            raw_price = f"{int(pf)}" if pf == int(pf) else f"{pf:.2f}"
-        except Exception:
-            raw_price = str(p.get('price', '0'))
+            desc      = (p.get('description', '') or '').strip()
+            image_url = p.get('image', '')
+            category  = p.get('category', '')
+            condition = p.get('condition', '')
+            try:
+                pf = float(p.get('price', '0'))
+                raw_price = f"{int(pf)}" if pf == int(pf) else f"{pf:.2f}"
+            except Exception:
+                raw_price = str(p.get('price', '0'))
 
-        # Get AI copy (falls back to raw fields on error)
-        copy = generate_ad_copy(title, raw_price, category, condition, desc, api_key)
-        headline      = copy['headline']
-        selling_line  = copy['selling_line']
-        price_callout = copy['price_callout']
-        tagline       = copy['tagline']
+            # Get AI copy (falls back to raw fields on error)
+            copy = generate_ad_copy(title, raw_price, category, condition, desc, api_key)
+            headline      = copy['headline']
+            selling_line  = copy['selling_line']
+            price_callout = copy['price_callout']
+            tagline       = copy['tagline']
 
-        r_g, g_g, b_g = pal['grad']
-        canvas = _Img.new('RGB', (W, H), (r_g, g_g, b_g))
+            r_g, g_g, b_g = pal['grad']
+            canvas = _Img.new('RGB', (W, H), (r_g, g_g, b_g))
 
-        # Product photo
-        if image_url:
-            img_fname = image_url.split('/')[-1]
-            img_fpath = os.path.join(UPLOAD_FOLDER, img_fname)
-            if os.path.exists(img_fpath):
-                try:
-                    prod  = _Img.open(img_fpath)
-                    prod  = fix_image_orientation(prod).convert('RGB')
-                    scale = max(W / prod.width, H / prod.height)
-                    nw    = int(prod.width  * scale)
-                    nh    = int(prod.height * scale)
-                    prod  = prod.resize((nw, nh), _Img.LANCZOS)
-                    cx    = (nw - W) // 2
-                    cy    = max(0, int((nh - H) * 0.25))
-                    canvas.paste(prod.crop((cx, cy, cx + W, cy + H)))
-                except Exception:
-                    pass
+            # Product photo
+            if image_url:
+                img_fname = image_url.split('/')[-1]
+                img_fpath = os.path.join(UPLOAD_FOLDER, img_fname)
+                if os.path.exists(img_fpath):
+                    try:
+                        prod  = _Img.open(img_fpath)
+                        prod  = fix_image_orientation(prod).convert('RGB')
+                        scale = max(W / prod.width, H / prod.height)
+                        nw    = int(prod.width  * scale)
+                        nh    = int(prod.height * scale)
+                        prod  = prod.resize((nw, nh), _Img.LANCZOS)
+                        cx    = (nw - W) // 2
+                        cy    = max(0, int((nh - H) * 0.25))
+                        canvas.paste(prod.crop((cx, cy, cx + W, cy + H)))
+                    except Exception:
+                        pass
 
-        # Vignette
-        vign = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
-        vd   = _Draw.Draw(vign)
-        gs   = int(H * 0.35)
-        for row in range(gs, H):
-            t     = (row - gs) / (H - gs)
-            alpha = int(252 * min(1.0, t ** 0.55))
-            vd.line([(0, row), (W - 1, row)], fill=(r_g, g_g, b_g, alpha))
-        canvas = _Img.alpha_composite(canvas.convert('RGBA'), vign).convert('RGB')
+            # Vignette
+            vign = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
+            vd   = _Draw.Draw(vign)
+            gs   = int(H * 0.35)
+            for row in range(gs, H):
+                t     = (row - gs) / (H - gs)
+                alpha = int(252 * min(1.0, t ** 0.55))
+                vd.line([(0, row), (W - 1, row)], fill=(r_g, g_g, b_g, alpha))
+            canvas = _Img.alpha_composite(canvas.convert('RGBA'), vign).convert('RGB')
 
-        draw    = _Draw.Draw(canvas)
-        sz_headline = max(54, int(W * 0.068))
-        sz_price    = max(82, int(W * 0.108))
-        sz_desc     = max(24, int(W * 0.024))
-        sz_cta      = max(24, int(W * 0.026))
+            draw    = _Draw.Draw(canvas)
+            sz_headline = max(54, int(W * 0.068))
+            sz_price    = max(82, int(W * 0.108))
+            sz_desc     = max(24, int(W * 0.024))
+            sz_cta      = max(24, int(W * 0.026))
 
-        f_headline = _font(font_bold, sz_headline)
-        f_price    = _font(font_bold, sz_price)
-        f_desc     = _font(font_reg,  sz_desc)
-        f_cta      = _font(font_reg,  sz_cta)
+            f_headline = _font(font_bold, sz_headline)
+            f_price    = _font(font_bold, sz_price)
+            f_desc     = _font(font_reg,  sz_desc)
+            f_cta      = _font(font_reg,  sz_cta)
 
-        accent = pal['accent']
-        white  = pal['text']
-        sub    = pal['sub']
-        pad_x  = int(W * 0.06)
+            accent = pal['accent']
+            white  = pal['text']
+            sub    = pal['sub']
+            pad_x  = int(W * 0.06)
 
-        y = H - int(H * 0.044)
+            y = H - int(H * 0.044)
 
-        # Tagline + divider
-        div_y = y - sz_cta - 14
-        draw.line([(pad_x, div_y), (pad_x + int(W * 0.88), div_y)],
-                  fill=tuple(max(0, int(c * 0.55)) for c in accent), width=2)
-        draw.text((pad_x, y - sz_cta - 6), tagline, font=f_cta, fill=sub)
-        y -= sz_cta + 22
+            # Tagline + divider
+            div_y = y - sz_cta - 14
+            draw.line([(pad_x, div_y), (pad_x + int(W * 0.88), div_y)],
+                      fill=tuple(max(0, int(c * 0.55)) for c in accent), width=2)
+            draw.text((pad_x, y - sz_cta - 6), tagline, font=f_cta, fill=sub)
+            y -= sz_cta + 22
 
-        # Selling line
-        if selling_line:
-            chars_d = max(15, int((W * 0.88) / (sz_desc * 0.56)))
-            d_lines = _tw.wrap(selling_line[:120], width=chars_d)[:1]
-            for line in d_lines:
-                _shadow(draw, line, pad_x, y - sz_desc, f_desc, sub, off=2)
-                y -= sz_desc + 14
+            # Selling line
+            if selling_line:
+                chars_d = max(15, int((W * 0.88) / (sz_desc * 0.56)))
+                d_lines = _tw.wrap(selling_line[:120], width=chars_d)[:1]
+                for line in d_lines:
+                    _shadow(draw, line, pad_x, y - sz_desc, f_desc, sub, off=2)
+                    y -= sz_desc + 14
 
-        # Price callout
-        _shadow(draw, price_callout, pad_x, y - sz_price, f_price, white, off=4)
-        y -= sz_price + 12
+            # Price callout
+            _shadow(draw, price_callout, pad_x, y - sz_price, f_price, white, off=4)
+            y -= sz_price + 12
 
-        # Headline
-        chars_t = max(8, int((W * 0.88) / (sz_headline * 0.56)))
-        t_lines = _tw.wrap(headline, width=chars_t)[:2]
-        for line in reversed(t_lines):
-            _shadow(draw, line, pad_x, y - sz_headline, f_headline, accent, off=3)
-            y -= sz_headline + 6
+            # Headline
+            chars_t = max(8, int((W * 0.88) / (sz_headline * 0.56)))
+            t_lines = _tw.wrap(headline, width=chars_t)[:2]
+            for line in reversed(t_lines):
+                _shadow(draw, line, pad_x, y - sz_headline, f_headline, accent, off=3)
+                y -= sz_headline + 6
 
-        ts     = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        jfname = f'ad_{sku}_{style}_{fmt}_{ts}.jpg'
-        canvas.convert('RGB').save(os.path.join(ADS_FOLDER, jfname), 'JPEG', quality=95)
+            ts     = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            jfname = f'ad_{sku}_{style}_{fmt}_{ts}.jpg'
+            canvas.convert('RGB').save(os.path.join(ADS_FOLDER, jfname), 'JPEG', quality=95)
 
-        with lock:
-            results[sku] = {'filename': jfname, 'product_title': title}
+            with lock:
+                results[sku] = {'filename': jfname, 'product_title': title}
+        except Exception as exc:
+            with lock:
+                results[sku] = {'filename': None, 'product_title': title, 'error': str(exc)}
 
     def stream():
         threads = []
-        for p in products:
+        for idx, p in enumerate(products):
             t = threading.Thread(target=render_one, args=(p,), daemon=True)
             t.start()
-            threads.append((p.get('sku', 'UNKNOWN'), t))
+            threads.append((idx, p.get('sku', 'UNKNOWN'), t))
 
         sent = set()
         while len(sent) < len(threads):
-            for sku, t in threads:
-                if sku in sent:
+            made_progress = False
+            for idx, sku, t in threads:
+                if idx in sent:
                     continue
-                t.join(timeout=0.2)
                 with lock:
                     if sku in results:
                         r = results[sku]
-                        sent.add(sku)
+                        sent.add(idx)
                         yield f"data: {json.dumps(r)}\n\n"
+                        made_progress = True
+            if not made_progress:
+                time.sleep(0.05)
 
         yield "data: {\"done\": true}\n\n"
 
