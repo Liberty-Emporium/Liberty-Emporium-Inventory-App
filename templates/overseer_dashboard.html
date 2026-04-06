@@ -121,6 +121,10 @@
       <button class="btn-add" onclick="document.getElementById('addModal').classList.add('open')">➕ Add New Client</button>
     </div>
 
+    <div style="margin-bottom:1.25rem;">
+      <input type="text" id="clientSearch" oninput="filterClients()" placeholder="🔍 Search by store name or email..." style="width:100%;padding:0.6rem 1rem;border:1.5px solid #d1c9bc;border-radius:10px;font-size:0.9rem;box-sizing:border-box;">
+    </div>
+
     <div class="ov-stats">
       <div class="ov-stat">
         <div class="ov-stat-val">{{ stores|length }}</div>
@@ -143,7 +147,7 @@
     {% if stores %}
     <div class="client-grid">
       {% for store in stores %}
-      <div class="client-card">
+      <div class="client-card" data-search="{{ (store.store_name ~ ' ' ~ store.contact_email)|lower }}">
         <div class="client-card-header">
           <div class="client-card-name">{{ store.store_name }}</div>
           <div class="client-card-meta">{{ store.contact_email }} &bull; {{ store.created_at[:10] if store.created_at else '—' }}</div>
@@ -386,6 +390,14 @@ asstInput.addEventListener('keydown', function(e) {
 document.getElementById('addModal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('open');
 });
+
+// Client search filter
+function filterClients() {
+  const q = document.getElementById('clientSearch').value.toLowerCase();
+  document.querySelectorAll('.client-card').forEach(card => {
+    card.style.display = card.dataset.search.includes(q) ? '' : 'none';
+  });
+}
 
 // Load alerts on page load
 loadAlerts();
