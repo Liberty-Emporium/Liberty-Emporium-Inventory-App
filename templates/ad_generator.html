@@ -673,11 +673,9 @@ function generateAds() {
           try {
             const data = JSON.parse(payload);
             if (data.error) {
-              overlay.classList.remove('active');
-              document.getElementById('generateBtn').disabled = (selectedSkus.size === 0);
-              alert('Generation error: ' + data.error);
-              streamFinished = true;
-              break;
+              console.warn('Ad generation error for product:', data.product_title, data.error);
+              // continue consuming — other products may still succeed
+              continue;
             }
             if (data.done) {
               bar.style.width = '100%';

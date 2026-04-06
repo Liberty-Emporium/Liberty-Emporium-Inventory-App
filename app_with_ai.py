@@ -808,7 +808,7 @@ def generate_ads():
     results = {}   # sku -> result dict or Exception
     lock    = threading.Lock()
 
-    def render_one(p):
+    def render_one(idx, p):
         sku   = p.get('sku', 'UNKNOWN')
         title = p.get('title', 'Untitled')
         try:
@@ -909,15 +909,15 @@ def generate_ads():
             canvas.convert('RGB').save(os.path.join(ADS_FOLDER, jfname), 'JPEG', quality=95)
 
             with lock:
-                results[sku] = {'filename': jfname, 'product_title': title}
+                results[idx] = {'filename': jfname, 'product_title': title}
         except Exception as exc:
             with lock:
-                results[sku] = {'filename': None, 'product_title': title, 'error': str(exc)}
+                results[idx] = {'filename': None, 'product_title': title, 'error': str(exc)}
 
     def stream():
         threads = []
         for idx, p in enumerate(products):
-            t = threading.Thread(target=render_one, args=(p,), daemon=True)
+            t = threading.Thread(target=render_one, args=(idx, p), daemon=True)
             t.start()
             threads.append((idx, p.get('sku', 'UNKNOWN'), t))
 
@@ -928,8 +928,8 @@ def generate_ads():
                 if idx in sent:
                     continue
                 with lock:
-                    if sku in results:
-                        r = results[sku]
+                    if idx in results:
+                        r = results[idx]
                         sent.add(idx)
                         yield f"data: {json.dumps(r)}\n\n"
                         made_progress = True
