@@ -849,21 +849,7 @@ def generate_ads():
         sub    = pal['sub']
         pad_x  = int(W * 0.06)
 
-        # Store-name badge — top-left pill
-        badge_y  = int(H * 0.040)
-        store_tw = _txt_w(f_store, store_nm)
-        bx0, by0 = pad_x - 12, badge_y - 8
-        bx1, by1 = pad_x + store_tw + 12, badge_y + sz_store + 8
-        pill = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
-        pd   = _Draw.Draw(pill)
-        try:
-            pd.rounded_rectangle([bx0, by0, bx1, by1], radius=9,
-                                  fill=(r_g, g_g, b_g, 200))
-        except AttributeError:
-            pd.rectangle([bx0, by0, bx1, by1], fill=(r_g, g_g, b_g, 200))
-        canvas = _Img.alpha_composite(canvas.convert('RGBA'), pill).convert('RGB')
         draw   = _Draw.Draw(canvas)
-        draw.text((pad_x, badge_y), store_nm, font=f_store, fill=accent)
 
         # Build text from bottom up
         y = H - int(H * 0.044)
