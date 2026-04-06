@@ -843,13 +843,13 @@ def generate_ads():
                     try:
                         prod  = _Img.open(img_fpath)
                         prod  = fix_image_orientation(prod).convert('RGB')
-                        scale = max(W / prod.width, photo_h / prod.height)
+                        scale = min(W / prod.width, photo_h / prod.height)
                         nw    = int(prod.width  * scale)
                         nh    = int(prod.height * scale)
                         prod  = prod.resize((nw, nh), _Img.LANCZOS)
-                        cx    = (nw - W) // 2
-                        cy    = (nh - photo_h) // 2
-                        canvas.paste(prod.crop((cx, cy, cx + W, cy + photo_h)))
+                        px    = (W - nw) // 2
+                        py    = (photo_h - nh) // 2
+                        canvas.paste(prod, (px, py))
                     except Exception:
                         pass
 
