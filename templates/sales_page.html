@@ -168,43 +168,31 @@
   <!-- Pricing -->
   <section class="pricing">
     <h2>Simple, Transparent Pricing</h2>
-    <p class="pricing-sub">One-time purchase. No monthly fees. Yours forever.</p>
-    <div class="pricing-grid">
-      <div class="price-card">
-        <div class="price-tier">Starter</div>
-        <div class="price-amount">$299</div>
+    <p class="pricing-sub">14-day free trial · No credit card to start · Cancel any time</p>
+    <div class="pricing-grid" style="max-width:380px; margin:0 auto;">
+      <div class="price-card featured">
+        <div class="price-tier">Everything Included</div>
+        <div style="margin:1rem 0 0.25rem;">
+          <span class="price-amount">$99</span>
+          <span style="font-size:0.95rem; color:#666; font-weight:500;"> one-time setup</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:0.3rem; margin-bottom:1.25rem; justify-content:center;">
+          <span class="price-amount" style="font-size:2.8rem;">$20</span>
+          <span style="color:#666; font-size:0.9rem;">/month after</span>
+        </div>
         <ul class="price-features">
           <li>Full inventory management</li>
           <li>AI photo analysis</li>
-          <li>Ad & listing generators</li>
-          <li>Single device</li>
-          <li>Basic support</li>
+          <li>AI ad &amp; listing generators</li>
+          <li>Ad Vault</li>
+          <li>Your branding &amp; colors</li>
+          <li>Hosted &amp; maintained by Jay</li>
+          <li>Email support</li>
         </ul>
-        <a href="mailto:{{ store_config.contact_email }}" class="price-btn">Get Started</a>
-      </div>
-      <div class="price-card featured">
-        <div class="price-tier">Professional</div>
-        <div class="price-amount">$499</div>
-        <ul class="price-features">
-          <li>Everything in Starter</li>
-          <li>Multi-device sync</li>
-          <li>Square integration</li>
-          <li>Custom branding</li>
-          <li>Priority email support</li>
-        </ul>
-        <a href="mailto:{{ store_config.contact_email }}" class="price-btn">Get Professional</a>
-      </div>
-      <div class="price-card">
-        <div class="price-tier">Enterprise</div>
-        <div class="price-amount">$799</div>
-        <ul class="price-features">
-          <li>Everything in Pro</li>
-          <li>Multiple locations</li>
-          <li>API access</li>
-          <li>Custom features built for you</li>
-          <li>Dedicated support</li>
-        </ul>
-        <a href="mailto:{{ store_config.contact_email }}" class="price-btn">Contact Jay</a>
+        <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; padding:0.65rem; margin-bottom:1rem; font-size:0.84rem; color:#166534; font-weight:600; text-align:center;">
+          🎉 14-day free trial — no card required
+        </div>
+        <a href="mailto:{{ store_config.contact_email }}" class="price-btn">Start Free Trial</a>
       </div>
     </div>
   </section>
