@@ -1851,59 +1851,41 @@ def customer_store(slug):
 # ── Payment Routes ───────────────────────────────────────────────────────────
 @app.route('/pay/<plan>')
 def payment_plan(plan):
-    """Redirect to Stripe checkout — $99 setup fee, then $20/month after 14-day trial."""
-    try:
-        secret_key, _ = get_stripe_keys()
-        is_stripe_ready = bool(secret_key and (secret_key.startswith('sk_live_') or secret_key.startswith('sk_test_')))
+    """Legacy route — redirect to trial signup."""
+    return redirect(url_for('start_trial'))
 
-        if is_stripe_ready:
-            import stripe
-            stripe.api_key = secret_key
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[
-                    {
-                        'price_data': {
-                            'currency': 'usd',
-                            'product_data': {
-                                'name': 'RetailTrack — Setup Fee',
-                                'description': 'One-time setup fee. Includes store configuration, branding, and onboarding.',
-                            },
-                            'unit_amount': 9900,
-                        },
-                        'quantity': 1,
-                    },
-                    {
-                        'price_data': {
-                            'currency': 'usd',
-                            'product_data': {
-                                'name': 'RetailTrack — Monthly Subscription',
-                                'description': '$20/month — 14-day free trial included. Cancel any time.',
-                            },
-                            'recurring': {'interval': 'month'},
-                            'unit_amount': 2000,
-                        },
-                        'quantity': 1,
-                    },
-                ],
-                mode='subscription',
-                subscription_data={
-                    'trial_period_days': 14,
-                },
-                success_url=request.host_url.rstrip('/') + '/pay-success',
-                cancel_url=request.host_url.rstrip('/') + '/wizard',
-                metadata={'plan': plan},
-            )
-            return redirect(checkout_session.url, code=303)
-    except Exception as e:
-        app.logger.error(f"Stripe error: {e}")
-        return f"Payment setup error: {e}", 500
+@app.route('/start-trial', methods=['GET', 'POST'])
+def start_trial():
+    """Start a 14-day free trial — no payment collected. Jay follows up after trial ends."""
+    if request.method == 'POST':
+        store_name    = request.form.get('store_name', '').strip()
+        contact_email = request.form.get('contact_email', '').strip()
+        slug          = request.form.get('slug', '').strip()
+        trial_start   = datetime.datetime.now().isoformat()
+        trial_end     = (datetime.datetime.now() + datetime.timedelta(days=14)).strftime('%B %d, %Y')
 
-    # Fallback: mailto if no Stripe keys configured
-    from urllib.parse import quote
-    subject = quote("RetailTrack — Get Started")
-    body = quote("Hi Jay, I'd like to get started with RetailTrack ($99 setup + $20/month). Thanks!")
-    return redirect(f"mailto:leprograms@protonmail.com?subject={subject}&body={body}")
+        # Save as a lead so Jay can follow up
+        leads = load_leads()
+        leads.append({
+            'store_name':    store_name,
+            'contact_email': contact_email,
+            'slug':          slug,
+            'trial_start':   trial_start,
+            'trial_end':     trial_end,
+            'type':          'trial',
+            'status':        'active',
+            'created_at':    trial_start,
+        })
+        save_leads(leads)
+
+        return render_template('trial_confirmation.html',
+            store_name=store_name,
+            contact_email=contact_email,
+            trial_end=trial_end,
+            slug=slug,
+            **ctx()
+        )
+    return redirect(url_for('wizard'))
 
 @app.route('/pay-success')
 def payment_success():

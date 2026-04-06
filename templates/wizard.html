@@ -432,7 +432,12 @@
                         <li style="padding:0.3rem 0; border-bottom:1px solid #f1f5f9;">✓ Your store name, colors &amp; branding</li>
                         <li style="padding:0.3rem 0;">✓ Hosted &amp; maintained by Jay</li>
                     </ul>
-                    <a href="/pay/starter" style="display:block; background:linear-gradient(135deg,#10b981,#059669); color:white; text-decoration:none; padding:0.85rem; border-radius:10px; font-weight:700; font-size:0.95rem; text-align:center; box-shadow:0 4px 14px rgba(16,185,129,0.35);">Start Free Trial →</a>
+                    <form method="POST" action="/start-trial" style="margin:0;">
+                        <input type="hidden" name="store_name" id="trialStoreName">
+                        <input type="hidden" name="contact_email" id="trialEmail">
+                        <input type="hidden" name="slug" id="trialSlug">
+                        <button type="submit" style="width:100%; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0.85rem; border-radius:10px; font-weight:700; font-size:0.95rem; cursor:pointer; box-shadow:0 4px 14px rgba(16,185,129,0.35);">Start Free Trial →</button>
+                    </form>
                 </div>
                 
                 <p style="margin-top:2rem; color:#6b7280; font-size:0.85rem;">
@@ -575,6 +580,9 @@
                 document.getElementById('wizardSuccess').classList.add('active');
                 document.getElementById('successStoreName').textContent = data.store_name;
                 document.getElementById('successUrl').textContent = resp.url || ('/store/' + slug);
+                document.getElementById('trialStoreName').value = data.store_name;
+                document.getElementById('trialEmail').value = data.contact_email || '';
+                document.getElementById('trialSlug').value = slug;
             })
             .catch(function() {
                 clearInterval(msgInterval);
