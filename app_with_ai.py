@@ -1834,7 +1834,6 @@ def landing_page():
     return render_template('landing.html')
 
 # ── Wizard Routes ────────────────────────────────────────────────────────────
-CUSTOMERS_DIR = os.path.join(BASE_DIR, 'customers')
 os.makedirs(CUSTOMERS_DIR, exist_ok=True)
 
 def load_leads():
@@ -2311,7 +2310,7 @@ Rules:
 
     payload = {
         'model': 'claude-haiku-4-5-20251001',
-        'max_tokens': 600,
+        'max_tokens': 1024,
         'system': system_prompt,
         'messages': [{'role': 'user', 'content': message}],
     }
@@ -2331,10 +2330,10 @@ Rules:
             result = json.loads(resp.read())
         reply_text = result['content'][0]['text'].strip()
     except Exception as e:
-        return jsonify({'reply': f'AI error: {e}', 'type': 'text'})
+        app.logger.error("Overseer assistant API error: %s", e)
+        return jsonify({'reply': 'AI service error. Please try again.', 'type': 'text'})
 
     # Parse reply — look for action or email JSON on its own line
-    import re as _re
     for line in reply_text.splitlines():
         line = line.strip()
         if line.startswith('{') and line.endswith('}'):
@@ -2342,6 +2341,9 @@ Rules:
                 parsed = json.loads(line)
                 if 'action' in parsed:
                     slug   = parsed.get('slug', '')
+                    import re as _re_slug
+                    if not _re_slug.fullmatch(r'[a-z0-9][a-z0-9\-]{0,62}', slug):
+                        return jsonify({'reply': 'Invalid store slug.', 'type': 'text'})
                     action = parsed.get('action', '')
                     cfg    = load_client_config(slug)
                     if not cfg:
