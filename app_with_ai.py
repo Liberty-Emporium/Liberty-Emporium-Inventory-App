@@ -1764,6 +1764,11 @@ def payment_success():
     """Thank you page after payment."""
     return render_template('payment_success.html')
 
+@app.errorhandler(500)
+def internal_error(e):
+    import traceback
+    return f"<pre>500 Error:\n{traceback.format_exc()}</pre>", 500
+
 @app.route('/admin/leads')
 @login_required
 @admin_required
