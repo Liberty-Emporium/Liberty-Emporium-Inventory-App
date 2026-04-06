@@ -494,12 +494,15 @@
 <!-- ── Sticky Generate Bar ── -->
 <div class="generate-bar">
   <div class="generate-bar-info">
-    <strong id="barCount">0</strong> products selected — choose up to 10
-    <div id="maxWarning">Maximum 10 products reached</div>
+    <strong id="barCount">0</strong> products selected — <span id="selectHint" style="color:#888;">click a product card above to select it</span>
+    <div id="maxWarning" style="display:none;color:#c0392b;font-size:0.8rem;">Maximum 10 products reached</div>
   </div>
-  <button class="btn-generate" id="generateBtn" disabled onclick="generateAds()">
-    <span class="gold-icon">✨</span> Generate Ads with AI
-  </button>
+  <div style="display:flex;gap:0.5rem;align-items:center;">
+    <button onclick="selectAll()" style="background:#f0ede8;color:#1a1a2e;border:none;padding:0.55rem 1rem;border-radius:8px;font-weight:600;font-size:0.82rem;cursor:pointer;white-space:nowrap;">Select All</button>
+    <button class="btn-generate" id="generateBtn" disabled onclick="generateAds()">
+      <span class="gold-icon">✨</span> Generate Ads with AI
+    </button>
+  </div>
 </div>
 
 <!-- ── Results ── -->
@@ -551,6 +554,17 @@ function updateUI() {
   document.getElementById('countDisplay').textContent = n;
   document.getElementById('barCount').textContent = n;
   document.getElementById('generateBtn').disabled = n === 0;
+  document.getElementById('selectHint').style.display = n > 0 ? 'none' : 'inline';
+}
+
+function selectAll() {
+  document.querySelectorAll('.selectable-card').forEach(card => {
+    if (selectedSkus.size < 10 && !selectedSkus.has(card.dataset.sku)) {
+      selectedSkus.add(card.dataset.sku);
+      card.classList.add('selected');
+    }
+  });
+  updateUI();
 }
 
 function generateAds() {
