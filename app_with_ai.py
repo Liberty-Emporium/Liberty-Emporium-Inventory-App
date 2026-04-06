@@ -2385,6 +2385,68 @@ Rules:
     return jsonify({'reply': reply_text, 'type': 'text'})
 
 
+@app.route('/overseer/assistant/send-email', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_assistant_send_email():
+    data    = request.get_json(force=True)
+    to      = data.get('to', '').strip()
+    subject = data.get('subject', '').strip()
+    body    = data.get('body', '').strip()
+    if not to or not subject or not body:
+        return jsonify({'success': False, 'error': 'to, subject, and body are required.'})
+    ok, err = send_smtp_email(to, subject, body)
+    if ok:
+        return jsonify({'success': True, 'message': f'Sent to {to}'})
+    return jsonify({'success': False, 'error': err})
+
+
+@app.route('/overseer/assistant/alerts', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_assistant_alerts():
+    """Return pre-generated alert cards for trials expiring within 3 days."""
+    leads = load_leads()
+    today = datetime.datetime.now()
+    alerts = []
+    for lead in leads:
+        if lead.get('type') != 'trial':
+            continue
+        try:
+            trial_end_str = lead.get('trial_end', '')
+            if not trial_end_str:
+                continue
+            end  = datetime.datetime.fromisoformat(trial_end_str)
+            days = (end.date() - today.date()).days
+        except Exception:
+            continue
+        if 0 <= days <= 3:
+            store_name    = lead.get('store_name', 'your store')
+            contact_email = lead.get('contact_email', '')
+            contact_name  = lead.get('contact_name', '')
+            greeting      = f"Hi {contact_name}" if contact_name else "Hi there"
+            end_formatted = end.strftime('%B %d, %Y')
+            days_label    = "today" if days == 0 else ("tomorrow" if days == 1 else f"in {days} days")
+            alerts.append({
+                'store_name':    store_name,
+                'contact_email': contact_email,
+                'days':          days,
+                'days_label':    days_label,
+                'draft_to':      contact_email,
+                'draft_subject': f"Your RetailTrack trial ends {days_label} — next steps",
+                'draft_body':    (
+                    f"{greeting},\n\n"
+                    f"Just a quick note — your 14-day free trial for {store_name} ends {days_label} ({end_formatted}).\n\n"
+                    f"To keep your store running, the one-time setup fee is $99 and then just $20/month after that. "
+                    f"I'll send you a payment link as soon as you're ready.\n\n"
+                    f"Feel free to reply to this email with any questions.\n\n"
+                    f"— Jay\nLiberty Emporium Programs"
+                ),
+            })
+    alerts.sort(key=lambda a: a['days'])
+    return jsonify({'alerts': alerts})
+
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     app.run(debug=True)
