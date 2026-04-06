@@ -1090,6 +1090,9 @@ def generate_ads():
         draw.text((x + off, y + off), text, font=font, fill=(0, 0, 0, 130))
         draw.text((x, y), text, font=font, fill=color)
 
+    # Resolve uploads path inside request context before spawning threads
+    uploads_path = get_store_paths(active_store_slug())['uploads']
+
     results = {}   # sku -> result dict or Exception
     lock    = threading.Lock()
 
@@ -1121,7 +1124,7 @@ def generate_ads():
             photo_h = int(H * 0.55)
             if image_url:
                 img_fname = image_url.split('/')[-1]
-                img_fpath = os.path.join(get_store_paths(active_store_slug())['uploads'], img_fname)
+                img_fpath = os.path.join(uploads_path, img_fname)
                 if os.path.exists(img_fpath):
                     try:
                         prod  = _Img.open(img_fpath)
