@@ -3,82 +3,85 @@
 {% block title %}Ad Vault — Liberty Emporium{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <div class="row mb-4">
-    <div class="col">
-      <h1>🎬 Ad Vault</h1>
-      <p class="text-muted">All generated video ads are stored here.</p>
-    </div>
-    {% if videos %}
-    <div class="col-auto align-self-center">
-      <span class="text-muted">{{ videos|length }} video(s) &nbsp;·&nbsp; {{ videos|map(attribute='size_mb')|sum|round(2) }} MB total</span>
-    </div>
-    {% endif %}
+<style>
+  .vault-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:2px solid #e8e0d4; }
+  .vault-header h1 { font-family:'Playfair Display',serif; font-size:2.2rem; color:#1a1a2e; }
+  .vault-header p  { color:#7a7a8c; font-size:0.95rem; margin-top:0.4rem; }
+  .vault-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.25rem; }
+  .vault-card { background:white; border-radius:12px; overflow:hidden; box-shadow:0 3px 12px rgba(0,0,0,0.09); }
+  .vault-card img { width:100%; display:block; aspect-ratio:1/1; object-fit:cover; }
+  .vault-card-body { padding:0.8rem 1rem 0.6rem; }
+  .vault-card-name { font-family:'Playfair Display',serif; font-size:0.9rem; color:#1a1a2e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:0.25rem; }
+  .vault-card-meta { font-size:0.72rem; color:#a0a0b0; margin-bottom:0.65rem; }
+  .vault-card-actions { display:flex; gap:0.5rem; }
+  .btn-vault-dl   { background:#1a1a2e; color:white; border:none; padding:0.4rem 0.85rem; border-radius:7px; font-size:0.78rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; cursor:pointer; }
+  .btn-vault-dl:hover { opacity:0.85; color:white; }
+  .btn-vault-del  { background:#f8d7da; color:#721c24; border:none; padding:0.4rem 0.85rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:0.3rem; }
+  .btn-vault-del:hover { background:#f1aeb5; }
+  .vault-empty { text-align:center; padding:4rem 2rem; background:white; border-radius:12px; color:#7a7a8c; }
+  .vault-empty h2 { font-family:'Playfair Display',serif; color:#1a1a2e; margin-bottom:0.75rem; }
+</style>
+
+<div class="vault-header">
+  <div>
+    <h1>🗄️ Ad Vault</h1>
+    <p>All your generated picture ads — download or delete any time.</p>
   </div>
-
-  {% if videos %}
-    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
-      {% for video in videos %}
-        <div class="col" id="card-{{ loop.index }}">
-          <div class="card h-100 shadow-sm">
-            <!-- Inline video player -->
-            <video class="card-img-top" controls preload="none"
-                   style="background:#000; max-height:240px; object-fit:contain;">
-              <source src="/ads/{{ video.filename }}" type="video/mp4">
-              Your browser does not support video playback.
-            </video>
-            <div class="card-body pb-2">
-              <p class="card-title mb-1 fw-semibold text-truncate" title="{{ video.display_name }}">
-                {{ video.display_name }}
-              </p>
-              <p class="card-text mb-0">
-                <span class="badge bg-primary me-1">{{ video.sku }}</span>
-                <small class="text-muted">{{ video.size_mb }} MB &nbsp;·&nbsp; {{ video.mod_date }}</small>
-              </p>
-            </div>
-            <div class="card-footer d-flex gap-2 bg-white border-top-0 pt-0">
-              <a href="/download-ad/{{ video.filename }}"
-                 class="btn btn-sm btn-success flex-fill" title="Download">
-                ⬇️ Download
-              </a>
-              <a href="{{ url_for('confirm_delete_video', filename=video.filename) }}"
-                 class="btn btn-sm btn-danger flex-fill" title="Delete">
-                🗑️ Delete
-              </a>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-
-  {% else %}
-    <div class="alert alert-info text-center py-5">
-      <h3>📭 No videos yet</h3>
-      <p>Make some videos in the <a href="/ads">Video Studio</a> and they'll appear here!</p>
-      <a href="/ads" class="btn btn-primary">Go to Video Studio</a>
-    </div>
+  {% if ads %}
+  <div style="background:linear-gradient(135deg,#1a1a2e,#2d2d5a);color:white;padding:0.9rem 1.4rem;border-radius:12px;text-align:center;min-width:110px;">
+    <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#f0c040;line-height:1;">{{ ads|length }}</div>
+    <div style="font-size:0.7rem;opacity:0.8;text-transform:uppercase;letter-spacing:0.08em;margin-top:0.2rem;">Saved Ads</div>
+  </div>
   {% endif %}
+</div>
 
-  <div class="mt-4">
-    <a href="/" class="btn btn-outline-secondary">← Back to Dashboard</a>
+{% if ads %}
+<div class="vault-grid">
+  {% for ad in ads %}
+  <div class="vault-card" id="vault-card-{{ loop.index }}">
+    <a href="/ads/{{ ad.filename }}" target="_blank">
+      <img src="/ads/{{ ad.filename }}" alt="{{ ad.display_name }}" loading="lazy">
+    </a>
+    <div class="vault-card-body">
+      <div class="vault-card-name" title="{{ ad.display_name }}">{{ ad.display_name }}</div>
+      <div class="vault-card-meta">{{ ad.mod_date }}</div>
+      <div class="vault-card-actions">
+        <a class="btn-vault-dl" href="/download-ad/{{ ad.filename }}" download>⬇️ Download</a>
+        {% if not session.get('is_guest') %}
+        <button class="btn-vault-del" onclick="deleteAd('{{ ad.filename }}', 'vault-card-{{ loop.index }}')">🗑️ Delete</button>
+        {% endif %}
+      </div>
+    </div>
   </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="vault-empty">
+  <h2>📭 No ads yet</h2>
+  <p>Generate some picture ads and they'll be saved here automatically.</p>
+  <a href="{{ url_for('ad_generator') }}" style="display:inline-block;margin-top:1rem;background:#1a1a2e;color:white;padding:0.7rem 1.6rem;border-radius:9px;text-decoration:none;font-weight:600;">✨ Go to Ad Generator</a>
+</div>
+{% endif %}
+
+<div style="margin-top:2rem;">
+  <a href="{{ url_for('dashboard') }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;">← Back to Dashboard</a>
 </div>
 
 <script>
-  function deleteVideo(filename, cardId) {
-    if (!confirm(`Delete "${filename}"? This cannot be undone.`)) return;
-
-    fetch(`/ad-vault/delete/${filename}`, { method: 'POST' })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          const card = document.getElementById(cardId);
-          if (card) card.remove();
-        } else {
-          alert('Error: ' + data.error);
-        }
-      })
-      .catch(e => alert('Error: ' + e));
-  }
+function deleteAd(filename, cardId) {
+  if (!confirm('Delete this ad? This cannot be undone.')) return;
+  fetch('/ad-vault/delete/' + encodeURIComponent(filename), { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const card = document.getElementById(cardId);
+        if (card) card.remove();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(e => alert('Error: ' + e));
+}
 </script>
 {% endblock %}

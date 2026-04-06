@@ -834,8 +834,8 @@ def generate_ads():
             r_g, g_g, b_g = pal['grad']
             canvas = _Img.new('RGB', (W, H), (r_g, g_g, b_g))
 
-            # Product photo — fills top 62% of canvas, text area below stays clear
-            photo_h = int(H * 0.62)
+            # Product photo — fills top 55% of canvas, text area below stays clear
+            photo_h = int(H * 0.55)
             if image_url:
                 img_fname = image_url.split('/')[-1]
                 img_fpath = os.path.join(UPLOAD_FOLDER, img_fname)
@@ -953,6 +953,44 @@ def view_ad(filename):
 @login_required
 def download_ad(filename):
     return send_from_directory(ADS_FOLDER, filename, as_attachment=True)
+
+# ── Ad Vault ──────────────────────────────────────────────────────────────────
+@app.route('/ad-vault')
+@login_required
+def ad_vault():
+    """Browse and manage all saved picture ads."""
+    ads = []
+    if os.path.exists(ADS_FOLDER):
+        for filename in os.listdir(ADS_FOLDER):
+            if filename.lower().endswith('.jpg') or filename.lower().endswith('.jpeg'):
+                filepath = os.path.join(ADS_FOLDER, filename)
+                try:
+                    mod_time = os.path.getmtime(filepath)
+                    mod_date = datetime.datetime.fromtimestamp(mod_time).strftime('%b %d, %Y %H:%M')
+                    ads.append({
+                        'filename':     filename,
+                        'display_name': filename.rsplit('.', 1)[0].replace('_', ' '),
+                        'mod_date':     mod_date,
+                        'mod_ts':       mod_time,
+                    })
+                except Exception:
+                    pass
+    ads.sort(key=lambda a: a['mod_ts'], reverse=True)
+    return render_template('ad_vault.html', ads=ads, **ctx())
+
+@app.route('/ad-vault/delete/<filename>', methods=['POST'])
+@login_required
+def delete_ad(filename):
+    if not (filename.lower().endswith('.jpg') or filename.lower().endswith('.jpeg')):
+        return jsonify({'error': 'Invalid file type'}), 400
+    filepath = os.path.join(ADS_FOLDER, filename)
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        try:
+            os.remove(filepath)
+            return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    return jsonify({'error': 'File not found'}), 404
 
 # ── Listing Generator ─────────────────────────────────────────────────────────
 @app.route('/listing-generator')
