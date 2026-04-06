@@ -630,6 +630,7 @@ function generateAds() {
   const grid    = document.getElementById('resultsGrid');
 
   overlay.classList.add('active');
+  document.getElementById('generateBtn').disabled = true;
   bar.style.width = '5%';
   detail.textContent = 'Writing ad copy with AI…';
   grid.innerHTML = '';
@@ -657,37 +658,53 @@ function generateAds() {
       reader.read().then(({ value, done: streamDone }) => {
         if (streamDone) {
           overlay.classList.remove('active');
+          document.getElementById('generateBtn').disabled = (selectedSkus.size === 0);
           return;
         }
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop(); // keep incomplete line
 
-        lines.forEach(line => {
-          if (!line.startsWith('data: ')) return;
+        let streamFinished = false;
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
           const payload = line.slice(6).trim();
-          if (!payload) return;
+          if (!payload) continue;
           try {
             const data = JSON.parse(payload);
+            if (data.error) {
+              overlay.classList.remove('active');
+              document.getElementById('generateBtn').disabled = (selectedSkus.size === 0);
+              alert('Generation error: ' + data.error);
+              streamFinished = true;
+              break;
+            }
             if (data.done) {
               bar.style.width = '100%';
               overlay.classList.remove('active');
-              return;
+              document.getElementById('generateBtn').disabled = (selectedSkus.size === 0);
+              streamFinished = true;
+              break;
             }
             count++;
             const pct = Math.min(95, 5 + (count / products.length) * 90);
             bar.style.width = pct + '%';
             detail.textContent = `Generated ${count} of ${products.length}…`;
             appendResult(data);
-          } catch (e) {}
-        });
-        pump();
+          } catch (e) { console.warn('Unparseable SSE line:', line, e); }
+        }
+        if (!streamFinished) pump();
+      }).catch(err => {
+        overlay.classList.remove('active');
+        document.getElementById('generateBtn').disabled = (selectedSkus.size === 0);
+        alert('Stream error: ' + err.message);
       });
     }
     pump();
 
   }).catch(err => {
     overlay.classList.remove('active');
+    document.getElementById('generateBtn').disabled = (selectedSkus.size === 0);
     alert('Request failed: ' + err.message);
   });
 }
@@ -706,12 +723,19 @@ function appendResult(f) {
 
   const footer = document.createElement('div');
   footer.className = 'result-card-footer';
-  footer.innerHTML = `
-    <span class="result-title">${f.product_title}</span>
-    <div class="result-actions">
-      <a class="btn-open" href="/ads/${encodeURIComponent(f.filename)}" target="_blank">🔗 Open</a>
-      <a class="btn-dl"   href="/download-ad/${encodeURIComponent(f.filename)}" download>⬇️ Download</a>
-    </div>`;
+
+  const titleSpan = document.createElement('span');
+  titleSpan.className = 'result-title';
+  titleSpan.textContent = f.product_title;
+
+  const actions = document.createElement('div');
+  actions.className = 'result-actions';
+  actions.innerHTML = `
+    <a class="btn-open" href="/ads/${encodeURIComponent(f.filename)}" target="_blank" rel="noopener noreferrer">🔗 Open</a>
+    <a class="btn-dl"   href="/download-ad/${encodeURIComponent(f.filename)}" download>⬇️ Download</a>`;
+
+  footer.appendChild(titleSpan);
+  footer.appendChild(actions);
 
   card.appendChild(img);
   card.appendChild(footer);
