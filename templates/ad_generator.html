@@ -33,16 +33,6 @@
   </ul>
 </div>
 <div class="ht-slide">
-  <div class="ht-icon">📐</div>
-  <div class="ht-label">Step 3 — Pick a Format</div>
-  <h2>Choose Your Size</h2>
-  <ul>
-    <li><strong>Square 1:1</strong> — 1080×1080 · Instagram, Facebook, in-store display</li>
-    <li><strong>Portrait 4:5</strong> — 1080×1350 · Instagram feed portrait</li>
-    <li><strong>Story 9:16</strong> — 1080×1920 · Stories, Reels, TikTok</li>
-  </ul>
-</div>
-<div class="ht-slide">
   <div class="ht-icon">⚡</div>
   <div class="ht-label">Step 4 — Generate</div>
   <h2>Create Your Ads</h2>
@@ -185,31 +175,6 @@
     flex-shrink: 0;
   }
 
-  /* ── Format chips ── */
-  .format-chips {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-  }
-  .format-chip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.65rem 1rem;
-    border: 2px solid #e0ddd8;
-    border-radius: 10px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    background: white;
-    transition: all 0.18s;
-    min-width: 90px;
-  }
-  .format-chip:hover { border-color: #1a1a2e; background: #f8f7f5; }
-  .format-chip.active { border-color: #1a1a2e; background: #1a1a2e; color: white; }
-  .format-chip .fc-icon { font-size: 1.4rem; line-height: 1; }
-  .format-chip .fc-label { font-size: 0.78rem; font-weight: 600; }
-  .format-chip .fc-size  { font-size: 0.68rem; opacity: 0.65; }
 
   /* ── Products grid ── */
   .products-selection-grid {
@@ -481,26 +446,6 @@
     </div>
   </div>
 
-  <div style="margin-bottom:1.25rem;">
-    <div style="font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:500; color:#555; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.6rem;">Format</div>
-    <div class="format-chips">
-      <div class="format-chip active" data-fmt="square" onclick="selectFormat(this)">
-        <span class="fc-icon">⬛</span>
-        <span class="fc-label">Square</span>
-        <span class="fc-size">1080 × 1080</span>
-      </div>
-      <div class="format-chip" data-fmt="portrait" onclick="selectFormat(this)">
-        <span class="fc-icon">📱</span>
-        <span class="fc-label">Portrait</span>
-        <span class="fc-size">1080 × 1350</span>
-      </div>
-      <div class="format-chip" data-fmt="story" onclick="selectFormat(this)">
-        <span class="fc-icon">🎞️</span>
-        <span class="fc-label">Story</span>
-        <span class="fc-size">1080 × 1920</span>
-      </div>
-    </div>
-  </div>
 
   <div class="ai-copy-badge">
     <span class="badge-icon">✨</span>
@@ -577,18 +522,11 @@
 <script>
 let selectedSkus  = new Set();
 let selectedStyle = 'elegant';
-let selectedFmt   = 'square';
 
 function selectStyle(el) {
   document.querySelectorAll('.style-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   selectedStyle = el.dataset.style;
-}
-
-function selectFormat(el) {
-  document.querySelectorAll('.format-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  selectedFmt = el.dataset.fmt;
 }
 
 function toggleCard(card) {
@@ -650,7 +588,7 @@ function generateAds() {
     body: JSON.stringify({
       products: products,
       style:    selectedStyle,
-      format:   selectedFmt,
+      format:   'square',
     }),
   }).then(response => {
     if (!response.ok) {
