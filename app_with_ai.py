@@ -24,7 +24,7 @@ except ImportError:
 # ── Stripe (payments) ──────────────────────────────────────────────────────
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
-stripe_enabled = bool(STRIPE_SECRET_KEY and STRIPE_SECRET_KEY.startswith('sk_live_'))
+stripe_enabled = bool(STRIPE_SECRET_KEY and (STRIPE_SECRET_KEY.startswith('sk_live_') or STRIPE_SECRET_KEY.startswith('sk_test_')))
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
@@ -1486,7 +1486,34 @@ def admin_settings():
             save_ai_api_key('')
             flash('AI API key cleared.', 'warning')
         return redirect(url_for('admin_settings'))
-    return render_template('admin_settings.html', masked_key=masked, has_key=bool(key), **ctx())
+    return render_template('admin_settings.html',
+        masked_key=masked, has_key=bool(key),
+        stripe_secret_key=STRIPE_SECRET_KEY,
+        stripe_public_key=STRIPE_PUBLIC_KEY,
+        **ctx())
+
+@app.route('/admin/settings/stripe', methods=['POST'])
+@login_required
+@admin_required
+def admin_settings_stripe():
+    global STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY, stripe_enabled
+    clear = request.form.get('clear_stripe') == '1'
+    if clear:
+        STRIPE_SECRET_KEY = ''
+        STRIPE_PUBLIC_KEY = ''
+    else:
+        pub = request.form.get('stripe_public_key', '').strip()
+        sec = request.form.get('stripe_secret_key', '').strip()
+        if pub:
+            STRIPE_PUBLIC_KEY = pub
+        if sec:
+            STRIPE_SECRET_KEY = sec
+    stripe_enabled = bool(STRIPE_SECRET_KEY and (STRIPE_SECRET_KEY.startswith('sk_live_') or STRIPE_SECRET_KEY.startswith('sk_test_')))
+    if clear:
+        flash('Stripe keys cleared.', 'warning')
+    else:
+        flash('Stripe keys saved! Payments are now enabled.', 'success')
+    return redirect(url_for('admin_settings'))
 
 @app.route('/admin/branding', methods=['GET','POST'])
 @login_required
