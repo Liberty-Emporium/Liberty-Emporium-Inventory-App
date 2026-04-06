@@ -7,29 +7,22 @@
   <div class="ht-icon">🛡️</div>
   <div class="ht-label">Overseer Dashboard — How-To Guide</div>
   <h2>Manage All Client Stores</h2>
-  <p>This is your command center. Provision new client stores, log in as any client to manage their inventory, and monitor the status of every account.</p>
+  <p>This is your command center. Provision new client stores, manage accounts, and let the AI Assistant handle follow-ups and business questions.</p>
 </div>
 <div class="ht-slide">
-  <div class="ht-icon">➕</div>
-  <div class="ht-label">Adding a New Client</div>
-  <h2>Provision a Store</h2>
-  <ol>
-    <li>Click <strong>+ Add New Client</strong>.</li>
-    <li>Enter the store name, client email, and a temporary password.</li>
-    <li>Choose a plan and branding color.</li>
-    <li>Submit — the store is live instantly.</li>
-  </ol>
-  <div class="ht-tip">Share the login email and temp password with your client so they can log in.</div>
+  <div class="ht-icon">🤖</div>
+  <div class="ht-label">Overseer Assistant</div>
+  <h2>Your AI Business Assistant</h2>
+  <p>The assistant panel on the right monitors trials, drafts follow-up emails, and answers questions about your business. Type anything — "who's trial ends soon?", "draft a follow-up for Mike", "suspend Store X".</p>
 </div>
 <div class="ht-slide">
-  <div class="ht-icon">🔀</div>
-  <div class="ht-label">Managing a Client Store</div>
-  <h2>Log In as a Client</h2>
+  <div class="ht-icon">📧</div>
+  <div class="ht-label">Sending Emails</div>
+  <h2>Review &amp; Send Draft Emails</h2>
   <ol>
-    <li>Click <strong>Manage</strong> on any client card.</li>
-    <li>You'll be taken to their dashboard — a yellow banner shows you're in their store.</li>
-    <li>Add products, generate ads, or do anything they need.</li>
-    <li>Click <strong>Exit to Overseer</strong> in the banner to return here.</li>
+    <li>The assistant drafts the email — you can edit any field.</li>
+    <li>Click <strong>Send</strong> to deliver it from your email account.</li>
+    <li>Set up your email credentials once in <strong>Admin → Settings</strong>.</li>
   </ol>
 </div>
 {% endblock %}
@@ -37,139 +30,185 @@
 {% block content %}
 <div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
 <style>
-  .ov-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:2px solid #e8e0d4; }
-  .ov-header h1 { font-family:'Playfair Display',serif; font-size:2.2rem; color:#1a1a2e; margin:0; }
-  .ov-stats { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; }
-  .ov-stat { background:white; border-radius:12px; padding:1rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); text-align:center; min-width:130px; }
-  .ov-stat-val { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:#1a1a2e; line-height:1; }
-  .ov-stat-lbl { font-size:0.72rem; color:#7a7a8c; text-transform:uppercase; letter-spacing:0.07em; margin-top:0.25rem; }
+  .ov-layout { display:grid; grid-template-columns:1fr 380px; gap:1.5rem; align-items:start; }
+  @media(max-width:900px){ .ov-layout { grid-template-columns:1fr; } }
+
+  /* Left column */
+  .ov-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
+  .ov-header h1 { font-family:'Playfair Display',serif; font-size:2rem; color:#1a1a2e; margin:0; }
+  .ov-stats { display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+  .ov-stat { background:white; border-radius:10px; padding:0.85rem 1.2rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); text-align:center; min-width:110px; }
+  .ov-stat-val { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:900; color:#1a1a2e; line-height:1; }
+  .ov-stat-lbl { font-size:0.7rem; color:#7a7a8c; text-transform:uppercase; letter-spacing:0.07em; margin-top:0.2rem; }
   .ov-stat.revenue .ov-stat-val { color:#166534; }
-  .client-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.25rem; }
-  .client-card { background:white; border-radius:14px; box-shadow:0 3px 12px rgba(0,0,0,0.09); overflow:hidden; display:flex; flex-direction:column; }
-  .client-card-header { padding:1.2rem 1.2rem 0.75rem; border-bottom:1px solid #f0ede8; }
-  .client-card-name { font-family:'Playfair Display',serif; font-size:1.1rem; color:#1a1a2e; font-weight:700; margin:0 0 0.3rem; }
-  .client-card-meta { font-size:0.78rem; color:#7a7a8c; }
-  .client-card-body { padding:0.75rem 1.2rem; flex:1; }
-  .badge { display:inline-block; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.72rem; font-weight:700; margin-right:0.3rem; }
+  .client-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem; }
+  .client-card { background:white; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); overflow:hidden; display:flex; flex-direction:column; }
+  .client-card-header { padding:1rem 1.1rem 0.6rem; border-bottom:1px solid #f0ede8; }
+  .client-card-name { font-family:'Playfair Display',serif; font-size:1rem; color:#1a1a2e; font-weight:700; margin:0 0 0.25rem; }
+  .client-card-meta { font-size:0.75rem; color:#7a7a8c; }
+  .client-card-body { padding:0.65rem 1.1rem; flex:1; }
+  .badge { display:inline-block; padding:0.18rem 0.55rem; border-radius:20px; font-size:0.7rem; font-weight:700; margin-right:0.25rem; }
   .badge-active { background:#dcfce7; color:#166534; }
   .badge-suspended { background:#fee2e2; color:#991b1b; }
   .badge-starter { background:#e0f2fe; color:#075985; }
   .badge-pro { background:#fef9c3; color:#854d0e; }
   .badge-enterprise { background:#f3e8ff; color:#6b21a8; }
-  .client-card-actions { padding:0.75rem 1.2rem 1rem; display:flex; gap:0.5rem; border-top:1px solid #f0ede8; }
-  .btn-manage { background:#1a1a2e; color:white; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.8rem; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; }
+  .client-card-actions { padding:0.6rem 1.1rem 0.85rem; display:flex; gap:0.4rem; border-top:1px solid #f0ede8; }
+  .btn-manage { background:#1a1a2e; color:white; border:none; padding:0.4rem 0.9rem; border-radius:7px; font-size:0.78rem; font-weight:700; cursor:pointer; text-decoration:none; }
   .btn-manage:hover { opacity:0.85; color:white; }
-  .btn-details { background:#f0ede8; color:#1a1a2e; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; text-decoration:none; }
+  .btn-details { background:#f0ede8; color:#1a1a2e; border:none; padding:0.4rem 0.9rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; text-decoration:none; }
   .btn-details:hover { background:#e8e0d4; color:#1a1a2e; }
-  .btn-add { background:linear-gradient(135deg,#2e7d6e,#10b981); color:white; border:none; padding:0.65rem 1.4rem; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; }
+  .btn-add { background:linear-gradient(135deg,#2e7d6e,#10b981); color:white; border:none; padding:0.6rem 1.2rem; border-radius:9px; font-size:0.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem; }
   .btn-add:hover { opacity:0.9; }
-  .empty-state { text-align:center; padding:4rem 2rem; background:white; border-radius:14px; color:#7a7a8c; }
-  .empty-state h2 { font-family:'Playfair Display',serif; color:#1a1a2e; margin-bottom:0.75rem; }
-  /* Modal */
+  .empty-state { text-align:center; padding:3rem 1.5rem; background:white; border-radius:12px; color:#7a7a8c; }
+  .empty-state h2 { font-family:'Playfair Display',serif; color:#1a1a2e; margin-bottom:0.5rem; }
+
+  /* Assistant panel */
+  .asst-panel { background:white; border-radius:14px; box-shadow:0 3px 16px rgba(0,0,0,0.1); display:flex; flex-direction:column; height:640px; position:sticky; top:1rem; overflow:hidden; }
+  .asst-header { padding:1rem 1.2rem; border-bottom:1px solid #f0ede8; display:flex; align-items:center; gap:0.6rem; }
+  .asst-header h2 { font-family:'Playfair Display',serif; font-size:1rem; color:#1a1a2e; margin:0; flex:1; }
+  .asst-dot { width:9px; height:9px; border-radius:50%; background:#10b981; flex-shrink:0; }
+  .asst-alerts { padding:0.75rem 1rem 0; border-bottom:1px solid #f0ede8; max-height:200px; overflow-y:auto; }
+  .asst-alerts:empty { display:none; padding:0; border:none; }
+  .alert-card { background:#fffbeb; border:1.5px solid #fde68a; border-radius:10px; padding:0.75rem; margin-bottom:0.6rem; font-size:0.82rem; }
+  .alert-card-title { font-weight:700; color:#92400e; margin-bottom:0.35rem; }
+  .alert-card-meta { color:#78350f; margin-bottom:0.5rem; }
+  .btn-review { background:#f59e0b; color:white; border:none; padding:0.35rem 0.8rem; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer; }
+  .btn-review:hover { background:#d97706; }
+  .asst-chat { flex:1; overflow-y:auto; padding:0.75rem 1rem; display:flex; flex-direction:column; gap:0.6rem; }
+  .msg { max-width:88%; padding:0.6rem 0.85rem; border-radius:10px; font-size:0.85rem; line-height:1.5; word-break:break-word; }
+  .msg-user { background:#1a1a2e; color:white; align-self:flex-end; border-radius:10px 10px 3px 10px; }
+  .msg-ai { background:#f9f7f4; color:#1a1a2e; align-self:flex-start; border-radius:10px 10px 10px 3px; }
+  .msg-ai strong { font-weight:700; }
+  .msg-ai code { background:#e8e0d4; padding:0.1rem 0.3rem; border-radius:3px; font-size:0.82rem; }
+  .email-draft { background:white; border:1.5px solid #d1c9bc; border-radius:10px; padding:0.85rem; margin-top:0.5rem; font-size:0.82rem; }
+  .email-draft label { display:block; font-size:0.72rem; font-weight:700; text-transform:uppercase; color:#7a7a8c; margin-bottom:0.2rem; margin-top:0.5rem; }
+  .email-draft input, .email-draft textarea { width:100%; border:1px solid #e8e0d4; border-radius:6px; padding:0.35rem 0.5rem; font-size:0.82rem; box-sizing:border-box; }
+  .email-draft textarea { min-height:80px; resize:vertical; }
+  .btn-send-email { background:#166534; color:white; border:none; padding:0.4rem 0.9rem; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer; margin-top:0.6rem; }
+  .btn-send-email:hover { background:#14532d; }
+  .send-status { font-size:0.78rem; margin-top:0.35rem; }
+  .asst-input-row { padding:0.75rem 1rem; border-top:1px solid #f0ede8; display:flex; gap:0.5rem; }
+  .asst-input { flex:1; border:1.5px solid #d1c9bc; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.85rem; resize:none; height:38px; line-height:1.4; }
+  .asst-input:focus { outline:none; border-color:#2e7d6e; }
+  .btn-asst-send { background:#1a1a2e; color:white; border:none; padding:0.5rem 0.9rem; border-radius:8px; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; }
+  .btn-asst-send:hover { opacity:0.85; }
+
+  /* Add modal */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:900; align-items:center; justify-content:center; }
   .modal-overlay.open { display:flex; }
   .modal { background:white; border-radius:16px; padding:2rem; max-width:520px; width:90%; max-height:90vh; overflow-y:auto; }
-  .modal h2 { font-family:'Playfair Display',serif; font-size:1.5rem; color:#1a1a2e; margin:0 0 1.5rem; }
-  .form-row { margin-bottom:1rem; }
-  .form-row label { display:block; font-size:0.82rem; font-weight:600; color:#444; margin-bottom:0.3rem; }
-  .form-row input, .form-row select, .form-row textarea { width:100%; padding:0.55rem 0.75rem; border:1.5px solid #d1c9bc; border-radius:8px; font-size:0.9rem; box-sizing:border-box; }
-  .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline:none; border-color:#2e7d6e; }
-  .form-row textarea { min-height:70px; resize:vertical; }
-  .modal-actions { display:flex; gap:0.75rem; margin-top:1.5rem; justify-content:flex-end; }
-  .btn-cancel { background:#f0ede8; color:#1a1a2e; border:none; padding:0.6rem 1.2rem; border-radius:8px; font-weight:600; cursor:pointer; }
-  .btn-submit { background:#1a1a2e; color:white; border:none; padding:0.6rem 1.4rem; border-radius:8px; font-weight:700; cursor:pointer; }
+  .modal h2 { font-family:'Playfair Display',serif; font-size:1.4rem; color:#1a1a2e; margin:0 0 1.25rem; }
+  .form-row { margin-bottom:0.9rem; }
+  .form-row label { display:block; font-size:0.82rem; font-weight:600; color:#444; margin-bottom:0.25rem; }
+  .form-row input, .form-row select, .form-row textarea { width:100%; padding:0.5rem 0.7rem; border:1.5px solid #d1c9bc; border-radius:8px; font-size:0.88rem; box-sizing:border-box; }
+  .form-row textarea { min-height:65px; resize:vertical; }
+  .modal-actions { display:flex; gap:0.75rem; margin-top:1.25rem; justify-content:flex-end; }
+  .btn-cancel { background:#f0ede8; color:#1a1a2e; border:none; padding:0.55rem 1.1rem; border-radius:8px; font-weight:600; cursor:pointer; }
+  .btn-submit { background:#1a1a2e; color:white; border:none; padding:0.55rem 1.3rem; border-radius:8px; font-weight:700; cursor:pointer; }
   .color-row { display:flex; gap:0.75rem; align-items:center; }
-  .color-row input[type=color] { width:48px; height:38px; padding:2px; border-radius:6px; border:1.5px solid #d1c9bc; cursor:pointer; }
+  .color-row input[type=color] { width:44px; height:36px; padding:2px; border-radius:6px; border:1.5px solid #d1c9bc; cursor:pointer; }
 </style>
 
-<div class="ov-header">
+<div class="ov-layout">
+  <!-- ── LEFT: Client Grid ── -->
   <div>
-    <h1>🛡️ Overseer Dashboard</h1>
-    <p style="color:#7a7a8c; margin:0.3rem 0 0; font-size:0.95rem;">Manage all client stores from one place.</p>
-  </div>
-  <button class="btn-add" onclick="document.getElementById('addModal').classList.add('open')">➕ Add New Client</button>
-</div>
+    <div class="ov-header">
+      <div>
+        <h1>🛡️ Overseer Dashboard</h1>
+        <p style="color:#7a7a8c;margin:0.3rem 0 0;font-size:0.9rem;">Manage all client stores.</p>
+      </div>
+      <button class="btn-add" onclick="document.getElementById('addModal').classList.add('open')">➕ Add New Client</button>
+    </div>
 
-<div class="ov-stats">
-  <div class="ov-stat">
-    <div class="ov-stat-val">{{ stores|length }}</div>
-    <div class="ov-stat-lbl">Total Clients</div>
-  </div>
-  <div class="ov-stat">
-    <div class="ov-stat-val">{{ active_count }}</div>
-    <div class="ov-stat-lbl">Active</div>
-  </div>
-  <div class="ov-stat">
-    <div class="ov-stat-val">{{ suspended_count }}</div>
-    <div class="ov-stat-lbl">Suspended</div>
-  </div>
-  <div class="ov-stat revenue">
-    <div class="ov-stat-val">${{ total_revenue }}</div>
-    <div class="ov-stat-lbl">Total Revenue</div>
-  </div>
-</div>
+    <div class="ov-stats">
+      <div class="ov-stat">
+        <div class="ov-stat-val">{{ stores|length }}</div>
+        <div class="ov-stat-lbl">Total Clients</div>
+      </div>
+      <div class="ov-stat">
+        <div class="ov-stat-val">{{ active_count }}</div>
+        <div class="ov-stat-lbl">Active</div>
+      </div>
+      <div class="ov-stat">
+        <div class="ov-stat-val">{{ suspended_count }}</div>
+        <div class="ov-stat-lbl">Suspended</div>
+      </div>
+      <div class="ov-stat revenue">
+        <div class="ov-stat-val">${{ total_revenue }}</div>
+        <div class="ov-stat-lbl">MRR</div>
+      </div>
+    </div>
 
-{% if stores %}
-<div class="client-grid">
-  {% for store in stores %}
-  <div class="client-card">
-    <div class="client-card-header">
-      <div class="client-card-name">{{ store.store_name }}</div>
-      <div class="client-card-meta">{{ store.contact_email }} &bull; Added {{ store.created_at[:10] if store.created_at else '—' }}</div>
+    {% if stores %}
+    <div class="client-grid">
+      {% for store in stores %}
+      <div class="client-card">
+        <div class="client-card-header">
+          <div class="client-card-name">{{ store.store_name }}</div>
+          <div class="client-card-meta">{{ store.contact_email }} &bull; {{ store.created_at[:10] if store.created_at else '—' }}</div>
+        </div>
+        <div class="client-card-body">
+          <span class="badge badge-{{ store.status or 'active' }}">{{ (store.status or 'active')|title }}</span>
+          <span class="badge badge-{{ store.plan or 'starter' }}">{{ (store.plan or 'starter')|title }}</span>
+          {% if store.tagline %}<p style="font-size:0.78rem;color:#7a7a8c;margin:0.4rem 0 0;font-style:italic;">{{ store.tagline }}</p>{% endif %}
+        </div>
+        <div class="client-card-actions">
+          <form method="POST" action="/overseer/client/{{ store.slug }}/impersonate" style="display:inline;">
+            <button type="submit" class="btn-manage">🔀 Manage</button>
+          </form>
+          <a href="/overseer/client/{{ store.slug }}" class="btn-details">Details</a>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    <div class="client-card-body">
-      <span class="badge badge-{{ store.status or 'active' }}">{{ (store.status or 'active')|title }}</span>
-      <span class="badge badge-{{ store.plan or 'starter' }}">{{ (store.plan or 'starter')|title }}</span>
-      {% if store.industry %}<span class="badge" style="background:#f0ede8;color:#555;">{{ store.industry|title }}</span>{% endif %}
-      {% if store.tagline %}<p style="font-size:0.82rem;color:#7a7a8c;margin:0.5rem 0 0;font-style:italic;">{{ store.tagline }}</p>{% endif %}
+    {% else %}
+    <div class="empty-state">
+      <h2>🏪 No client stores yet</h2>
+      <p>Click <strong>+ Add New Client</strong> to provision your first store.</p>
     </div>
-    <div class="client-card-actions">
-      <form method="POST" action="/overseer/client/{{ store.slug }}/impersonate" style="display:inline;">
-        <button type="submit" class="btn-manage">🔀 Manage</button>
-      </form>
-      <a href="/overseer/client/{{ store.slug }}" class="btn-details">Details</a>
+    {% endif %}
+  </div>
+
+  <!-- ── RIGHT: Overseer Assistant ── -->
+  <div class="asst-panel" id="asstPanel">
+    <div class="asst-header">
+      <div class="asst-dot" id="asstDot"></div>
+      <h2>🤖 Overseer Assistant</h2>
+    </div>
+
+    <!-- Proactive alerts (populated on load) -->
+    <div class="asst-alerts" id="asstAlerts"></div>
+
+    <!-- Chat history -->
+    <div class="asst-chat" id="asstChat">
+      <div class="msg msg-ai">Hi Jay 👋 I'm watching your trials and clients. Ask me anything — or I'll surface alerts for you automatically.</div>
+    </div>
+
+    <!-- Input -->
+    <div class="asst-input-row">
+      <textarea class="asst-input" id="asstInput" placeholder="Ask anything — who's trial ends soon? Draft a follow-up for Mike..." rows="1"></textarea>
+      <button class="btn-asst-send" id="asstSendBtn" onclick="sendMessage()">Send</button>
     </div>
   </div>
-  {% endfor %}
 </div>
-{% else %}
-<div class="empty-state">
-  <h2>🏪 No client stores yet</h2>
-  <p>Click <strong>+ Add New Client</strong> to provision your first store.</p>
-</div>
-{% endif %}
 
 <!-- Add Client Modal -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
     <h2>➕ Add New Client</h2>
     <form method="POST" action="/overseer/client/create">
-      <div class="form-row">
-        <label>Store Name *</label>
-        <input type="text" name="store_name" required placeholder="e.g. Treasure Trove Thrift">
-      </div>
-      <div class="form-row">
-        <label>Contact Name</label>
-        <input type="text" name="contact_name" placeholder="Owner's full name">
-      </div>
-      <div class="form-row">
-        <label>Contact Email (Login) *</label>
-        <input type="email" name="contact_email" required placeholder="client@email.com">
-      </div>
-      <div class="form-row">
-        <label>Contact Phone</label>
-        <input type="text" name="contact_phone" placeholder="(555) 000-0000">
-      </div>
-      <div class="form-row">
-        <label>Temporary Password *</label>
-        <input type="text" name="temp_password" required placeholder="Share this with the client">
-      </div>
+      <div class="form-row"><label>Store Name *</label><input type="text" name="store_name" required placeholder="e.g. Treasure Trove Thrift"></div>
+      <div class="form-row"><label>Contact Name</label><input type="text" name="contact_name" placeholder="Owner's full name"></div>
+      <div class="form-row"><label>Contact Email (Login) *</label><input type="email" name="contact_email" required placeholder="client@email.com"></div>
+      <div class="form-row"><label>Contact Phone</label><input type="text" name="contact_phone" placeholder="(555) 000-0000"></div>
+      <div class="form-row"><label>Temporary Password *</label><input type="text" name="temp_password" required placeholder="Share this with the client"></div>
       <div class="form-row">
         <label>Plan</label>
         <select name="plan">
-          <option value="starter">Starter — $299</option>
-          <option value="pro">Pro — $499</option>
-          <option value="enterprise">Enterprise — $799</option>
+          <option value="starter">Starter</option>
+          <option value="pro">Pro</option>
+          <option value="enterprise">Enterprise</option>
         </select>
       </div>
       <div class="form-row">
@@ -185,19 +224,10 @@
       </div>
       <div class="form-row">
         <label>Primary Color</label>
-        <div class="color-row">
-          <input type="color" name="primary_color" value="#2e7d6e">
-          <span style="font-size:0.8rem;color:#7a7a8c;">Store branding color</span>
-        </div>
+        <div class="color-row"><input type="color" name="primary_color" value="#2e7d6e"><span style="font-size:0.78rem;color:#7a7a8c;">Store branding color</span></div>
       </div>
-      <div class="form-row">
-        <label>Tagline (optional)</label>
-        <input type="text" name="tagline" placeholder="e.g. Quality finds at unbeatable prices">
-      </div>
-      <div class="form-row">
-        <label>Internal Notes (optional)</label>
-        <textarea name="notes" placeholder="Notes only visible to you..."></textarea>
-      </div>
+      <div class="form-row"><label>Tagline (optional)</label><input type="text" name="tagline" placeholder="e.g. Quality finds at unbeatable prices"></div>
+      <div class="form-row"><label>Internal Notes (optional)</label><textarea name="notes" placeholder="Notes only visible to you..."></textarea></div>
       <div class="modal-actions">
         <button type="button" class="btn-cancel" onclick="document.getElementById('addModal').classList.remove('open')">Cancel</button>
         <button type="submit" class="btn-submit">🚀 Provision Store</button>
@@ -207,8 +237,157 @@
 </div>
 
 <script>
+// ── Proactive alerts ──────────────────────────────────────────────────────────
+function loadAlerts() {
+  fetch('/overseer/assistant/alerts', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      const container = document.getElementById('asstAlerts');
+      if (!data.alerts || data.alerts.length === 0) return;
+      data.alerts.forEach(alert => {
+        const card = document.createElement('div');
+        card.className = 'alert-card';
+        card.innerHTML = `
+          <div class="alert-card-title">⏰ ${escHtml(alert.store_name)} — trial ends ${escHtml(alert.days_label)}</div>
+          <div class="alert-card-meta">${escHtml(alert.contact_email)}</div>
+          <button class="btn-review" onclick="openDraft(${JSON.stringify(alert).replace(/"/g,'&quot;')})">📧 Review &amp; Send Draft</button>
+        `;
+        container.appendChild(card);
+      });
+    })
+    .catch(() => {});
+}
+
+function openDraft(alert) {
+  appendEmailDraft('ai', 'Trial ending soon — here\'s a draft:', alert.draft_to, alert.draft_subject, alert.draft_body);
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+function sendMessage() {
+  const input = document.getElementById('asstInput');
+  const msg   = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendMsg('user', msg);
+  const thinking = appendMsg('ai', '...');
+  document.getElementById('asstSendBtn').disabled = true;
+
+  fetch('/overseer/assistant/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg })
+  })
+  .then(r => r.json())
+  .then(data => {
+    thinking.remove();
+    document.getElementById('asstSendBtn').disabled = false;
+    if (data.type === 'email') {
+      appendEmailDraft('ai', data.reply, data.to, data.subject, data.body);
+    } else {
+      appendMsg('ai', data.reply || 'No response.');
+    }
+  })
+  .catch(e => {
+    thinking.remove();
+    document.getElementById('asstSendBtn').disabled = false;
+    appendMsg('ai', 'Error: ' + e);
+  });
+}
+
+function appendMsg(role, text) {
+  const chat = document.getElementById('asstChat');
+  const div  = document.createElement('div');
+  div.className = 'msg msg-' + role;
+  div.innerHTML = markdownLite(escHtml(text));
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function appendEmailDraft(role, intro, to, subject, body) {
+  const chat = document.getElementById('asstChat');
+  const id   = 'draft-' + Date.now();
+  const div  = document.createElement('div');
+  div.className = 'msg msg-' + role;
+  div.innerHTML = `
+    <div>${escHtml(intro)}</div>
+    <div class="email-draft" id="${id}">
+      <label>To</label>
+      <input type="email" class="draft-to" value="${escHtml(to)}">
+      <label>Subject</label>
+      <input type="text" class="draft-subject" value="${escHtml(subject)}">
+      <label>Body</label>
+      <textarea class="draft-body">${escHtml(body)}</textarea>
+      <button class="btn-send-email" onclick="sendDraft('${id}', this)">📨 Send Email</button>
+      <div class="send-status"></div>
+    </div>
+  `;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function sendDraft(draftId, btn) {
+  const card    = document.getElementById(draftId);
+  const to      = card.querySelector('.draft-to').value.trim();
+  const subject = card.querySelector('.draft-subject').value.trim();
+  const body    = card.querySelector('.draft-body').value.trim();
+  const status  = card.querySelector('.send-status');
+  btn.disabled  = true;
+  btn.textContent = 'Sending...';
+
+  fetch('/overseer/assistant/send-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to, subject, body })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      status.innerHTML = `<span style="color:#166534;">✅ ${escHtml(data.message)}</span>`;
+      btn.textContent  = '✅ Sent';
+    } else {
+      status.innerHTML = `<span style="color:#991b1b;">❌ ${escHtml(data.error)}</span>`;
+      btn.disabled     = false;
+      btn.textContent  = '📨 Send Email';
+    }
+  })
+  .catch(e => {
+    status.innerHTML = `<span style="color:#991b1b;">❌ ${e}</span>`;
+    btn.disabled     = false;
+    btn.textContent  = '📨 Send Email';
+  });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function markdownLite(s) {
+  return s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+// ── Input auto-grow + enter to send ──────────────────────────────────────────
+const asstInput = document.getElementById('asstInput');
+asstInput.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+asstInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// Modal click-outside close
 document.getElementById('addModal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('open');
 });
+
+// Load alerts on page load
+loadAlerts();
 </script>
 {% endblock %}
