@@ -1722,6 +1722,7 @@ def admin_settings():
         masked_key=masked, has_key=bool(key),
         stripe_secret_key=get_stripe_keys()[0],
         stripe_public_key=get_stripe_keys()[1],
+        smtp_config=get_smtp_config(),
         **ctx())
 
 @app.route('/admin/settings/stripe', methods=['POST'])
@@ -1737,6 +1738,34 @@ def admin_settings_stripe():
         sec = request.form.get('stripe_secret_key', '').strip()
         save_stripe_keys(sec or None, pub or None)
         flash('Stripe keys saved! Payments are now enabled.', 'success')
+    return redirect(url_for('admin_settings'))
+
+@app.route('/admin/settings/smtp', methods=['POST'])
+@login_required
+@admin_required
+def admin_settings_smtp():
+    host     = request.form.get('smtp_host', '').strip()
+    port     = request.form.get('smtp_port', '587').strip()
+    user     = request.form.get('smtp_user', '').strip()
+    password = request.form.get('smtp_password', '').strip()
+    save_smtp_config(host, int(port) if port.isdigit() else 587, user, password)
+    flash('Email (SMTP) settings saved.', 'success')
+    return redirect(url_for('admin_settings'))
+
+@app.route('/admin/settings/smtp/test', methods=['POST'])
+@login_required
+@admin_required
+def admin_settings_smtp_test():
+    cfg = get_smtp_config()
+    ok, err = send_smtp_email(
+        to=cfg['smtp_user'],
+        subject='RetailTrack — SMTP Test',
+        body='Your email settings are working correctly.'
+    )
+    if ok:
+        flash('Test email sent successfully!', 'success')
+    else:
+        flash(f'Email failed: {err}', 'error')
     return redirect(url_for('admin_settings'))
 
 @app.route('/admin/branding', methods=['GET','POST'])

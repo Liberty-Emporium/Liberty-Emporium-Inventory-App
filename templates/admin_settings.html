@@ -202,6 +202,43 @@
     </div>
 </div>
 
+<!-- ── SMTP Email Settings ──────────────────────────────────────────────── -->
+<div style="max-width:640px; margin:2rem auto;">
+  <div style="background:white; padding:2rem; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1a1a2e;margin:0 0 1rem;">📧 Email (SMTP)</h2>
+    <p style="color:#555;font-size:0.9rem;margin-bottom:1.25rem;">Used by the Overseer Assistant to send follow-up emails to clients. For Gmail, use <strong>smtp.gmail.com</strong> port <strong>587</strong> and an <a href="https://support.google.com/accounts/answer/185833" target="_blank" style="color:#2e7d6e;">App Password</a>.</p>
+    <form method="POST" action="/admin/settings/smtp">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+        <div>
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.3rem;">SMTP Host</label>
+          <input type="text" name="smtp_host" value="{{ smtp_config.smtp_host }}" placeholder="smtp.gmail.com" style="width:100%;padding:0.55rem 0.75rem;border:1.5px solid #d1c9bc;border-radius:8px;font-size:0.9rem;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.3rem;">Port</label>
+          <select name="smtp_port" style="width:100%;padding:0.55rem 0.75rem;border:1.5px solid #d1c9bc;border-radius:8px;font-size:0.9rem;box-sizing:border-box;">
+            <option value="587" {% if smtp_config.smtp_port == 587 %}selected{% endif %}>587 (TLS — recommended)</option>
+            <option value="465" {% if smtp_config.smtp_port == 465 %}selected{% endif %}>465 (SSL)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.3rem;">Email Address</label>
+          <input type="email" name="smtp_user" value="{{ smtp_config.smtp_user }}" placeholder="you@gmail.com" style="width:100%;padding:0.55rem 0.75rem;border:1.5px solid #d1c9bc;border-radius:8px;font-size:0.9rem;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.3rem;">Password / App Password</label>
+          <input type="password" name="smtp_password" value="{{ smtp_config.smtp_password }}" placeholder="••••••••••••••••" style="width:100%;padding:0.55rem 0.75rem;border:1.5px solid #d1c9bc;border-radius:8px;font-size:0.9rem;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;">
+        <button type="submit" style="background:#1a1a2e;color:white;border:none;padding:0.6rem 1.3rem;border-radius:8px;font-weight:700;cursor:pointer;">💾 Save Email Settings</button>
+      </div>
+    </form>
+    <form method="POST" action="/admin/settings/smtp/test" style="margin-top:0.75rem;">
+      <button type="submit" style="background:#f0ede8;color:#1a1a2e;border:none;padding:0.55rem 1.1rem;border-radius:8px;font-weight:600;cursor:pointer;">📨 Send Test Email</button>
+    </form>
+  </div>
+</div>
+
 <script>
 // ── API Setup Slideshow ──────────────────────────────────────────────
 var apiCurrentSlide = 1;
