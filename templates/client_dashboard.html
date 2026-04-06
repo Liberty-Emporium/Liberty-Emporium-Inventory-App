@@ -91,7 +91,7 @@
 
 <!-- Quick Actions -->
 <div class="quick-actions">
-  <a href="{{ url_for('add_product') }}" class="qa-btn"><span class="icon">➕</span> Add Product</a>
+  <a href="{{ url_for('new_product') }}" class="qa-btn"><span class="icon">➕</span> Add Product</a>
   <a href="{{ url_for('ad_generator') }}" class="qa-btn"><span class="icon">🎨</span> Ad Generator</a>
   <a href="{{ url_for('ad_vault') }}" class="qa-btn"><span class="icon">🗄️</span> Ad Vault</a>
   <a href="{{ url_for('listing_generator') }}" class="qa-btn"><span class="icon">📋</span> Listings</a>
@@ -125,7 +125,7 @@
 <div class="empty-inv">
   <h3>📭 No products yet</h3>
   <p>Add your first product to get started.</p>
-  <a href="{{ url_for('add_product') }}" style="display:inline-block;margin-top:1rem;background:#1a1a2e;color:white;padding:0.7rem 1.6rem;border-radius:9px;text-decoration:none;font-weight:600;">➕ Add First Product</a>
+  <a href="{{ url_for('new_product') }}" style="display:inline-block;margin-top:1rem;background:#1a1a2e;color:white;padding:0.7rem 1.6rem;border-radius:9px;text-decoration:none;font-weight:600;">➕ Add First Product</a>
 </div>
 {% endif %}
 {% endblock %}
