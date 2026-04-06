@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client_config.store_name or 'My Store' }} — Dashboard{% endblock %}
+
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🏪</div>
+  <div class="ht-label">Your Store Dashboard — How-To Guide</div>
+  <h2>Welcome to Your Store</h2>
+  <p>This is your inventory management dashboard. Add products, generate ads, and track what you have in stock — all in one place.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">📦</div>
+  <div class="ht-label">Adding Products</div>
+  <h2>Add Your First Product</h2>
+  <ol>
+    <li>Click <strong>➕ Add Product</strong> in the navigation.</li>
+    <li>Take a photo or upload one — AI will fill in the details for you.</li>
+    <li>Review and save.</li>
+  </ol>
+  <div class="ht-tip">Use the AI photo analysis to save time — just snap a photo and let it work.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🎨</div>
+  <div class="ht-label">Generating Ads</div>
+  <h2>Create Picture Ads</h2>
+  <ol>
+    <li>Go to <strong>Ad Generator</strong>.</li>
+    <li>Select the products you want to advertise.</li>
+    <li>Click Generate — your ads are ready in seconds.</li>
+    <li>Download and post on Facebook, Instagram, or anywhere.</li>
+  </ol>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
+<style>
+  .cd-header { margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:2px solid #e8e0d4; }
+  .cd-store-name { font-family:'Playfair Display',serif; font-size:2.2rem; color:{{ client_config.primary_color or '#1a1a2e' }}; margin:0 0 0.25rem; }
+  .cd-tagline { color:#7a7a8c; font-size:1rem; margin:0; }
+  .cd-stats { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; }
+  .cd-stat { background:white; border-radius:12px; padding:1rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); text-align:center; min-width:120px; }
+  .cd-stat-val { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:#1a1a2e; line-height:1; }
+  .cd-stat-lbl { font-size:0.72rem; color:#7a7a8c; text-transform:uppercase; letter-spacing:0.07em; margin-top:0.25rem; }
+  .cd-stat.value .cd-stat-val { color:#166534; }
+  .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1.1rem; }
+  .product-card { background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .product-card-img { height:180px; background:#f0ede8; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .product-card-img img { width:100%; height:100%; object-fit:contain; }
+  .product-card-no-img { color:#b0a898; font-size:2.5rem; }
+  .product-card-body { padding:0.75rem 0.9rem; }
+  .product-card-title { font-family:'Playfair Display',serif; font-size:0.9rem; color:#1a1a2e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0 0 0.2rem; }
+  .product-card-price { font-size:1.1rem; font-weight:700; color:{{ client_config.primary_color or '#2e7d6e' }}; margin:0.2rem 0; }
+  .product-card-sku { font-size:0.72rem; color:#a0a0b0; }
+  .status-badge { display:inline-block; padding:0.15rem 0.5rem; border-radius:4px; font-size:0.7rem; font-weight:700; }
+  .status-available { background:#dcfce7; color:#166534; }
+  .status-sold { background:#fee2e2; color:#991b1b; }
+  .quick-actions { display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:2rem; }
+  .qa-btn { background:white; border:1.5px solid #e8e0d4; border-radius:10px; padding:0.85rem 1.2rem; text-align:center; text-decoration:none; color:#1a1a2e; font-size:0.85rem; font-weight:600; transition:box-shadow 0.15s; display:flex; align-items:center; gap:0.4rem; }
+  .qa-btn:hover { box-shadow:0 4px 14px rgba(0,0,0,0.12); color:#1a1a2e; }
+  .qa-btn .icon { font-size:1.4rem; }
+  .empty-inv { text-align:center; padding:3rem 2rem; background:white; border-radius:12px; color:#7a7a8c; }
+  .empty-inv h3 { font-family:'Playfair Display',serif; color:#1a1a2e; }
+</style>
+
+<div class="cd-header">
+  <h1 class="cd-store-name">{{ client_config.store_name or 'My Store' }}</h1>
+  {% if client_config.tagline %}<p class="cd-tagline">{{ client_config.tagline }}</p>{% endif %}
+</div>
+
+<!-- Stats -->
+<div class="cd-stats">
+  <div class="cd-stat">
+    <div class="cd-stat-val">{{ products|length }}</div>
+    <div class="cd-stat-lbl">Total Items</div>
+  </div>
+  <div class="cd-stat">
+    <div class="cd-stat-val">{{ available }}</div>
+    <div class="cd-stat-lbl">Available</div>
+  </div>
+  <div class="cd-stat">
+    <div class="cd-stat-val">{{ sold }}</div>
+    <div class="cd-stat-lbl">Sold</div>
+  </div>
+  <div class="cd-stat value">
+    <div class="cd-stat-val">${{ "%.0f"|format(total_value) }}</div>
+    <div class="cd-stat-lbl">Total Value</div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+  <a href="{{ url_for('add_product') }}" class="qa-btn"><span class="icon">➕</span> Add Product</a>
+  <a href="{{ url_for('ad_generator') }}" class="qa-btn"><span class="icon">🎨</span> Ad Generator</a>
+  <a href="{{ url_for('ad_vault') }}" class="qa-btn"><span class="icon">🗄️</span> Ad Vault</a>
+  <a href="{{ url_for('listing_generator') }}" class="qa-btn"><span class="icon">📋</span> Listings</a>
+</div>
+
+<!-- Inventory Grid -->
+{% if products %}
+<h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1a1a2e;margin-bottom:1rem;">📦 Your Inventory</h2>
+<div class="product-grid">
+  {% for p in products %}
+  <div class="product-card">
+    <div class="product-card-img">
+      {% if p.valid_images %}
+      <img src="/uploads/{{ p.valid_images[0] }}" alt="{{ p.Title }}">
+      {% else %}
+      <div class="product-card-no-img">📦</div>
+      {% endif %}
+    </div>
+    <div class="product-card-body">
+      <div class="product-card-title" title="{{ p.Title }}">{{ p.Title }}</div>
+      <div class="product-card-price">${{ p.Price }}</div>
+      <div class="product-card-sku">{{ p.SKU }}</div>
+      <div style="margin-top:0.3rem;">
+        <span class="status-badge status-{{ p.Status|lower }}">{{ p.Status }}</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-inv">
+  <h3>📭 No products yet</h3>
+  <p>Add your first product to get started.</p>
+  <a href="{{ url_for('add_product') }}" style="display:inline-block;margin-top:1rem;background:#1a1a2e;color:white;padding:0.7rem 1.6rem;border-radius:9px;text-decoration:none;font-weight:600;">➕ Add First Product</a>
+</div>
+{% endif %}
+{% endblock %}

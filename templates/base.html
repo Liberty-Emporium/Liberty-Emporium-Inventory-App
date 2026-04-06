@@ -233,6 +233,9 @@
                 {% if session.get('username') == 'admin' %}
                 <a href="{{ url_for('seasonal_sale') }}">Sale</a>
                 {% endif %}
+                {% if session.get('role') == 'overseer' %}
+                <a href="{{ url_for('overseer_dashboard') }}" style="color:#f59e0b;font-weight:700;">🛡️ Overseer</a>
+                {% endif %}
             </div>
 
             <div class="nav-right" style="display:flex; align-items:center; gap:1rem;" id="navRight">

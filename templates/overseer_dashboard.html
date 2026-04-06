@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Overseer Dashboard — Liberty Emporium{% endblock %}
+
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🛡️</div>
+  <div class="ht-label">Overseer Dashboard — How-To Guide</div>
+  <h2>Manage All Client Stores</h2>
+  <p>This is your command center. Provision new client stores, log in as any client to manage their inventory, and monitor the status of every account.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">➕</div>
+  <div class="ht-label">Adding a New Client</div>
+  <h2>Provision a Store</h2>
+  <ol>
+    <li>Click <strong>+ Add New Client</strong>.</li>
+    <li>Enter the store name, client email, and a temporary password.</li>
+    <li>Choose a plan and branding color.</li>
+    <li>Submit — the store is live instantly.</li>
+  </ol>
+  <div class="ht-tip">Share the login email and temp password with your client so they can log in.</div>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🔀</div>
+  <div class="ht-label">Managing a Client Store</div>
+  <h2>Log In as a Client</h2>
+  <ol>
+    <li>Click <strong>Manage</strong> on any client card.</li>
+    <li>You'll be taken to their dashboard — a yellow banner shows you're in their store.</li>
+    <li>Add products, generate ads, or do anything they need.</li>
+    <li>Click <strong>Exit to Overseer</strong> in the banner to return here.</li>
+  </ol>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
+<style>
+  .ov-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:2px solid #e8e0d4; }
+  .ov-header h1 { font-family:'Playfair Display',serif; font-size:2.2rem; color:#1a1a2e; margin:0; }
+  .ov-stats { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; }
+  .ov-stat { background:white; border-radius:12px; padding:1rem 1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); text-align:center; min-width:130px; }
+  .ov-stat-val { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:#1a1a2e; line-height:1; }
+  .ov-stat-lbl { font-size:0.72rem; color:#7a7a8c; text-transform:uppercase; letter-spacing:0.07em; margin-top:0.25rem; }
+  .ov-stat.revenue .ov-stat-val { color:#166534; }
+  .client-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.25rem; }
+  .client-card { background:white; border-radius:14px; box-shadow:0 3px 12px rgba(0,0,0,0.09); overflow:hidden; display:flex; flex-direction:column; }
+  .client-card-header { padding:1.2rem 1.2rem 0.75rem; border-bottom:1px solid #f0ede8; }
+  .client-card-name { font-family:'Playfair Display',serif; font-size:1.1rem; color:#1a1a2e; font-weight:700; margin:0 0 0.3rem; }
+  .client-card-meta { font-size:0.78rem; color:#7a7a8c; }
+  .client-card-body { padding:0.75rem 1.2rem; flex:1; }
+  .badge { display:inline-block; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.72rem; font-weight:700; margin-right:0.3rem; }
+  .badge-active { background:#dcfce7; color:#166534; }
+  .badge-suspended { background:#fee2e2; color:#991b1b; }
+  .badge-starter { background:#e0f2fe; color:#075985; }
+  .badge-pro { background:#fef9c3; color:#854d0e; }
+  .badge-enterprise { background:#f3e8ff; color:#6b21a8; }
+  .client-card-actions { padding:0.75rem 1.2rem 1rem; display:flex; gap:0.5rem; border-top:1px solid #f0ede8; }
+  .btn-manage { background:#1a1a2e; color:white; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.8rem; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; }
+  .btn-manage:hover { opacity:0.85; color:white; }
+  .btn-details { background:#f0ede8; color:#1a1a2e; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; text-decoration:none; }
+  .btn-details:hover { background:#e8e0d4; color:#1a1a2e; }
+  .btn-add { background:linear-gradient(135deg,#2e7d6e,#10b981); color:white; border:none; padding:0.65rem 1.4rem; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; }
+  .btn-add:hover { opacity:0.9; }
+  .empty-state { text-align:center; padding:4rem 2rem; background:white; border-radius:14px; color:#7a7a8c; }
+  .empty-state h2 { font-family:'Playfair Display',serif; color:#1a1a2e; margin-bottom:0.75rem; }
+  /* Modal */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:900; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:white; border-radius:16px; padding:2rem; max-width:520px; width:90%; max-height:90vh; overflow-y:auto; }
+  .modal h2 { font-family:'Playfair Display',serif; font-size:1.5rem; color:#1a1a2e; margin:0 0 1.5rem; }
+  .form-row { margin-bottom:1rem; }
+  .form-row label { display:block; font-size:0.82rem; font-weight:600; color:#444; margin-bottom:0.3rem; }
+  .form-row input, .form-row select, .form-row textarea { width:100%; padding:0.55rem 0.75rem; border:1.5px solid #d1c9bc; border-radius:8px; font-size:0.9rem; box-sizing:border-box; }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline:none; border-color:#2e7d6e; }
+  .form-row textarea { min-height:70px; resize:vertical; }
+  .modal-actions { display:flex; gap:0.75rem; margin-top:1.5rem; justify-content:flex-end; }
+  .btn-cancel { background:#f0ede8; color:#1a1a2e; border:none; padding:0.6rem 1.2rem; border-radius:8px; font-weight:600; cursor:pointer; }
+  .btn-submit { background:#1a1a2e; color:white; border:none; padding:0.6rem 1.4rem; border-radius:8px; font-weight:700; cursor:pointer; }
+  .color-row { display:flex; gap:0.75rem; align-items:center; }
+  .color-row input[type=color] { width:48px; height:38px; padding:2px; border-radius:6px; border:1.5px solid #d1c9bc; cursor:pointer; }
+</style>
+
+<div class="ov-header">
+  <div>
+    <h1>🛡️ Overseer Dashboard</h1>
+    <p style="color:#7a7a8c; margin:0.3rem 0 0; font-size:0.95rem;">Manage all client stores from one place.</p>
+  </div>
+  <button class="btn-add" onclick="document.getElementById('addModal').classList.add('open')">➕ Add New Client</button>
+</div>
+
+<div class="ov-stats">
+  <div class="ov-stat">
+    <div class="ov-stat-val">{{ stores|length }}</div>
+    <div class="ov-stat-lbl">Total Clients</div>
+  </div>
+  <div class="ov-stat">
+    <div class="ov-stat-val">{{ active_count }}</div>
+    <div class="ov-stat-lbl">Active</div>
+  </div>
+  <div class="ov-stat">
+    <div class="ov-stat-val">{{ suspended_count }}</div>
+    <div class="ov-stat-lbl">Suspended</div>
+  </div>
+  <div class="ov-stat revenue">
+    <div class="ov-stat-val">${{ total_revenue }}</div>
+    <div class="ov-stat-lbl">Total Revenue</div>
+  </div>
+</div>
+
+{% if stores %}
+<div class="client-grid">
+  {% for store in stores %}
+  <div class="client-card">
+    <div class="client-card-header">
+      <div class="client-card-name">{{ store.store_name }}</div>
+      <div class="client-card-meta">{{ store.contact_email }} &bull; Added {{ store.created_at[:10] if store.created_at else '—' }}</div>
+    </div>
+    <div class="client-card-body">
+      <span class="badge badge-{{ store.status or 'active' }}">{{ (store.status or 'active')|title }}</span>
+      <span class="badge badge-{{ store.plan or 'starter' }}">{{ (store.plan or 'starter')|title }}</span>
+      {% if store.industry %}<span class="badge" style="background:#f0ede8;color:#555;">{{ store.industry|title }}</span>{% endif %}
+      {% if store.tagline %}<p style="font-size:0.82rem;color:#7a7a8c;margin:0.5rem 0 0;font-style:italic;">{{ store.tagline }}</p>{% endif %}
+    </div>
+    <div class="client-card-actions">
+      <form method="POST" action="/overseer/client/{{ store.slug }}/impersonate" style="display:inline;">
+        <button type="submit" class="btn-manage">🔀 Manage</button>
+      </form>
+      <a href="/overseer/client/{{ store.slug }}" class="btn-details">Details</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <h2>🏪 No client stores yet</h2>
+  <p>Click <strong>+ Add New Client</strong> to provision your first store.</p>
+</div>
+{% endif %}
+
+<!-- Add Client Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2>➕ Add New Client</h2>
+    <form method="POST" action="/overseer/client/create">
+      <div class="form-row">
+        <label>Store Name *</label>
+        <input type="text" name="store_name" required placeholder="e.g. Treasure Trove Thrift">
+      </div>
+      <div class="form-row">
+        <label>Contact Name</label>
+        <input type="text" name="contact_name" placeholder="Owner's full name">
+      </div>
+      <div class="form-row">
+        <label>Contact Email (Login) *</label>
+        <input type="email" name="contact_email" required placeholder="client@email.com">
+      </div>
+      <div class="form-row">
+        <label>Contact Phone</label>
+        <input type="text" name="contact_phone" placeholder="(555) 000-0000">
+      </div>
+      <div class="form-row">
+        <label>Temporary Password *</label>
+        <input type="text" name="temp_password" required placeholder="Share this with the client">
+      </div>
+      <div class="form-row">
+        <label>Plan</label>
+        <select name="plan">
+          <option value="starter">Starter — $299</option>
+          <option value="pro">Pro — $499</option>
+          <option value="enterprise">Enterprise — $799</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Industry</label>
+        <select name="industry">
+          <option value="thrift">Thrift Store</option>
+          <option value="antique">Antique Shop</option>
+          <option value="consignment">Consignment</option>
+          <option value="electronics">Electronics</option>
+          <option value="clothing">Clothing</option>
+          <option value="general">General Retail</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Primary Color</label>
+        <div class="color-row">
+          <input type="color" name="primary_color" value="#2e7d6e">
+          <span style="font-size:0.8rem;color:#7a7a8c;">Store branding color</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Tagline (optional)</label>
+        <input type="text" name="tagline" placeholder="e.g. Quality finds at unbeatable prices">
+      </div>
+      <div class="form-row">
+        <label>Internal Notes (optional)</label>
+        <textarea name="notes" placeholder="Notes only visible to you..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="document.getElementById('addModal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn-submit">🚀 Provision Store</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+</script>
+{% endblock %}

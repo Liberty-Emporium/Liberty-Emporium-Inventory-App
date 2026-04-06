@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.store_name }} — Overseer{% endblock %}
+
+{% block howto_slides %}
+<div class="ht-slide">
+  <div class="ht-icon">🏪</div>
+  <div class="ht-label">Client Detail — How-To Guide</div>
+  <h2>Manage This Store</h2>
+  <p>This page shows everything about one client store. Edit their details, reset their password, suspend their account, or log in as them to manage their inventory directly.</p>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">🔑</div>
+  <div class="ht-label">Resetting a Password</div>
+  <h2>Reset Client Password</h2>
+  <ol>
+    <li>Click <strong>Reset Password</strong>.</li>
+    <li>A new temporary password is generated instantly.</li>
+    <li>Copy and share it with your client so they can log in.</li>
+  </ol>
+</div>
+<div class="ht-slide">
+  <div class="ht-icon">⚠️</div>
+  <div class="ht-label">Deleting a Store</div>
+  <h2>Delete a Client Store</h2>
+  <p>Deletion is permanent. You must type the exact store name to confirm. This removes all inventory, images, and user accounts for that store.</p>
+  <div class="ht-tip">Consider suspending first — the client loses access but data is preserved.</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
+<style>
+  .oc-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:2px solid #e8e0d4; flex-wrap:wrap; gap:1rem; }
+  .oc-header h1 { font-family:'Playfair Display',serif; font-size:2rem; color:#1a1a2e; margin:0; }
+  .section-card { background:white; border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,0.08); padding:1.5rem; margin-bottom:1.5rem; }
+  .section-card h2 { font-family:'Playfair Display',serif; font-size:1.15rem; color:#1a1a2e; margin:0 0 1.2rem; padding-bottom:0.75rem; border-bottom:1px solid #f0ede8; }
+  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1.5rem; }
+  .info-item label { display:block; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#7a7a8c; margin-bottom:0.2rem; }
+  .info-item span { font-size:0.95rem; color:#1a1a2e; }
+  .badge { display:inline-block; padding:0.25rem 0.7rem; border-radius:20px; font-size:0.75rem; font-weight:700; }
+  .badge-active { background:#dcfce7; color:#166534; }
+  .badge-suspended { background:#fee2e2; color:#991b1b; }
+  .badge-starter { background:#e0f2fe; color:#075985; }
+  .badge-pro { background:#fef9c3; color:#854d0e; }
+  .badge-enterprise { background:#f3e8ff; color:#6b21a8; }
+  .form-row { margin-bottom:1rem; }
+  .form-row label { display:block; font-size:0.82rem; font-weight:600; color:#444; margin-bottom:0.3rem; }
+  .form-row input, .form-row select, .form-row textarea { width:100%; padding:0.55rem 0.75rem; border:1.5px solid #d1c9bc; border-radius:8px; font-size:0.9rem; box-sizing:border-box; }
+  .form-row input:focus, .form-row select:focus { outline:none; border-color:#2e7d6e; }
+  .form-row textarea { min-height:80px; resize:vertical; }
+  .action-bar { display:flex; gap:0.75rem; flex-wrap:wrap; }
+  .btn-primary { background:#1a1a2e; color:white; border:none; padding:0.6rem 1.3rem; border-radius:9px; font-size:0.85rem; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:0.35rem; }
+  .btn-primary:hover { opacity:0.85; color:white; }
+  .btn-secondary { background:#f0ede8; color:#1a1a2e; border:none; padding:0.6rem 1.3rem; border-radius:9px; font-size:0.85rem; font-weight:600; cursor:pointer; text-decoration:none; }
+  .btn-secondary:hover { background:#e8e0d4; color:#1a1a2e; }
+  .btn-warn { background:#fff7ed; color:#c2410c; border:1.5px solid #fed7aa; padding:0.55rem 1.1rem; border-radius:9px; font-size:0.82rem; font-weight:600; cursor:pointer; }
+  .btn-warn:hover { background:#ffedd5; }
+  .btn-danger { background:#fee2e2; color:#991b1b; border:none; padding:0.55rem 1.1rem; border-radius:9px; font-size:0.82rem; font-weight:700; cursor:pointer; }
+  .btn-danger:hover { background:#fecaca; }
+  .color-swatch { width:20px; height:20px; border-radius:4px; display:inline-block; vertical-align:middle; border:1px solid rgba(0,0,0,0.1); }
+  .stat-row { display:flex; gap:1.5rem; flex-wrap:wrap; }
+  .stat-box { background:#f9f7f4; border-radius:10px; padding:0.85rem 1.2rem; text-align:center; min-width:100px; }
+  .stat-box .val { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:#1a1a2e; }
+  .stat-box .lbl { font-size:0.7rem; color:#7a7a8c; text-transform:uppercase; letter-spacing:0.06em; }
+  /* Delete modal */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:900; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:white; border-radius:16px; padding:2rem; max-width:440px; width:90%; }
+  .modal h2 { font-family:'Playfair Display',serif; font-size:1.3rem; color:#991b1b; margin:0 0 1rem; }
+  .modal p { color:#555; font-size:0.9rem; margin-bottom:1rem; }
+  .modal input { width:100%; padding:0.55rem 0.75rem; border:1.5px solid #d1c9bc; border-radius:8px; font-size:0.9rem; box-sizing:border-box; }
+  .modal-actions { display:flex; gap:0.75rem; margin-top:1.25rem; justify-content:flex-end; }
+  .btn-cancel-modal { background:#f0ede8; color:#1a1a2e; border:none; padding:0.55rem 1.1rem; border-radius:8px; font-weight:600; cursor:pointer; }
+</style>
+
+<div class="oc-header">
+  <div>
+    <a href="/overseer" style="color:#7a7a8c;font-size:0.85rem;text-decoration:none;">← Overseer Dashboard</a>
+    <h1 style="margin-top:0.4rem;">🏪 {{ client.store_name }}</h1>
+    <div style="margin-top:0.5rem;">
+      <span class="badge badge-{{ client.status or 'active' }}">{{ (client.status or 'active')|title }}</span>
+      <span class="badge badge-{{ client.plan or 'starter' }}" style="margin-left:0.4rem;">{{ (client.plan or 'starter')|title }}</span>
+    </div>
+  </div>
+  <div class="action-bar">
+    <form method="POST" action="/overseer/client/{{ slug }}/impersonate">
+      <button type="submit" class="btn-primary">🔀 Log In as This Store</button>
+    </form>
+    <form method="POST" action="/overseer/client/{{ slug }}/suspend">
+      <button type="submit" class="btn-warn">{% if client.status == 'suspended' %}✅ Unsuspend{% else %}⏸ Suspend{% endif %}</button>
+    </form>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="section-card">
+  <h2>📊 Store Stats</h2>
+  <div class="stat-row">
+    <div class="stat-box"><div class="val">{{ product_count }}</div><div class="lbl">Products</div></div>
+    <div class="stat-box"><div class="val">{{ client.created_at[:10] if client.created_at else '—' }}</div><div class="lbl">Created</div></div>
+  </div>
+</div>
+
+<!-- Edit Details -->
+<div class="section-card">
+  <h2>✏️ Edit Store Details</h2>
+  <form method="POST" action="/overseer/client/{{ slug }}/update">
+    <div class="info-grid">
+      <div class="form-row">
+        <label>Store Name</label>
+        <input type="text" name="store_name" value="{{ client.store_name }}" required>
+      </div>
+      <div class="form-row">
+        <label>Tagline</label>
+        <input type="text" name="tagline" value="{{ client.tagline or '' }}">
+      </div>
+      <div class="form-row">
+        <label>Contact Name</label>
+        <input type="text" name="contact_name" value="{{ client.contact_name or '' }}">
+      </div>
+      <div class="form-row">
+        <label>Contact Email</label>
+        <input type="email" name="contact_email" value="{{ client.contact_email or '' }}">
+      </div>
+      <div class="form-row">
+        <label>Contact Phone</label>
+        <input type="text" name="contact_phone" value="{{ client.contact_phone or '' }}">
+      </div>
+      <div class="form-row">
+        <label>Plan</label>
+        <select name="plan">
+          <option value="starter" {% if client.plan == 'starter' %}selected{% endif %}>Starter — $299</option>
+          <option value="pro" {% if client.plan == 'pro' %}selected{% endif %}>Pro — $499</option>
+          <option value="enterprise" {% if client.plan == 'enterprise' %}selected{% endif %}>Enterprise — $799</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Primary Color</label>
+        <input type="color" name="primary_color" value="{{ client.primary_color or '#2e7d6e' }}">
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:0.5rem;">
+      <label>Internal Notes (private — only visible to you)</label>
+      <textarea name="notes">{{ client.notes or '' }}</textarea>
+    </div>
+    <button type="submit" class="btn-primary" style="margin-top:0.5rem;">💾 Save Changes</button>
+  </form>
+</div>
+
+<!-- Password Reset -->
+<div class="section-card">
+  <h2>🔑 Reset Client Password</h2>
+  <p style="color:#555;font-size:0.9rem;margin-bottom:1rem;">Generate a new temporary password and share it with the client.</p>
+  <form method="POST" action="/overseer/client/{{ slug }}/reset-password">
+    <button type="submit" class="btn-warn">🔑 Generate New Password</button>
+  </form>
+</div>
+
+<!-- Danger Zone -->
+<div class="section-card" style="border:1.5px solid #fecaca;">
+  <h2 style="color:#991b1b;">⚠️ Danger Zone</h2>
+  <p style="color:#555;font-size:0.9rem;">Deleting a store is permanent. All inventory, images, and user accounts will be removed.</p>
+  <button class="btn-danger" onclick="document.getElementById('deleteModal').classList.add('open')">🗑️ Delete This Store</button>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h2>⚠️ Delete Store?</h2>
+    <p>This is permanent. Type <strong>{{ client.store_name }}</strong> to confirm.</p>
+    <form method="POST" action="/overseer/client/{{ slug }}/delete">
+      <input type="text" name="confirm_name" placeholder="Type store name to confirm" autocomplete="off">
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel-modal" onclick="document.getElementById('deleteModal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn-danger">Delete Forever</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+</script>
+{% endblock %}
