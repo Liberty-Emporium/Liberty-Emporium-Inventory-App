@@ -65,7 +65,7 @@
 
   /* Assistant panel */
   .asst-panel { background:white; border-radius:14px; box-shadow:0 3px 16px rgba(0,0,0,0.1); display:flex; flex-direction:column; height:640px; position:sticky; top:1rem; overflow:hidden; }
-  .asst-header { padding:1rem 1.2rem; border-bottom:1px solid #f0ede8; display:flex; align-items:center; gap:0.6rem; }
+  .asst-header { padding:1rem 1.2rem; border-bottom:1px solid #f0ede8; display:flex; align-items:center; gap:0.6rem; flex-shrink:0; }
   .asst-header h2 { font-family:'Playfair Display',serif; font-size:1rem; color:#1a1a2e; margin:0; flex:1; }
   .asst-dot { width:9px; height:9px; border-radius:50%; background:#10b981; flex-shrink:0; }
   .asst-alerts { padding:0.75rem 1rem 0; border-bottom:1px solid #f0ede8; max-height:200px; overflow-y:auto; }
@@ -88,10 +88,10 @@
   .btn-send-email { background:#166534; color:white; border:none; padding:0.4rem 0.9rem; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer; margin-top:0.6rem; }
   .btn-send-email:hover { background:#14532d; }
   .send-status { font-size:0.78rem; margin-top:0.35rem; }
-  .asst-input-row { padding:0.75rem 1rem; border-top:1px solid #f0ede8; display:flex; gap:0.5rem; }
-  .asst-input { flex:1; border:1.5px solid #d1c9bc; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.85rem; resize:none; height:38px; line-height:1.4; }
-  .asst-input:focus { outline:none; border-color:#2e7d6e; }
-  .btn-asst-send { background:#1a1a2e; color:white; border:none; padding:0.5rem 0.9rem; border-radius:8px; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; }
+  .asst-input-row { padding:0.85rem 1rem; border-top:2px solid #f0ede8; display:flex; gap:0.5rem; align-items:center; flex-shrink:0; background:white; }
+  .asst-input { flex:1; border:1.5px solid #d1c9bc; border-radius:10px; padding:0.6rem 0.85rem; font-size:0.85rem; resize:none; height:40px; line-height:1.4; font-family:inherit; background:#faf9f7; }
+  .asst-input:focus { outline:none; border-color:#2e7d6e; background:white; }
+  .btn-asst-send { background:#1a1a2e; color:white; border:none; padding:0.6rem 1.1rem; border-radius:10px; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; height:40px; flex-shrink:0; }
   .btn-asst-send:hover { opacity:0.85; }
 
   /* Add modal */
