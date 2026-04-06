@@ -75,6 +75,7 @@ BACKUP_FOLDER  = os.path.join(DATA_DIR, 'backups')
 ADS_FOLDER     = os.path.join(DATA_DIR, 'ads')
 MUSIC_FOLDER   = os.path.join(DATA_DIR, 'music')
 USERS_FILE     = os.path.join(DATA_DIR, 'users.json')
+CUSTOMERS_DIR  = os.path.join(DATA_DIR, 'customers')
 PENDING_FILE   = os.path.join(DATA_DIR, 'pending_users.json')
 SALE_FILE      = os.path.join(DATA_DIR, 'sale_state.json')
 
@@ -166,6 +167,61 @@ def save_stripe_keys(secret, public):
         config['stripe_public_key'] = public.strip()
     with open(app_config_file, 'w') as f:
         json.dump(config, f, indent=2)
+
+# ── Multi-tenant helpers ──────────────────────────────────────────────────────
+def get_store_paths(slug=None):
+    """Return data paths for a given client store slug, or Liberty Emporium if None."""
+    if slug:
+        base = os.path.join(CUSTOMERS_DIR, slug)
+        return {
+            'inventory': os.path.join(base, 'inventory.csv'),
+            'uploads':   os.path.join(base, 'uploads'),
+            'users':     os.path.join(base, 'users.json'),
+            'config':    os.path.join(base, 'config.json'),
+            'backups':   os.path.join(base, 'backups'),
+        }
+    return {
+        'inventory': INVENTORY_FILE,
+        'uploads':   UPLOAD_FOLDER,
+        'users':     USERS_FILE,
+        'config':    STORE_CONFIG_FILE,
+        'backups':   BACKUP_FOLDER,
+    }
+
+def active_store_slug():
+    """Returns the slug of the currently active client store, or None for Liberty Emporium."""
+    return session.get('impersonating_slug') or session.get('store_slug') or None
+
+def load_client_config(slug):
+    """Load a client store's config.json. Returns None if not found."""
+    cfg_path = os.path.join(CUSTOMERS_DIR, slug, 'config.json')
+    if not os.path.exists(cfg_path):
+        return None
+    with open(cfg_path) as f:
+        return json.load(f)
+
+def save_client_config(slug, config):
+    """Save a client store's config.json."""
+    cfg_path = os.path.join(CUSTOMERS_DIR, slug, 'config.json')
+    os.makedirs(os.path.dirname(cfg_path), exist_ok=True)
+    with open(cfg_path, 'w') as f:
+        json.dump(config, f, indent=2)
+
+def list_client_stores():
+    """Return list of all provisioned client store configs."""
+    stores = []
+    if not os.path.exists(CUSTOMERS_DIR):
+        return stores
+    for entry in os.listdir(CUSTOMERS_DIR):
+        cfg_path = os.path.join(CUSTOMERS_DIR, entry, 'config.json')
+        if os.path.isdir(os.path.join(CUSTOMERS_DIR, entry)) and os.path.exists(cfg_path):
+            try:
+                with open(cfg_path) as f:
+                    stores.append(json.load(f))
+            except Exception:
+                pass
+    stores.sort(key=lambda s: s.get('created_at', ''), reverse=True)
+    return stores
 
 # ── Store Configuration (white-label) ─────────────────────────────────────────
 STORE_CONFIG_FILE = os.path.join(DATA_DIR, 'store_config.json')
