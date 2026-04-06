@@ -762,21 +762,21 @@ def ad_generator():
 @app.route('/generate-ads', methods=['POST'])
 @login_required
 def generate_ads():
-    """Generate gorgeous JPEG picture ads using Pillow."""
+    """Generate AI-written JPEG picture ads, streaming results via SSE."""
     from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
     import textwrap as _tw
+    import threading
 
     data     = request.get_json() or {}
     products = data.get('products', [])
     style    = data.get('style', 'elegant')
     fmt      = data.get('format', 'square')
-    cta_text = data.get('cta_text', '').strip()
-    store_nm = (data.get('store_name', '') or STORE_NAME or 'Liberty Emporium').strip()
 
     if not products:
         return jsonify({'error': 'No products provided.'}), 400
 
-    # ── Canvas sizes ─────────────────────────────────────────────────────────
+    api_key = get_ai_api_key()
+
     sizes = {
         'square':   (1080, 1080),
         'portrait': (1080, 1350),
@@ -784,38 +784,12 @@ def generate_ads():
     }
     W, H = sizes.get(fmt, (1080, 1080))
 
-    # ── Style palettes ───────────────────────────────────────────────────────
     palettes = {
-        'elegant': {
-            'grad':   (10, 10, 28),
-            'accent': (240, 192, 64),
-            'text':   (255, 255, 255),
-            'sub':    (200, 200, 225),
-        },
-        'vivid': {
-            'grad':   (170, 25, 25),
-            'accent': (255, 220, 60),
-            'text':   (255, 255, 255),
-            'sub':    (255, 195, 195),
-        },
-        'forest': {
-            'grad':   (18, 55, 35),
-            'accent': (120, 210, 120),
-            'text':   (235, 255, 235),
-            'sub':    (165, 215, 165),
-        },
-        'ocean': {
-            'grad':   (10, 38, 90),
-            'accent': (90, 195, 255),
-            'text':   (255, 255, 255),
-            'sub':    (155, 205, 255),
-        },
-        'warm': {
-            'grad':   (72, 35, 8),
-            'accent': (255, 182, 65),
-            'text':   (255, 248, 228),
-            'sub':    (220, 188, 135),
-        },
+        'elegant': {'grad': (10, 10, 28),   'accent': (240, 192, 64),  'text': (255, 255, 255), 'sub': (200, 200, 225)},
+        'vivid':   {'grad': (170, 25, 25),  'accent': (255, 220, 60),  'text': (255, 255, 255), 'sub': (255, 195, 195)},
+        'forest':  {'grad': (18, 55, 35),   'accent': (120, 210, 120), 'text': (235, 255, 235), 'sub': (165, 215, 165)},
+        'ocean':   {'grad': (10, 38, 90),   'accent': (90, 195, 255),  'text': (255, 255, 255), 'sub': (155, 205, 255)},
+        'warm':    {'grad': (72, 35, 8),    'accent': (255, 182, 65),  'text': (255, 248, 228), 'sub': (220, 188, 135)},
     }
     pal = palettes.get(style, palettes['elegant'])
 
@@ -823,60 +797,64 @@ def generate_ads():
     font_reg  = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
     def _font(path, size):
-        try:
-            return _Font.truetype(path, size)
-        except Exception:
-            return _Font.load_default()
+        try:    return _Font.truetype(path, size)
+        except: return _Font.load_default()
 
     def _txt_w(font, text):
-        try:
-            return int(font.getlength(text))
+        try:    return int(font.getlength(text))
         except AttributeError:
-            try:
-                return font.getsize(text)[0]
-            except Exception:
-                return len(text) * max(8, font.size // 2)
+            try:    return font.getsize(text)[0]
+            except: return len(text) * max(8, font.size // 2)
 
     def _shadow(draw, text, x, y, font, color, off=3):
         draw.text((x + off, y + off), text, font=font, fill=(0, 0, 0, 130))
         draw.text((x, y), text, font=font, fill=color)
 
-    generated = []
-    for p in products:
-        sku   = p.get('sku', 'UNKNOWN')
-        title = p.get('title', 'Untitled')
-        desc  = (p.get('description', '') or '').strip()
+    results = {}   # sku -> result dict or Exception
+    lock    = threading.Lock()
+
+    def render_one(p):
+        sku       = p.get('sku', 'UNKNOWN')
+        title     = p.get('title', 'Untitled')
+        desc      = (p.get('description', '') or '').strip()
         image_url = p.get('image', '')
+        category  = p.get('category', '')
+        condition = p.get('condition', '')
         try:
             pf = float(p.get('price', '0'))
-            price_str = f"${int(pf)}" if pf == int(pf) else f"${pf:.2f}"
+            raw_price = f"{int(pf)}" if pf == int(pf) else f"{pf:.2f}"
         except Exception:
-            price_str = f"${p.get('price', '0')}"
+            raw_price = str(p.get('price', '0'))
+
+        # Get AI copy (falls back to raw fields on error)
+        copy = generate_ad_copy(title, raw_price, category, condition, desc, api_key)
+        headline      = copy['headline']
+        selling_line  = copy['selling_line']
+        price_callout = copy['price_callout']
+        tagline       = copy['tagline']
 
         r_g, g_g, b_g = pal['grad']
-
-        # 1. Base canvas filled with gradient colour
         canvas = _Img.new('RGB', (W, H), (r_g, g_g, b_g))
 
-        # 2. Product photo — cover-crop (slight top bias so subject stays visible)
+        # Product photo
         if image_url:
             img_fname = image_url.split('/')[-1]
             img_fpath = os.path.join(UPLOAD_FOLDER, img_fname)
             if os.path.exists(img_fpath):
                 try:
-                    prod = _Img.open(img_fpath)
-                    prod = fix_image_orientation(prod).convert('RGB')
+                    prod  = _Img.open(img_fpath)
+                    prod  = fix_image_orientation(prod).convert('RGB')
                     scale = max(W / prod.width, H / prod.height)
-                    nw = int(prod.width  * scale)
-                    nh = int(prod.height * scale)
-                    prod = prod.resize((nw, nh), _Img.LANCZOS)
-                    cx = (nw - W) // 2
-                    cy = max(0, int((nh - H) * 0.25))   # favour upper portion
+                    nw    = int(prod.width  * scale)
+                    nh    = int(prod.height * scale)
+                    prod  = prod.resize((nw, nh), _Img.LANCZOS)
+                    cx    = (nw - W) // 2
+                    cy    = max(0, int((nh - H) * 0.25))
                     canvas.paste(prod.crop((cx, cy, cx + W, cy + H)))
                 except Exception:
                     pass
 
-        # 3. Dark gradient vignette — transparent at top, opaque at bottom
+        # Vignette
         vign = _Img.new('RGBA', (W, H), (0, 0, 0, 0))
         vd   = _Draw.Draw(vign)
         gs   = int(H * 0.35)
@@ -886,65 +864,81 @@ def generate_ads():
             vd.line([(0, row), (W - 1, row)], fill=(r_g, g_g, b_g, alpha))
         canvas = _Img.alpha_composite(canvas.convert('RGBA'), vign).convert('RGB')
 
-        # 4. Text
-        draw = _Draw.Draw(canvas)
+        draw    = _Draw.Draw(canvas)
+        sz_headline = max(54, int(W * 0.068))
+        sz_price    = max(82, int(W * 0.108))
+        sz_desc     = max(24, int(W * 0.024))
+        sz_cta      = max(24, int(W * 0.026))
 
-        sz_store = max(24, int(W * 0.026))
-        sz_title = max(54, int(W * 0.068))
-        sz_price = max(82, int(W * 0.108))
-        sz_desc  = max(24, int(W * 0.024))
-        sz_cta   = max(24, int(W * 0.026))
-
-        f_store = _font(font_bold, sz_store)
-        f_title = _font(font_bold, sz_title)
-        f_price = _font(font_bold, sz_price)
-        f_desc  = _font(font_reg,  sz_desc)
-        f_cta   = _font(font_reg,  sz_cta)
+        f_headline = _font(font_bold, sz_headline)
+        f_price    = _font(font_bold, sz_price)
+        f_desc     = _font(font_reg,  sz_desc)
+        f_cta      = _font(font_reg,  sz_cta)
 
         accent = pal['accent']
         white  = pal['text']
         sub    = pal['sub']
         pad_x  = int(W * 0.06)
 
-        draw   = _Draw.Draw(canvas)
-
-        # Build text from bottom up
         y = H - int(H * 0.044)
 
-        # Thin divider + CTA / address line
-        footer_text = cta_text if cta_text else '125 W Swannanoa Ave · Liberty, NC'
+        # Tagline + divider
         div_y = y - sz_cta - 14
         draw.line([(pad_x, div_y), (pad_x + int(W * 0.88), div_y)],
                   fill=tuple(max(0, int(c * 0.55)) for c in accent), width=2)
-        draw.text((pad_x, y - sz_cta - 6), footer_text, font=f_cta, fill=sub)
+        draw.text((pad_x, y - sz_cta - 6), tagline, font=f_cta, fill=sub)
         y -= sz_cta + 22
 
-        # Description (1 line)
-        if desc:
+        # Selling line
+        if selling_line:
             chars_d = max(15, int((W * 0.88) / (sz_desc * 0.56)))
-            d_lines = _tw.wrap(desc[:120], width=chars_d)[:1]
+            d_lines = _tw.wrap(selling_line[:120], width=chars_d)[:1]
             for line in d_lines:
                 _shadow(draw, line, pad_x, y - sz_desc, f_desc, sub, off=2)
                 y -= sz_desc + 14
 
-        # Price — large and bold
-        _shadow(draw, price_str, pad_x, y - sz_price, f_price, white, off=4)
+        # Price callout
+        _shadow(draw, price_callout, pad_x, y - sz_price, f_price, white, off=4)
         y -= sz_price + 12
 
-        # Title — up to 2 lines, drawn upward
-        chars_t = max(8, int((W * 0.88) / (sz_title * 0.56)))
-        t_lines = _tw.wrap(title, width=chars_t)[:2]
+        # Headline
+        chars_t = max(8, int((W * 0.88) / (sz_headline * 0.56)))
+        t_lines = _tw.wrap(headline, width=chars_t)[:2]
         for line in reversed(t_lines):
-            _shadow(draw, line, pad_x, y - sz_title, f_title, accent, off=3)
-            y -= sz_title + 6
+            _shadow(draw, line, pad_x, y - sz_headline, f_headline, accent, off=3)
+            y -= sz_headline + 6
 
-        # 5. Save as JPEG
         ts     = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         jfname = f'ad_{sku}_{style}_{fmt}_{ts}.jpg'
         canvas.convert('RGB').save(os.path.join(ADS_FOLDER, jfname), 'JPEG', quality=95)
-        generated.append({'filename': jfname, 'product_title': title})
 
-    return jsonify({'success': True, 'files': generated})
+        with lock:
+            results[sku] = {'filename': jfname, 'product_title': title}
+
+    def stream():
+        threads = []
+        for p in products:
+            t = threading.Thread(target=render_one, args=(p,), daemon=True)
+            t.start()
+            threads.append((p.get('sku', 'UNKNOWN'), t))
+
+        sent = set()
+        while len(sent) < len(threads):
+            for sku, t in threads:
+                if sku in sent:
+                    continue
+                t.join(timeout=0.2)
+                with lock:
+                    if sku in results:
+                        r = results[sku]
+                        sent.add(sku)
+                        yield f"data: {json.dumps(r)}\n\n"
+
+        yield "data: {\"done\": true}\n\n"
+
+    return app.response_class(stream(), mimetype='text/event-stream',
+                              headers={'X-Accel-Buffering': 'no',
+                                       'Cache-Control': 'no-cache'})
 
 @app.route('/ads/<filename>')
 def view_ad(filename):
