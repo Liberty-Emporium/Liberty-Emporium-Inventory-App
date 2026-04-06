@@ -444,14 +444,23 @@ def inject_globals():
         sale_state = load_sale()
     except Exception:
         sale_state = {'active': False}
+    impersonating_slug = session.get('impersonating_slug')
+    impersonating_store_name = None
+    if impersonating_slug:
+        cfg = load_client_config(impersonating_slug)
+        if cfg:
+            impersonating_store_name = cfg.get('store_name', impersonating_slug)
+    user_role = session.get('role', 'overseer' if is_admin else 'guest')
     return dict(
         store_name=STORE_NAME,
         demo_mode=DEMO_MODE,
         demo_contact_email=CONTACT_EMAIL,
         stats=stats,
         sale_state=sale_state,
-        user_role='admin' if is_admin else 'guest',
+        user_role=user_role,
         store_config=load_store_config(),
+        impersonating_slug=impersonating_slug,
+        impersonating_store_name=impersonating_store_name,
     )
 
 # ── Health check (no login required, for Railway) ─────────────────────────────
@@ -1900,6 +1909,225 @@ def admin_leads():
     # Sort newest first
     leads.sort(key=lambda x: x.get('created_at', ''), reverse=True)
     return render_template('admin_leads.html', leads=leads, **ctx())
+
+# ── Overseer Routes ───────────────────────────────────────────────────────────
+@app.route('/overseer')
+@login_required
+@overseer_required
+def overseer_dashboard():
+    stores = list_client_stores()
+    plan_prices = {'starter': 299, 'pro': 499, 'enterprise': 799}
+    total_revenue = sum(plan_prices.get(s.get('plan', 'starter'), 0) for s in stores)
+    active_count    = sum(1 for s in stores if s.get('status') == 'active')
+    suspended_count = sum(1 for s in stores if s.get('status') == 'suspended')
+    return render_template('overseer_dashboard.html',
+        stores=stores,
+        total_revenue=total_revenue,
+        active_count=active_count,
+        suspended_count=suspended_count,
+        **ctx()
+    )
+
+@app.route('/overseer/client/<slug>')
+@login_required
+@overseer_required
+def overseer_client_detail(slug):
+    cfg = load_client_config(slug)
+    if not cfg:
+        flash('Client store not found.', 'error')
+        return redirect(url_for('overseer_dashboard'))
+    inv_file = os.path.join(CUSTOMERS_DIR, slug, 'inventory.csv')
+    product_count = 0
+    if os.path.exists(inv_file):
+        with open(inv_file, newline='', encoding='utf-8') as f:
+            product_count = sum(1 for _ in csv.DictReader(f))
+    return render_template('overseer_client.html',
+        client=cfg,
+        slug=slug,
+        product_count=product_count,
+        **ctx()
+    )
+
+@app.route('/overseer/client/create', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_create_client():
+    store_name    = request.form.get('store_name', '').strip()
+    contact_email = request.form.get('contact_email', '').strip()
+    temp_password = request.form.get('temp_password', '').strip()
+    plan          = request.form.get('plan', 'starter')
+    industry      = request.form.get('industry', 'general')
+    primary_color = request.form.get('primary_color', '#2e7d6e')
+    tagline       = request.form.get('tagline', '').strip()
+    notes         = request.form.get('notes', '').strip()
+
+    if not store_name or not contact_email or not temp_password:
+        flash('Store name, contact email, and temp password are required.', 'error')
+        return redirect(url_for('overseer_dashboard'))
+
+    slug = slugify(store_name)
+    base_slug = slug
+    counter = 1
+    while os.path.exists(os.path.join(CUSTOMERS_DIR, slug)):
+        slug = f'{base_slug}-{counter}'
+        counter += 1
+
+    store_dir = os.path.join(CUSTOMERS_DIR, slug)
+    os.makedirs(os.path.join(store_dir, 'uploads'), exist_ok=True)
+    os.makedirs(os.path.join(store_dir, 'backups'), exist_ok=True)
+
+    config = {
+        'store_name':    store_name,
+        'slug':          slug,
+        'primary_color': primary_color,
+        'industry':      industry,
+        'tagline':       tagline,
+        'plan':          plan,
+        'status':        'active',
+        'contact_name':  request.form.get('contact_name', '').strip(),
+        'contact_email': contact_email,
+        'contact_phone': request.form.get('contact_phone', '').strip(),
+        'notes':         notes,
+        'created_at':    datetime.datetime.now().isoformat(),
+    }
+    save_client_config(slug, config)
+
+    inv_path = os.path.join(store_dir, 'inventory.csv')
+    fieldnames = ['SKU','Title','Description','Category','Condition','Price',
+                  'Cost Paid','Status','Date Added','Images','Section','Shelf']
+    with open(inv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+        writer.writeheader()
+
+    users_path = os.path.join(store_dir, 'users.json')
+    users = {
+        contact_email: {
+            'password':   hash_password(temp_password),
+            'role':       'client',
+            'store_slug': slug,
+            'created_at': datetime.datetime.now().isoformat(),
+        }
+    }
+    with open(users_path, 'w') as f:
+        json.dump(users, f, indent=2)
+
+    flash(f'Client "{store_name}" provisioned! Login: {contact_email} / {temp_password}', 'success')
+    return redirect(url_for('overseer_client_detail', slug=slug))
+
+@app.route('/overseer/client/<slug>/impersonate', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_impersonate(slug):
+    cfg = load_client_config(slug)
+    if not cfg:
+        flash('Client store not found.', 'error')
+        return redirect(url_for('overseer_dashboard'))
+    session['impersonating_slug'] = slug
+    flash(f'Now managing {cfg["store_name"]}.', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/overseer/exit-impersonate')
+@login_required
+def overseer_exit_impersonate():
+    session.pop('impersonating_slug', None)
+    flash('Returned to overseer view.', 'success')
+    return redirect(url_for('overseer_dashboard'))
+
+@app.route('/overseer/client/<slug>/suspend', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_suspend(slug):
+    cfg = load_client_config(slug)
+    if not cfg:
+        flash('Client not found.', 'error')
+        return redirect(url_for('overseer_dashboard'))
+    cfg['status'] = 'suspended' if cfg.get('status') == 'active' else 'active'
+    save_client_config(slug, cfg)
+    flash(f'{cfg["store_name"]} is now {cfg["status"]}.', 'success')
+    return redirect(url_for('overseer_client_detail', slug=slug))
+
+@app.route('/overseer/client/<slug>/delete', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_delete(slug):
+    confirm = request.form.get('confirm_name', '').strip()
+    cfg = load_client_config(slug)
+    if not cfg:
+        flash('Client not found.', 'error')
+        return redirect(url_for('overseer_dashboard'))
+    if confirm != cfg['store_name']:
+        flash('Store name did not match. Deletion cancelled.', 'error')
+        return redirect(url_for('overseer_client_detail', slug=slug))
+    store_dir = os.path.join(CUSTOMERS_DIR, slug)
+    shutil.rmtree(store_dir, ignore_errors=True)
+    flash(f'{cfg["store_name"]} deleted.', 'success')
+    return redirect(url_for('overseer_dashboard'))
+
+@app.route('/overseer/client/<slug>/reset-password', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_reset_password(slug):
+    import secrets
+    cfg = load_client_config(slug)
+    if not cfg:
+        flash('Client not found.', 'error')
+        return redirect(url_for('overseer_dashboard'))
+    users_file = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+    if not os.path.exists(users_file):
+        flash('No users file for this store.', 'error')
+        return redirect(url_for('overseer_client_detail', slug=slug))
+    with open(users_file) as f:
+        users = json.load(f)
+    import secrets as _sec
+    temp_pw = _sec.token_urlsafe(10)
+    email = cfg.get('contact_email', '')
+    if email in users:
+        users[email]['password'] = hash_password(temp_pw)
+        with open(users_file, 'w') as f:
+            json.dump(users, f, indent=2)
+        flash(f'Password reset. Temp password: {temp_pw}', 'success')
+    else:
+        flash('User email not found in store users.', 'error')
+    return redirect(url_for('overseer_client_detail', slug=slug))
+
+@app.route('/overseer/client/<slug>/update', methods=['POST'])
+@login_required
+@overseer_required
+def overseer_update_client(slug):
+    cfg = load_client_config(slug)
+    if not cfg:
+        flash('Client not found.', 'error')
+        return redirect(url_for('overseer_dashboard'))
+    cfg['store_name']    = request.form.get('store_name', cfg['store_name']).strip()
+    cfg['tagline']       = request.form.get('tagline', cfg.get('tagline', '')).strip()
+    cfg['primary_color'] = request.form.get('primary_color', cfg.get('primary_color', '#2e7d6e'))
+    cfg['plan']          = request.form.get('plan', cfg.get('plan', 'starter'))
+    cfg['notes']         = request.form.get('notes', cfg.get('notes', '')).strip()
+    cfg['contact_name']  = request.form.get('contact_name', cfg.get('contact_name', '')).strip()
+    cfg['contact_email'] = request.form.get('contact_email', cfg.get('contact_email', '')).strip()
+    cfg['contact_phone'] = request.form.get('contact_phone', cfg.get('contact_phone', '')).strip()
+    save_client_config(slug, cfg)
+    flash('Client updated.', 'success')
+    return redirect(url_for('overseer_client_detail', slug=slug))
+
+# ── Client Dashboard ───────────────────────────────────────────────────────────
+@app.route('/my-store')
+@client_required
+def my_store():
+    slug = session.get('store_slug')
+    cfg  = load_client_config(slug) or {}
+    products = load_inventory()
+    total_value = sum(float(p.get('Price') or 0) for p in products)
+    available   = sum(1 for p in products if p.get('Status','').lower() == 'available')
+    sold        = sum(1 for p in products if p.get('Status','').lower() == 'sold')
+    return render_template('client_dashboard.html',
+        client_config=cfg,
+        products=products,
+        total_value=total_value,
+        available=available,
+        sold=sold,
+        **ctx()
+    )
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
