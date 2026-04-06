@@ -695,6 +695,65 @@ def ai_analyze():
     except Exception as e:
         return jsonify({'error': str(e)})
 
+def generate_ad_copy(title, price, category, condition, description, api_key):
+    """Call Claude to generate ad copy for one product. Returns dict with
+    headline, selling_line, price_callout, tagline. Falls back to raw fields
+    on any error."""
+    fallback = {
+        'headline':      title,
+        'selling_line':  description[:80] if description else '',
+        'price_callout': f'${price}',
+        'tagline':       '125 W Swannanoa Ave · Liberty, NC',
+    }
+    if not api_key:
+        return fallback
+
+    prompt = (
+        "You write ad copy for a thrift and antique store called Liberty Emporium.\n"
+        "Given this product, return ONLY a JSON object with these exact keys:\n"
+        "- headline: punchy ad headline, max 6 words\n"
+        "- selling_line: one benefit or descriptor, max 10 words\n"
+        "- price_callout: price with excitement, max 5 words (e.g. \"Just $24!\")\n"
+        "- tagline: short footer line, max 8 words\n\n"
+        f"Product:\nTitle: {title}\nCategory: {category}\n"
+        f"Condition: {condition}\nPrice: ${price}\nDescription: {description}"
+    )
+
+    payload = {
+        'model': 'claude-haiku-4-5-20251001',
+        'max_tokens': 200,
+        'messages': [{'role': 'user', 'content': prompt}],
+    }
+
+    try:
+        import urllib.request as _ur
+        req = _ur.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=json.dumps(payload).encode(),
+            headers={
+                'Content-Type': 'application/json',
+                'x-api-key': api_key,
+                'anthropic-version': '2023-06-01',
+            }
+        )
+        with _ur.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read())
+        text = result['content'][0]['text'].strip()
+        # Strip markdown code fences if Claude wraps response
+        if text.startswith('```'):
+            text = text.split('```')[1]
+            if text.startswith('json'):
+                text = text[4:]
+        copy = json.loads(text)
+        # Validate all keys present
+        for key in ('headline', 'selling_line', 'price_callout', 'tagline'):
+            if key not in copy:
+                return fallback
+        return copy
+    except Exception:
+        return fallback
+
+
 # ── Ad Generator ──────────────────────────────────────────────────────────────
 @app.route('/ads')
 @login_required
