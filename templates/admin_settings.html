@@ -142,53 +142,31 @@
 <div style="max-width:640px; margin:2rem auto;">
     <div style="background:white; padding:2rem; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
         <h2 style="font-size:1.2rem; margin-bottom:0.5rem;">💳 Stripe Payment Keys</h2>
-        <p style="color:#666; font-size:0.85rem; margin-bottom:1.5rem;">
-            Add your Stripe keys to enable real payments when customers buy the app through the wizard.
-            Get your keys from <a href="https://dashboard.stripe.com/apikeys" target="_blank" style="color:#635bff; font-weight:700;">dashboard.stripe.com/apikeys ↗</a>
-        </p>
 
         {% if stripe_secret_key %}
         <div style="background:#d4edda; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1.5rem; font-size:0.85rem;">
-            ✅ <strong>Stripe Configured</strong> — payments are live.<br>
-            Secret key: <code style="background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px;">{{ stripe_secret_key[:12] }}...{{ stripe_secret_key[-4:] }}</code>
+            ✅ <strong>Stripe Active</strong> — Buy Now buttons go to Stripe Checkout.<br>
+            Key: <code style="background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px;">{{ stripe_secret_key[:12] }}...{{ stripe_secret_key[-4:] }}</code>
         </div>
         {% else %}
         <div style="background:#fff3cd; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1.5rem; font-size:0.85rem;">
-            ⚠️ <strong>Stripe not configured</strong> — customers will see a mailto fallback instead of a checkout page.
+            ⚠️ <strong>Stripe not active</strong> — Buy Now sends an email instead of opening Stripe.
         </div>
         {% endif %}
 
-        <form method="POST" action="/admin/settings/stripe">
-            <div style="margin-bottom:1.25rem;">
-                <label style="font-size:0.85rem; font-weight:700; color:#333; display:block; margin-bottom:0.35rem;">
-                    Publishable Key <span style="font-weight:400; color:#999;">(starts with pk_live_ or pk_test_)</span>
-                </label>
-                <input type="text" name="stripe_public_key"
-                       placeholder="pk_live_..."
-                       value="{{ stripe_public_key or '' }}"
-                       style="width:100%; padding:0.75rem; border:1.5px solid #ddd; border-radius:8px; font-size:0.9rem; font-family:monospace; box-sizing:border-box;">
-            </div>
-            <div style="margin-bottom:1.5rem;">
-                <label style="font-size:0.85rem; font-weight:700; color:#333; display:block; margin-bottom:0.35rem;">
-                    Secret Key <span style="font-weight:400; color:#999;">(starts with sk_live_ or sk_test_)</span>
-                </label>
-                <input type="password" name="stripe_secret_key"
-                       placeholder="sk_live_..."
-                       style="width:100%; padding:0.75rem; border:1.5px solid #ddd; border-radius:8px; font-size:0.9rem; font-family:monospace; box-sizing:border-box;">
-                <p style="font-size:0.75rem; color:#999; margin-top:0.3rem;">Leave blank to keep the existing secret key unchanged.</p>
-            </div>
-            <div style="display:flex; gap:0.75rem; align-items:center;">
-                <button type="submit" style="padding:0.7rem 1.5rem; background:#635bff; color:white; border:none; border-radius:8px; font-size:0.9rem; font-weight:700; cursor:pointer;">
-                    💾 Save Stripe Keys
-                </button>
-                {% if stripe_secret_key %}
-                <button type="submit" name="clear_stripe" value="1"
-                        style="padding:0.7rem 1rem; background:#fff; color:#c0392b; border:1.5px solid #f5c6cb; border-radius:8px; font-size:0.8rem; cursor:pointer;">
-                    🗑️ Clear Keys
-                </button>
-                {% endif %}
-            </div>
-        </form>
+        <p style="color:#444; font-size:0.9rem; margin-bottom:1rem;">
+            Stripe keys must be set as <strong>environment variables in Railway</strong> — they can't be saved here because Railway resets files on every deploy.
+        </p>
+        <ol style="color:#444; font-size:0.875rem; line-height:2; padding-left:1.25rem; margin-bottom:1.5rem;">
+            <li>Go to <a href="https://railway.app/dashboard" target="_blank" style="color:#635bff; font-weight:700;">railway.app/dashboard ↗</a></li>
+            <li>Open your project → click your service → go to <strong>Variables</strong></li>
+            <li>Add these two variables:</li>
+        </ol>
+        <div style="background:#f8f7ff; border:1.5px solid #e0ddf8; border-radius:8px; padding:1rem; font-family:monospace; font-size:0.85rem; margin-bottom:1.5rem;">
+            <div style="margin-bottom:0.5rem;"><strong>STRIPE_SECRET_KEY</strong> = sk_live_... <span style="color:#888; font-family:sans-serif;">(from dashboard.stripe.com/apikeys)</span></div>
+            <div><strong>STRIPE_PUBLIC_KEY</strong> = pk_live_... <span style="color:#888; font-family:sans-serif;">(same page)</span></div>
+        </div>
+        <p style="color:#666; font-size:0.8rem;">Railway will automatically redeploy after you save — then Buy Now will open Stripe Checkout.</p>
     </div>
 </div>
 
