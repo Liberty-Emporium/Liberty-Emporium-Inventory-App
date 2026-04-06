@@ -1755,19 +1755,15 @@ def payment_plan(plan):
         return f"Payment setup error: {e}", 500
 
     # Fallback: mailto if no Stripe keys configured
-    subject = f"RetailTrack {p['name']} - ${p['price']}"
-    body = f"Hi Jay,\n\nI'd like to purchase the RetailTrack {p['name']} plan (${p['price']}).\n\nThanks!"
+    from urllib.parse import quote
+    subject = quote(f"RetailTrack {p['name']} - ${p['price']}")
+    body = quote(f"Hi Jay, I'd like to purchase the RetailTrack {p['name']} plan (${p['price']}). Thanks!")
     return redirect(f"mailto:leprograms@protonmail.com?subject={subject}&body={body}")
 
 @app.route('/pay-success')
 def payment_success():
     """Thank you page after payment."""
     return render_template('payment_success.html')
-
-@app.errorhandler(500)
-def internal_error(e):
-    import traceback
-    return f"<pre>500 Error:\n{traceback.format_exc()}</pre>", 500
 
 @app.route('/admin/leads')
 @login_required
