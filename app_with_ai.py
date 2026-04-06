@@ -471,8 +471,10 @@ def ping():
 # ── Auth Routes ───────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET','POST'])
 def login():
-    # Already logged in? Redirect to dashboard
+    # Already logged in? Redirect to appropriate dashboard
     if session.get('logged_in') and not session.get('is_guest'):
+        if session.get('store_slug'):
+            return redirect(url_for('my_store'))
         return redirect(url_for('dashboard'))
     if request.method == 'POST':
         username = request.form.get('username','').strip()
@@ -481,19 +483,56 @@ def login():
             session['logged_in'] = True
             session['username']  = ADMIN_USER
             session['is_guest']  = False
+            session['role']      = 'overseer'
             session.permanent    = True
             app.permanent_session_lifetime = datetime.timedelta(hours=8)
             flash('Welcome back, Admin!', 'success')
             return redirect(url_for('dashboard'))
         users = load_users()
         if username in users and users[username]['password'] == hash_password(password):
+            user_record = users[username]
             session['logged_in'] = True
             session['username']  = username
             session['is_guest']  = False
+            session['role']      = user_record.get('role', '')
             session.permanent    = True
             app.permanent_session_lifetime = datetime.timedelta(hours=8)
             flash(f'Welcome, {username}!', 'success')
             return redirect(url_for('dashboard'))
+        # Check client store users
+        if os.path.exists(CUSTOMERS_DIR):
+            for entry in os.listdir(CUSTOMERS_DIR):
+                store_users_path = os.path.join(CUSTOMERS_DIR, entry, 'users.json')
+                if not os.path.exists(store_users_path):
+                    continue
+                try:
+                    with open(store_users_path) as f:
+                        store_users = json.load(f)
+                except Exception:
+                    continue
+                if username in store_users:
+                    su = store_users[username]
+                    if su.get('password') == hash_password(password):
+                        store_cfg_path = os.path.join(CUSTOMERS_DIR, entry, 'config.json')
+                        store_name = entry
+                        if os.path.exists(store_cfg_path):
+                            try:
+                                with open(store_cfg_path) as f:
+                                    store_name = json.load(f).get('store_name', entry)
+                            except Exception:
+                                pass
+                        if su.get('status') == 'suspended':
+                            flash('Your store has been suspended. Contact support.', 'error')
+                            return render_template('login.html', **ctx())
+                        session['logged_in']  = True
+                        session['username']   = username
+                        session['is_guest']   = False
+                        session['role']       = 'client'
+                        session['store_slug'] = entry
+                        session.permanent     = True
+                        app.permanent_session_lifetime = datetime.timedelta(hours=8)
+                        flash(f'Welcome to {store_name}!', 'success')
+                        return redirect(url_for('my_store'))
         flash('Invalid username or password.', 'error')
     return render_template('login.html', **ctx())
 
