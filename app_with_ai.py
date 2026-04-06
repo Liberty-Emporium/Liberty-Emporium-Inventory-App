@@ -1718,21 +1718,19 @@ def customer_store(slug):
 def payment_plan(plan):
     """Redirect to checkout for the chosen pricing tier."""
     plans = {
-        'starter': {'name': 'Starter', 'price': 299, 'email': 'leprograms@protonmail.com'},
-        'pro': {'name': 'Pro', 'price': 499, 'email': 'leprograms@protonmail.com'},
-        'enterprise': {'name': 'Enterprise', 'price': 799, 'email': 'leprograms@protonmail.com'},
+        'starter': {'name': 'Starter', 'price': 299},
+        'pro':     {'name': 'Pro',     'price': 499},
+        'enterprise': {'name': 'Enterprise', 'price': 799},
     }
     p = plans.get(plan, plans['pro'])
 
-    # Load keys fresh from file/env on every request (not stale startup globals)
-    secret_key, _ = get_stripe_keys()
-    is_stripe_ready = bool(secret_key and (secret_key.startswith('sk_live_') or secret_key.startswith('sk_test_')))
+    try:
+        secret_key, _ = get_stripe_keys()
+        is_stripe_ready = bool(secret_key and (secret_key.startswith('sk_live_') or secret_key.startswith('sk_test_')))
 
-    # If Stripe is configured, do a proper checkout session
-    if is_stripe_ready:
-        import stripe
-        stripe.api_key = secret_key
-        try:
+        if is_stripe_ready:
+            import stripe
+            stripe.api_key = secret_key
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
@@ -1740,7 +1738,7 @@ def payment_plan(plan):
                         'currency': 'usd',
                         'product_data': {
                             'name': f"RetailTrack {p['name']}",
-                            'description': f"One-time purchase of RetailTrack {p['name']} plan",
+                            'description': f"One-time purchase — RetailTrack {p['name']} plan",
                         },
                         'unit_amount': p['price'] * 100,
                     },
@@ -1752,13 +1750,13 @@ def payment_plan(plan):
                 metadata={'plan': plan},
             )
             return redirect(checkout_session.url, code=303)
-        except Exception as e:
-            flash(f"Payment error: {e}", "error")
-            return redirect(url_for('wizard'), 302)
-    
-    # Fallback: show a mailto link for manual payment
+    except Exception as e:
+        app.logger.error(f"Stripe error for plan {plan}: {e}")
+        return f"Payment setup error: {e}", 500
+
+    # Fallback: mailto if no Stripe keys configured
     subject = f"RetailTrack {p['name']} - ${p['price']}"
-    body = f"Hi Jay,\n\nI'm interested in the RetailTrack {p['name']} plan (${p['price']}).\n\nPlease send me more info and setup details.\n\nThanks!"
+    body = f"Hi Jay,\n\nI'd like to purchase the RetailTrack {p['name']} plan (${p['price']}).\n\nThanks!"
     return redirect(f"mailto:leprograms@protonmail.com?subject={subject}&body={body}")
 
 @app.route('/pay-success')
