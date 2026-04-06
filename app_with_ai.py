@@ -736,14 +736,12 @@ def generate_ad_copy(title, price, category, condition, description, api_key):
                 'anthropic-version': '2023-06-01',
             }
         )
-        with _ur.urlopen(req, timeout=15) as resp:
+        with _ur.urlopen(req, timeout=15) as resp:  # shorter timeout — called from threads
             result = json.loads(resp.read())
         text = result['content'][0]['text'].strip()
         # Strip markdown code fences if Claude wraps response
         if text.startswith('```'):
-            text = text.split('```')[1]
-            if text.startswith('json'):
-                text = text[4:]
+            text = text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
         copy = json.loads(text)
         # Validate all keys present
         for key in ('headline', 'selling_line', 'price_callout', 'tagline'):
