@@ -10,6 +10,7 @@ import io
 import tempfile
 import threading
 import time
+import functools
 from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, jsonify, send_file, send_from_directory, make_response)
 from werkzeug.utils import secure_filename
@@ -2682,6 +2683,7 @@ def save_api_keys(keys):
 
 def require_api_key(f):
     """Decorator to require valid API key"""
+    @functools.wraps(f)
     def decorated(*args, **kwargs):
         api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
         if not api_key:
@@ -2695,7 +2697,6 @@ def require_api_key(f):
         g.api_key = api_key
         g.api_key_name = keys[api_key].get('name', 'API Key')
         return f(*args, **kwargs)
-    decorated.__name__ = f.__name__
     return decorated
 
 # ── API Routes ─────────────────────────────────────────────────────────────
