@@ -516,6 +516,7 @@ def inject_globals():
         if cfg:
             impersonating_store_name = cfg.get('store_name', impersonating_slug)
     user_role = session.get('role', 'overseer' if is_admin else 'guest')
+    server_has_ai_key = bool(get_ai_api_key())
     return dict(
         store_name=STORE_NAME,
         demo_mode=DEMO_MODE,
@@ -526,6 +527,7 @@ def inject_globals():
         store_config=load_store_config(),
         impersonating_slug=impersonating_slug,
         impersonating_store_name=impersonating_store_name,
+        server_has_ai_key=server_has_ai_key,
     )
 
 # ── Health check (no login required, for Railway) ─────────────────────────────

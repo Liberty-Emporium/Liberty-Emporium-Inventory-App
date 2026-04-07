@@ -109,7 +109,8 @@
       </div>
     </div>
 
-    <!-- API Key subsection (collapsible) -->
+    {% if not server_has_ai_key %}
+    <!-- API Key subsection (collapsible) — only shown when server has no key configured -->
     <div style="background:rgba(0,0,0,0.2); border-radius:8px; margin-bottom:1rem; overflow:hidden;">
       <!-- Toggle row -->
       <button type="button" onclick="toggleApiSection()" id="api-toggle-row"
@@ -145,6 +146,13 @@
         <div id="key-status" style="font-size:0.78rem; margin-top:0.4rem; opacity:0.75;"></div>
       </div>
     </div>
+    {% else %}
+    <!-- Server has AI key configured — no key entry needed -->
+    <div style="background:rgba(0,0,0,0.15); border-radius:8px; margin-bottom:1rem; padding:0.6rem 1rem; font-size:0.85rem; opacity:0.85;">
+      🔑 AI powered by Liberty Emporium — just upload a photo and analyze!
+    </div>
+    <input type="hidden" id="aiApiKey" value="">
+    {% endif %}
 
     <!-- Upload & Analyze -->
     <div class="ai-upload">
@@ -463,6 +471,7 @@
 function toggleApiSection(forceOpen) {
   var body    = document.getElementById('api-key-body');
   var chevron = document.getElementById('api-chevron');
+  if (!body || !chevron) return;
   var isOpen  = body.style.display !== 'none';
   if (forceOpen === true || (!isOpen && forceOpen !== false)) {
     body.style.display = 'block';
@@ -475,6 +484,7 @@ function toggleApiSection(forceOpen) {
 
 // ── API Key persistence ──────────────────────────────────────────────────────
 function saveApiKey() {
+  if (SERVER_HAS_AI_KEY) return;
   var key = document.getElementById('aiApiKey').value.trim();
   if (key) {
     localStorage.setItem('claude_api_key', key);
@@ -484,6 +494,7 @@ function saveApiKey() {
 }
 
 function loadApiKey() {
+  if (SERVER_HAS_AI_KEY) return;
   var key = localStorage.getItem('claude_api_key') || '';
   if (key) {
     document.getElementById('aiApiKey').value = key;
@@ -572,13 +583,15 @@ function incrementUsage(inputTok, outputTok) {
 }
 
 // ── Analyze ──────────────────────────────────────────────────────────────────
+var SERVER_HAS_AI_KEY = {{ 'true' if server_has_ai_key else 'false' }};
+
 function analyzeWithAI() {
   var fileInput = document.getElementById('aiImage');
   var file = fileInput.files[0];
   if (!file) { alert('Please select an image first!'); return; }
 
   var apiKey = document.getElementById('aiApiKey').value.trim();
-  if (!apiKey) {
+  if (!apiKey && !SERVER_HAS_AI_KEY) {
     document.getElementById('aiResult').innerHTML =
       '<p style="color:#c0392b;">❌ Please enter your Claude API key above before analyzing.</p>';
     document.getElementById('aiApiKey').focus();
@@ -587,7 +600,7 @@ function analyzeWithAI() {
 
   var formData = new FormData();
   formData.append('image', file);
-  formData.append('api_key', apiKey);
+  if (apiKey) formData.append('api_key', apiKey);
 
   document.getElementById('aiLoading').style.display = 'block';
   document.getElementById('aiResult').innerHTML = '';
