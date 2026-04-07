@@ -150,10 +150,21 @@
 
 <!-- Password Reset -->
 <div class="section-card">
-  <h2>🔑 Reset Client Password</h2>
-  <p style="color:#555;font-size:0.9rem;margin-bottom:1rem;">Generate a new temporary password and share it with the client.</p>
-  <form method="POST" action="/overseer/client/{{ slug }}/reset-password">
-    <button type="submit" class="btn-warn">🔑 Generate New Password</button>
+  <h2>🔑 Set Client Password</h2>
+  <p style="color:#555;font-size:0.9rem;margin-bottom:1.25rem;">Create a new password for this client and share it with them.</p>
+  <form method="POST" action="/overseer/client/{{ slug }}/reset-password" id="pwResetForm">
+    <div class="info-grid" style="max-width:480px;">
+      <div class="form-row">
+        <label>New Password</label>
+        <input type="password" name="new_password" id="pw1" placeholder="Enter new password" required minlength="6" autocomplete="new-password">
+      </div>
+      <div class="form-row">
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" id="pw2" placeholder="Re-enter to confirm" required minlength="6" autocomplete="new-password">
+      </div>
+    </div>
+    <div id="pw-match-msg" style="font-size:0.82rem;margin:0.4rem 0 0.75rem;min-height:1.1rem;"></div>
+    <button type="submit" class="btn-warn" id="pw-save-btn" disabled>🔑 Set Password</button>
   </form>
 </div>
 
@@ -183,5 +194,27 @@
 document.getElementById('deleteModal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('open');
 });
+
+// Password match checker
+(function() {
+  var pw1 = document.getElementById('pw1');
+  var pw2 = document.getElementById('pw2');
+  var msg = document.getElementById('pw-match-msg');
+  var btn = document.getElementById('pw-save-btn');
+  function check() {
+    var v1 = pw1.value, v2 = pw2.value;
+    if (!v1 && !v2) { msg.textContent = ''; btn.disabled = true; return; }
+    if (!v2) { msg.textContent = ''; btn.disabled = true; return; }
+    if (v1 === v2) {
+      msg.style.color = '#166534'; msg.textContent = '✅ Passwords match';
+      btn.disabled = false;
+    } else {
+      msg.style.color = '#991b1b'; msg.textContent = '❌ Passwords do not match';
+      btn.disabled = true;
+    }
+  }
+  pw1.addEventListener('input', check);
+  pw2.addEventListener('input', check);
+})();
 </script>
 {% endblock %}

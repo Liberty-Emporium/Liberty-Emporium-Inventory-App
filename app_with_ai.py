@@ -2268,7 +2268,14 @@ def overseer_delete(slug):
 @login_required
 @overseer_required
 def overseer_reset_password(slug):
-    import secrets
+    new_pw = request.form.get('new_password', '').strip()
+    confirm_pw = request.form.get('confirm_password', '').strip()
+    if not new_pw or len(new_pw) < 6:
+        flash('Password must be at least 6 characters.', 'error')
+        return redirect(url_for('overseer_client_detail', slug=slug))
+    if new_pw != confirm_pw:
+        flash('Passwords do not match.', 'error')
+        return redirect(url_for('overseer_client_detail', slug=slug))
     cfg = load_client_config(slug)
     if not cfg:
         flash('Client not found.', 'error')
@@ -2279,14 +2286,12 @@ def overseer_reset_password(slug):
         return redirect(url_for('overseer_client_detail', slug=slug))
     with open(users_file) as f:
         users = json.load(f)
-    import secrets as _sec
-    temp_pw = _sec.token_urlsafe(10)
     email = cfg.get('contact_email', '')
     if email in users:
-        users[email]['password'] = hash_password(temp_pw)
+        users[email]['password'] = hash_password(new_pw)
         with open(users_file, 'w') as f:
             json.dump(users, f, indent=2)
-        flash(f'Password reset. Temp password: {temp_pw}', 'success')
+        flash('Password updated successfully.', 'success')
     else:
         flash('User email not found in store users.', 'error')
     return redirect(url_for('overseer_client_detail', slug=slug))
@@ -2381,6 +2386,39 @@ def my_store():
         sold=sold,
         **ctx()
     )
+
+@app.route('/my-store/change-password', methods=['GET', 'POST'])
+@client_required
+def my_store_change_password():
+    slug = session.get('store_slug')
+    cfg  = load_client_config(slug) or {}
+    if request.method == 'POST':
+        current_pw  = request.form.get('current_password', '').strip()
+        new_pw      = request.form.get('new_password', '').strip()
+        confirm_pw  = request.form.get('confirm_password', '').strip()
+        email = cfg.get('contact_email', '')
+        users_file = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+        if not os.path.exists(users_file) or not email:
+            flash('Account not found.', 'error')
+            return redirect(url_for('my_store_change_password'))
+        with open(users_file) as f:
+            users = json.load(f)
+        user = users.get(email)
+        if not user or hash_password(current_pw) != user.get('password', ''):
+            flash('Current password is incorrect.', 'error')
+            return redirect(url_for('my_store_change_password'))
+        if len(new_pw) < 6:
+            flash('New password must be at least 6 characters.', 'error')
+            return redirect(url_for('my_store_change_password'))
+        if new_pw != confirm_pw:
+            flash('New passwords do not match.', 'error')
+            return redirect(url_for('my_store_change_password'))
+        users[email]['password'] = hash_password(new_pw)
+        with open(users_file, 'w') as f:
+            json.dump(users, f, indent=2)
+        flash('Password changed successfully!', 'success')
+        return redirect(url_for('my_store'))
+    return render_template('change_password.html', cfg=cfg, slug=slug, **ctx())
 
 # ── Overseer Assistant ────────────────────────────────────────────────────────
 def build_assistant_context():
