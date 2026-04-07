@@ -2665,3 +2665,169 @@ def overseer_assistant_alerts():
 # ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     app.run(debug=True)
+
+# ── API Keys ───────────────────────────────────────────────────────────────
+
+API_KEYS_FILE = os.path.join(DATA_DIR, 'api_keys.json')
+
+def load_api_keys():
+    if os.path.exists(API_KEYS_FILE):
+        with open(API_KEYS_FILE) as f:
+            return json.load(f)
+    return {}
+
+def save_api_keys(keys):
+    with open(API_KEYS_FILE, 'w') as f:
+        json.dump(keys, f, indent=2)
+
+def require_api_key(f):
+    """Decorator to require valid API key"""
+    def decorated(*args, **kwargs):
+        api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+        if not api_key:
+            return jsonify({'error': 'API key required'}), 401
+        
+        keys = load_api_keys()
+        if api_key not in keys:
+            return jsonify({'error': 'Invalid API key'}), 401
+        
+        # Store key info in g for route access
+        g.api_key = api_key
+        g.api_key_name = keys[api_key].get('name', 'API Key')
+        return f(*args, **kwargs)
+    return decorated
+
+# ── API Routes ─────────────────────────────────────────────────────────────
+
+@app.route('/api/keys', methods=['GET'])
+@login_required
+@admin_required
+def list_api_keys():
+    """List all API keys (masked)"""
+    keys = load_api_keys()
+    masked = {k[:8]+'...': {'name': v.get('name'), 'created': v.get('created')} for k, v in keys.items()}
+    return jsonify(masked)
+
+@app.route('/api/keys', methods=['POST'])
+@login_required
+@admin_required
+def create_api_key():
+    """Create new API key"""
+    data = request.get_json()
+    name = data.get('name', 'API Key')
+    
+    import secrets
+    key = secrets.token_urlsafe(32)
+    
+    keys = load_api_keys()
+    keys[key] = {
+        'name': name,
+        'created': str(datetime.datetime.now()),
+        'created_by': session.get('username')
+    }
+    save_api_keys(keys)
+    
+    return jsonify({'api_key': key, 'name': name, 'message': 'Save this key - it won\'t be shown again!'})
+
+@app.route('/api/keys/<key>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_api_key(key):
+    """Delete API key"""
+    keys = load_api_keys()
+    if key in keys:
+        del keys[key]
+        save_api_keys(keys)
+        return jsonify({'message': 'Key deleted'})
+    return jsonify({'error': 'Key not found'}), 404
+
+# ── Inventory API ──────────────────────────────────────────────────────────
+
+@app.route('/api/inventory', methods=['GET'])
+@require_api_key
+def api_get_inventory():
+    """Get all products"""
+    products = load_inventory()
+    return jsonify({'count': len(products), 'products': products})
+
+@app.route('/api/inventory/<sku>', methods=['GET'])
+@require_api_key
+def api_get_product(sku):
+    """Get single product"""
+    products = load_inventory()
+    product = next((p for p in products if p['SKU'] == sku), None)
+    if product:
+        return jsonify(product)
+    return jsonify({'error': 'Product not found'}), 404
+
+@app.route('/api/inventory', methods=['POST'])
+@require_api_key
+def api_create_product():
+    """Create new product"""
+    data = request.get_json()
+    products = load_inventory()
+    
+    # Check SKU doesn't exist
+    if any(p['SKU'] == data.get('SKU') for p in products):
+        return jsonify({'error': 'SKU already exists'}), 400
+    
+    products.append(data)
+    save_inventory(products)
+    
+    return jsonify({'message': 'Product created', 'sku': data.get('SKU')})
+
+@app.route('/api/inventory/<sku>', methods=['PUT'])
+@require_api_key
+def api_update_product(sku):
+    """Update product"""
+    data = request.get_json()
+    products = load_inventory()
+    
+    for i, p in enumerate(products):
+        if p['SKU'] == sku:
+            products[i].update(data)
+            save_inventory(products)
+            return jsonify({'message': 'Product updated'})
+    
+    return jsonify({'error': 'Product not found'}), 404
+
+@app.route('/api/inventory/<sku>', methods=['DELETE'])
+@require_api_key
+def api_delete_product(sku):
+    """Delete product"""
+    products = load_inventory()
+    
+    for i, p in enumerate(products):
+        if p['SKU'] == sku:
+            del products[i]
+            save_inventory(products)
+            return jsonify({'message': 'Product deleted'})
+    
+    return jsonify({'error': 'Product not found'}), 404
+
+@app.route('/api/stats', methods=['GET'])
+@require_api_key
+def api_stats():
+    """Get inventory stats"""
+    products = load_inventory()
+    stats = get_stats()
+    return jsonify(stats)
+
+# ── Ad API ─────────────────────────────────────────────────────────────────
+
+@app.route('/api/ads/generate', methods=['POST'])
+@require_api_key
+def api_generate_ad():
+    """Generate ad for product"""
+    data = request.get_json()
+    sku = data.get('sku')
+    
+    products = load_inventory()
+    product = next((p for p in products if p['SKU'] == sku), None)
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    
+    # Call AI ad generator
+    # (Would integrate with existing ad_generator logic)
+    return jsonify({'sku': sku, 'status': 'generated', 'message': 'Ad generation endpoint ready'})
+
