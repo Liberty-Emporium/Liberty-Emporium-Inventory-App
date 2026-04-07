@@ -223,6 +223,7 @@
               <span style="font-size:0.78rem; opacity:0.75; font-weight:400;">Check out the AI features!</span>
             </a>
 
+            {% if session.get('logged_in') or session.get('is_guest') %}
             <div class="nav-links" id="navLinks">
                 {% if not session.get('is_guest') %}
                 <a href="{{ url_for('dashboard') }}">Dashboard</a>
@@ -238,6 +239,7 @@
                 <a href="{{ url_for('overseer_dashboard') }}" style="color:#f59e0b;font-weight:700;">🛡️ Overseer</a>
                 {% endif %}
             </div>
+            {% endif %}
 
             <div class="nav-right" style="display:flex; align-items:center; gap:1rem;" id="navRight">
                 <a href="/wizard" class="nav-cta">🚀 Get This App Now!</a>
@@ -250,12 +252,14 @@
                    style="color:#ecf0f1; font-size:0.85rem; text-decoration:none; background:rgba(255,255,255,0.15); padding:0.4rem 0.8rem; border-radius:4px;">
                     🚪 Logout
                 </a>
-                {% endif %}
+                {% if session.get('logged_in') or session.get('is_guest') %}
                 <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu" style="margin-left:auto;">
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                 </button>
+                {% endif %}
+                {% endif %}
             </div>
         </nav>
     </header>
