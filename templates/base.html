@@ -162,46 +162,47 @@
         
         /* ── Mobile Responsive ────────────────────────────────────── */
         @media (max-width: 768px) {
-            /* Dark nav bg so white hamburger lines show */
-            header nav { background: #2c3e50 !important; padding: 0.6rem 0.75rem !important; border-radius: 0 !important; }
-            /* White hamburger lines */
-            .hamburger span { background: #ecf0f1 !important; height: 3px !important; border-radius: 2px !important; }
-            /* Always visible on mobile */
-            .hamburger { display: flex !important; }
-            .logo { font-size: 0.75rem !important; max-width: 50% !important; }
-            .logo br { display: none; }
-            
-            /* Nav links dropdown */
+            /* Nav wraps so dropdown sits below the top row */
+            header { position: relative !important; }
+            header nav {
+                flex-wrap: wrap !important;
+                padding: 0.6rem 0.75rem !important;
+            }
+
+            /* Hide nav links by default; show when .open toggled */
             .nav-links {
                 display: none !important;
-                position: absolute;
-                top: 100%;
-                left: 0; right: 0;
-                background: #2c3e50;
+                order: 3;
+                width: 100%;
                 flex-direction: column;
-                padding: 0.5rem 0;
-                z-index: 9999;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+                background: #2c3e50;
+                padding: 0.25rem 0 0.5rem;
+                border-top: 1px solid rgba(255,255,255,0.12);
             }
             .nav-links.open { display: flex !important; }
             .nav-links a {
                 margin-left: 0 !important;
-                padding: 0.75rem 1.5rem !important;
+                padding: 0.75rem 1.25rem !important;
                 border-bottom: 1px solid rgba(255,255,255,0.08);
                 font-size: 1rem;
                 min-height: 44px;
                 display: flex !important;
                 align-items: center;
+                color: #ecf0f1 !important;
             }
-            
-            /* Compact right side — ONLY show hamburger */
-            .nav-right { gap: 0 !important; }
+
+            /* Top row: logo left, hamburger right */
+            .logo { font-size: 0.75rem !important; max-width: 60% !important; flex: 1; }
+            .logo br { display: none; }
+            .nav-right { order: 2; gap: 0 !important; }
             .nav-cta,
             .nav-right > span,
             .stats-badge { display: none !important; }
-            /* Ensure hamburger is visible */
-            .hamburger { display: flex !important; margin-left: auto !important; padding: 0.4rem !important; }
-            
+
+            /* Hamburger always visible */
+            .hamburger { display: flex !important; margin-left: 0.5rem !important; padding: 0.4rem !important; }
+            .hamburger span { background: #ecf0f1 !important; }
+
             /* Page content */
             main {
                 padding: 0 0.5rem !important;
