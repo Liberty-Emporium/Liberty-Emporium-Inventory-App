@@ -1,0 +1,26 @@
+<h2>What should Claude base the style on?</h2>
+<p class="subtitle">When Claude picks the color theme and layout for each ad, what should it use to decide?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>The Product Itself</h3>
+      <p>Claude reads the product title, category, and description and picks a style that fits — e.g. "vintage toy → warm earthy tones", "jewelry → elegant navy/gold". Each product gets its own personality.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>You Still Pick the Style</h3>
+      <p>You keep the existing style chips (Elegant, Vivid, Forest, Ocean, Warm) and Claude only writes the text. Style stays your choice.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Both — Claude Suggests, You Can Override</h3>
+      <p>Claude recommends a style per product, but the style chips are still shown with Claude's pick pre-selected. You can change it before generating.</p>
+    </div>
+  </div>
+</div>

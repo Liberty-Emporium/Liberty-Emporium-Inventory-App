@@ -2117,8 +2117,8 @@ def admin_leads():
 @overseer_required
 def overseer_dashboard():
     stores = list_client_stores()
-    plan_prices = {'starter': 299, 'pro': 499, 'enterprise': 799}
-    total_revenue = sum(plan_prices.get(s.get('plan', 'starter'), 0) for s in stores)
+    plan_prices = {'starter': 99.99}
+    total_revenue = sum(plan_prices.get(s.get('plan', 'starter'), 99.99) for s in stores)
     active_count    = sum(1 for s in stores if s.get('status') == 'active')
     suspended_count = sum(1 for s in stores if s.get('status') == 'suspended')
     return render_template('overseer_dashboard.html',
@@ -2442,7 +2442,7 @@ def build_assistant_context():
     overdue_trials   = [t for t in trial_leads if t.get('_days_remaining') is not None and t['_days_remaining'] < 0]
 
     mrr        = len(active_stores) * 20
-    setup_fees = len(stores) * 99
+    setup_fees = len(stores) * 99.99
 
     lines = [
         f"Today's date: {today.strftime('%B %d, %Y')}",
@@ -2652,7 +2652,7 @@ def overseer_assistant_alerts():
                 'draft_body':    (
                     f"{greeting},\n\n"
                     f"Just a quick note — your 14-day free trial for {store_name} ends {days_label} ({end_formatted}).\n\n"
-                    f"To keep your store running, the one-time setup fee is $99 and then just $20/month after that. "
+                    f"To keep your store running, the one-time setup fee is $99.99 and then just $20/month after that. "
                     f"I'll send you a payment link as soon as you're ready.\n\n"
                     f"Feel free to reply to this email with any questions.\n\n"
                     f"— Jay\nLiberty Emporium Programs"

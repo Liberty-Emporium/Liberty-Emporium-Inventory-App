@@ -130,9 +130,7 @@
       <div class="form-row">
         <label>Plan</label>
         <select name="plan">
-          <option value="starter" {% if client.plan == 'starter' %}selected{% endif %}>Starter — $299</option>
-          <option value="pro" {% if client.plan == 'pro' %}selected{% endif %}>Pro — $499</option>
-          <option value="enterprise" {% if client.plan == 'enterprise' %}selected{% endif %}>Enterprise — $799</option>
+          <option value="starter" {% if (client.plan or 'starter') in ('starter', 'pro', 'enterprise') %}selected{% endif %}>Standard — $99.99 setup + $20/mo</option>
         </select>
       </div>
       <div class="form-row">
