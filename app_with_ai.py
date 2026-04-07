@@ -659,6 +659,48 @@ def store_login(slug):
 
     return render_template('store_login.html', cfg=cfg, error=error, slug=slug)
 
+@app.route('/store/<slug>/change-password', methods=['GET', 'POST'])
+def store_change_password(slug):
+    """Allow a customer store user to change their password."""
+    cfg = load_client_config(slug)
+    if not cfg:
+        return redirect(url_for('login'))
+
+    error = None
+    success = None
+
+    if request.method == 'POST':
+        username    = request.form.get('username', '').strip()
+        current_pw  = request.form.get('current_password', '')
+        new_pw      = request.form.get('new_password', '')
+        confirm_pw  = request.form.get('confirm_password', '')
+
+        users_path = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+        try:
+            with open(users_path) as f:
+                store_users = json.load(f)
+        except Exception:
+            store_users = {}
+
+        if username not in store_users:
+            error = 'Email address not found.'
+        elif store_users[username].get('password') != hash_password(current_pw):
+            error = 'Current password is incorrect.'
+        elif len(new_pw) < 6:
+            error = 'New password must be at least 6 characters.'
+        elif new_pw != confirm_pw:
+            error = 'New passwords do not match.'
+        else:
+            store_users[username]['password'] = hash_password(new_pw)
+            try:
+                with open(users_path, 'w') as f:
+                    json.dump(store_users, f, indent=2)
+                success = 'Password updated successfully!'
+            except Exception:
+                error = 'Could not save. Please try again.'
+
+    return render_template('store_change_password.html', cfg=cfg, slug=slug, error=error, success=success)
+
 @app.route('/logout')
 def logout():
     slug = session.get('store_slug')
