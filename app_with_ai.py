@@ -611,7 +611,7 @@ def login():
                         flash(f'Welcome to {store_name}!', 'success')
                         return redirect(url_for('my_store'))
         flash('Invalid username or password.', 'error')
-    return render_template('login.html', **ctx())
+    return render_template('login.html', client_stores=list_client_stores(), **ctx())
 
 @app.route('/store/<slug>/login', methods=['GET', 'POST'])
 def store_login(slug):

@@ -65,6 +65,24 @@
         </div>
     </div>
 
+    <!-- Customer Stores -->
+    {% if client_stores %}
+    <div style="margin-top:1.5rem; background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08); overflow:hidden;">
+        <div style="background:#2c3e50; color:white; padding:0.85rem 1.25rem;">
+            <p style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; opacity:0.8; margin-bottom:0.15rem;">🏪 Customer Stores</p>
+            <p style="font-size:0.78rem; opacity:0.65; margin:0;">Have your own store? Log in below.</p>
+        </div>
+        {% for store in client_stores %}
+        <a href="/store/{{ store.slug }}/login"
+           style="display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1.25rem; text-decoration:none; color:#2c3e50; border-bottom:1px solid #f0f0f0; transition:background 0.15s;"
+           onmouseover="this.style.background='#f8f7f5'" onmouseout="this.style.background='white'">
+            <span style="font-weight:600; font-size:0.95rem;">{{ store.store_name }}</span>
+            <span style="font-size:0.8rem; color:#8B0000; font-weight:600;">Log In →</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div style="text-align:center; margin-top:1.5rem; padding:1rem; background:#f0f0ff; border-radius:10px; border:1px solid #d0d0ff;">
         <p style="font-size:0.85rem; color:#4f46e5; font-weight:600;">💡 Like what you see?</p>
         <p style="font-size:0.82rem; color:#555; margin-top:0.3rem;">
