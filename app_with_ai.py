@@ -2695,6 +2695,7 @@ def require_api_key(f):
         g.api_key = api_key
         g.api_key_name = keys[api_key].get('name', 'API Key')
         return f(*args, **kwargs)
+    decorated.__name__ = f.__name__
     return decorated
 
 # ── API Routes ─────────────────────────────────────────────────────────────
