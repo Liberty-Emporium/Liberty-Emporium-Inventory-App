@@ -701,6 +701,90 @@ def store_change_password(slug):
 
     return render_template('store_change_password.html', cfg=cfg, slug=slug, error=error, success=success)
 
+# In-memory reset tokens: { token: { 'slug': slug, 'username': username, 'expires': datetime } }
+_reset_tokens = {}
+
+@app.route('/store/<slug>/forgot-password', methods=['GET', 'POST'])
+def store_forgot_password(slug):
+    cfg = load_client_config(slug)
+    if not cfg:
+        return redirect(url_for('login'))
+
+    sent = False
+    error = None
+
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        users_path = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+        try:
+            with open(users_path) as f:
+                store_users = json.load(f)
+        except Exception:
+            store_users = {}
+
+        # Always show "sent" message — don't reveal if email exists
+        if email in store_users:
+            token = str(uuid.uuid4())
+            _reset_tokens[token] = {
+                'slug': slug,
+                'username': email,
+                'expires': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            }
+            reset_url = request.host_url.rstrip('/') + f'/store/{slug}/reset-password/{token}'
+            body = (
+                f"Hi,\n\n"
+                f"You requested a password reset for {cfg.get('store_name', slug)}.\n\n"
+                f"Click the link below to set a new password (valid for 1 hour):\n\n"
+                f"{reset_url}\n\n"
+                f"If you didn't request this, ignore this email.\n\n"
+                f"— Liberty Emporium Programs"
+            )
+            ok, err = send_smtp_email(email, f"Password Reset — {cfg.get('store_name', slug)}", body)
+            if not ok:
+                error = f"Could not send email: {err}"
+            else:
+                sent = True
+        else:
+            sent = True  # Don't reveal that email wasn't found
+
+    return render_template('store_forgot_password.html', cfg=cfg, slug=slug, sent=sent, error=error)
+
+
+@app.route('/store/<slug>/reset-password/<token>', methods=['GET', 'POST'])
+def store_reset_password(slug, token):
+    cfg = load_client_config(slug)
+    if not cfg:
+        return redirect(url_for('login'))
+
+    entry = _reset_tokens.get(token)
+    expired = not entry or entry['expires'] < datetime.datetime.utcnow() or entry['slug'] != slug
+
+    error = None
+    success = None
+
+    if not expired and request.method == 'POST':
+        new_pw     = request.form.get('new_password', '')
+        confirm_pw = request.form.get('confirm_password', '')
+        if len(new_pw) < 6:
+            error = 'Password must be at least 6 characters.'
+        elif new_pw != confirm_pw:
+            error = 'Passwords do not match.'
+        else:
+            users_path = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+            try:
+                with open(users_path) as f:
+                    store_users = json.load(f)
+                store_users[entry['username']]['password'] = hash_password(new_pw)
+                with open(users_path, 'w') as f:
+                    json.dump(store_users, f, indent=2)
+                del _reset_tokens[token]
+                success = 'Password updated! You can now sign in.'
+            except Exception:
+                error = 'Could not save. Please try again.'
+
+    return render_template('store_reset_password.html', cfg=cfg, slug=slug,
+                           expired=expired, error=error, success=success)
+
 @app.route('/logout')
 def logout():
     slug = session.get('store_slug')
