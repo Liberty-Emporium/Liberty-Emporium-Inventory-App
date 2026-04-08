@@ -100,3 +100,83 @@
     .stat-value { font-size: 1.1rem !important; }
     .stat-label { font-size: 0.6rem !important; }
 }
+
+/* ── Login Page Mobile ── */
+@media (max-width: 480px) {
+    .login-container { 
+        margin: 1rem auto !important;
+        padding: 1rem !important;
+    }
+    .login-form {
+        padding: 1.5rem !important;
+    }
+    .login-form h1 {
+        font-size: 1rem !important;
+    }
+    .login-form input {
+        padding: 0.85rem 1rem !important;
+        font-size: 16px !important;
+    }
+    .login-form button {
+        padding: 1rem !important;
+        font-size: 1rem !important;
+    }
+    
+    /* Demo credentials box */
+    .demo-creds-box {
+        padding: 0.75rem !important;
+    }
+    .demo-creds-box > div {
+        gap: 1rem !important;
+    }
+}
+
+/* ── Product Grid Mobile ── */
+@media (max-width: 600px) {
+    .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+    .product-card {
+        padding: 0.75rem !important;
+    }
+    .product-image img {
+        max-height: 180px !important;
+    }
+}
+
+/* ── Table Mobile ── */
+@media (max-width: 600px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    th, td {
+        padding: 0.5rem !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+/* ── Touch-friendly buttons ── */
+@media (max-width: 768px) {
+    a.btn, button, .btn {
+        min-height: 44px !important;
+        padding: 0.75rem 1rem !important;
+    }
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-width: 24px !important;
+        min-height: 24px !important;
+    }
+}
+
+/* ── Image upload mobile ── */
+@media (max-width: 480px) {
+    .upload-area {
+        padding: 1.5rem 1rem !important;
+    }
+    .upload-area p {
+        font-size: 0.9rem !important;
+    }
+}
