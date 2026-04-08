@@ -906,6 +906,53 @@ def view_product(sku):
         return redirect(url_for('dashboard'))
     return render_template('product.html', product=product, **ctx())
 
+@app.route('/my-store/add', methods=['GET','POST'])
+@rate_limit
+@client_required
+def client_new_product():
+    """Add new product - client version"""
+    if request.method == 'POST':
+        sku = request.form.get('sku','').strip().upper()
+        if not sku:
+            flash('SKU is required.', 'error')
+            return render_template('edit_with_ai.html', product={},
+                                   categories=CATEGORIES, conditions=CONDITIONS,
+                                   statuses=STATUSES, **ctx())
+        products = load_inventory()
+        if any(p['SKU'] == sku for p in products):
+            flash('SKU already exists.', 'error')
+            return render_template('edit_with_ai.html', product={},
+                                   categories=CATEGORIES, conditions=CONDITIONS,
+                                   statuses=STATUSES, **ctx())
+        images = []
+        for file in request.files.getlist('images'):
+            if file and allowed_file(file.filename):
+                ext      = file.filename.rsplit('.', 1)[1].lower()
+                filename = f"{sku}_{uuid.uuid4().hex[:8]}.{ext}"
+                file.save(os.path.join(get_store_paths(active_store_slug())['uploads'], filename))
+                images.append(filename)
+        product = {
+            'SKU':         sku,
+            'Title':       request.form.get('title','').strip(),
+            'Description': request.form.get('description','').strip(),
+            'Category':    request.form.get('category','').strip(),
+            'Condition':   request.form.get('condition','Good'),
+            'Price':       request.form.get('price','0'),
+            'Cost Paid':   '',
+            'Status':      request.form.get('status','Available'),
+            'Date Added':  datetime.date.today().isoformat(),
+            'Images':      ','.join(images),
+            'Section':     request.form.get('section','').strip(),
+            'Shelf':       request.form.get('shelf','').strip(),
+        }
+        products.append(product)
+        save_inventory(products)
+        flash(f'Product {sku} created!', 'success')
+        return redirect(url_for('my_store'))
+    return render_template('edit_with_ai.html', product={},
+                           categories=CATEGORIES, conditions=CONDITIONS,
+                           statuses=STATUSES, **ctx())
+
 @app.route('/new', methods=['GET','POST'])
 @rate_limit
 @login_required
