@@ -30,6 +30,53 @@ stripe_enabled = bool(STRIPE_SECRET_KEY and (STRIPE_SECRET_KEY.startswith('sk_li
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
 
+# ── Security Headers (API Security Best Practices) ──────────────────────────
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses"""
+    # Content Security Policy
+    response.headers['Content-Security-Policy'] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;"
+    # Prevent clickjacking
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    # Prevent MIME type sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    # XSS Protection
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    # Referrer Policy
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # HSTS (only for HTTPS)
+    if request.is_secure:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
+
+# ── Rate Limiting (Simple In-Memory) ──────────────────────────────────────────
+from collections import defaultdict
+import time as time_module
+
+rate_limits = defaultdict(list)
+RATE_LIMIT_WINDOW = 60  # 1 minute
+RATE_LIMIT_MAX = 100  # max requests per minute
+
+def check_rate_limit():
+    """Check if request exceeds rate limit"""
+    ip = request.remote_addr
+    now = time_module.time()
+    # Clean old entries
+    rate_limits[ip] = [t for t in rate_limits[ip] if now - t < RATE_LIMIT_WINDOW]
+    if len(rate_limits[ip]) >= RATE_LIMIT_MAX:
+        return False
+    rate_limits[ip].append(now)
+    return True
+
+# Decorator for rate-limited routes
+def rate_limit(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        if not check_rate_limit():
+            return jsonify({'error': 'Rate limit exceeded. Try again later.'}), 429
+        return f(*args, **kwargs)
+    return decorated
+
 # ── Helper: Fix EXIF orientation ──────────────────────────────────────────────
 def fix_image_orientation(img):
     """
@@ -547,6 +594,7 @@ def ping():
 
 # ── Auth Routes ───────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET','POST'])
+@rate_limit
 def login():
     # Already logged in? Redirect to appropriate dashboard
     if session.get('logged_in') and not session.get('is_guest'):
@@ -614,6 +662,7 @@ def login():
     return render_template('login.html', client_stores=list_client_stores(), **ctx())
 
 @app.route('/store/<slug>/login', methods=['GET', 'POST'])
+@rate_limit
 def store_login(slug):
     """Branded login page for a specific client store."""
     cfg = load_client_config(slug)
@@ -660,6 +709,7 @@ def store_login(slug):
     return render_template('store_login.html', cfg=cfg, error=error, slug=slug)
 
 @app.route('/store/<slug>/change-password', methods=['GET', 'POST'])
+@rate_limit
 def store_change_password(slug):
     """Allow a customer store user to change their password."""
     cfg = load_client_config(slug)
@@ -705,6 +755,7 @@ def store_change_password(slug):
 _reset_tokens = {}
 
 @app.route('/store/<slug>/forgot-password', methods=['GET', 'POST'])
+@rate_limit
 def store_forgot_password(slug):
     cfg = load_client_config(slug)
     if not cfg:
@@ -751,6 +802,7 @@ def store_forgot_password(slug):
 
 
 @app.route('/store/<slug>/reset-password/<token>', methods=['GET', 'POST'])
+@rate_limit
 def store_reset_password(slug, token):
     cfg = load_client_config(slug)
     if not cfg:
@@ -801,6 +853,7 @@ def guest():
     return redirect(url_for('dashboard'))
 
 @app.route('/signup', methods=['GET','POST'])
+@rate_limit
 def signup():
     if request.method == 'POST':
         username = request.form.get('username','').strip()
@@ -854,6 +907,7 @@ def view_product(sku):
     return render_template('product.html', product=product, **ctx())
 
 @app.route('/new', methods=['GET','POST'])
+@rate_limit
 @login_required
 def new_product():
     if session.get('is_guest'):
@@ -902,6 +956,7 @@ def new_product():
                            statuses=STATUSES, **ctx())
 
 @app.route('/edit/<sku>', methods=['GET','POST'])
+@rate_limit
 @login_required
 def edit_product(sku):
     if session.get('is_guest'):
@@ -955,6 +1010,7 @@ def confirm_delete_product(sku):
         delete_type='product', back_url=url_for('product_view', sku=sku), **ctx())
 
 @app.route('/delete/<sku>', methods=['POST'])
+@rate_limit
 @login_required
 def delete_product(sku):
     if session.get('is_guest'):
@@ -982,6 +1038,7 @@ def confirm_delete_image(sku, filename):
         delete_type='image', back_url=url_for('edit_product', sku=sku), **ctx())
 
 @app.route('/delete-image/<sku>', methods=['POST'])
+@rate_limit
 @login_required
 def delete_image(sku):
     filename = request.form.get('filename')
@@ -1009,6 +1066,7 @@ def edit_image(sku):
     return render_template('image_editor.html', product=product, **ctx())
 
 @app.route('/save-image/<sku>', methods=['POST'])
+@rate_limit
 @login_required
 def save_image(sku):
     data       = request.json
@@ -1025,6 +1083,7 @@ def save_image(sku):
 
 # ── AI Analysis ───────────────────────────────────────────────────────────────
 @app.route('/ai-analyze', methods=['POST'])
+@rate_limit
 @login_required
 def ai_analyze():
     # Accept key from the request first (user-supplied), fall back to server env var
@@ -1176,6 +1235,7 @@ def ad_generator():
     return resp
 
 @app.route('/generate-ads', methods=['POST'])
+@rate_limit
 @login_required
 def generate_ads():
     """Generate AI-written JPEG picture ads, streaming results via SSE."""
@@ -1394,6 +1454,7 @@ def ad_vault():
     return render_template('ad_vault.html', ads=ads, **ctx())
 
 @app.route('/ad-vault/delete/<filename>', methods=['POST'])
+@rate_limit
 @login_required
 def delete_ad(filename):
     if not (filename.lower().endswith('.jpg') or filename.lower().endswith('.jpeg')):
@@ -1415,6 +1476,7 @@ def listing_generator():
     return render_template('listing_generator.html', products=products, **ctx())
 
 @app.route('/rewrite-voice-script', methods=['POST'])
+@rate_limit
 @login_required
 def rewrite_voice_script():
     """Use Claude to polish a rough voiceover script into natural narration."""
@@ -1461,6 +1523,7 @@ def rewrite_voice_script():
         return jsonify({'error': f'Rewrite failed: {str(e)}'})
 
 @app.route('/generate-listing', methods=['POST'])
+@rate_limit
 @login_required
 def generate_listing():
     data = request.get_json() or {}
@@ -1624,6 +1687,7 @@ def export_square():
 
 # ── Import (Square CSV) ───────────────────────────────────────────────────────
 @app.route('/import-square', methods=['GET', 'POST'])
+@rate_limit
 @login_required
 @admin_required
 def import_square():
@@ -1739,6 +1803,7 @@ def import_square():
 
 # ── Seasonal Sale ─────────────────────────────────────────────────────────────
 @app.route('/seasonal-sale', methods=['GET','POST'])
+@rate_limit
 @login_required
 @admin_required
 def seasonal_sale():
@@ -1773,6 +1838,7 @@ def admin_users():
     return render_template('admin_users.html', users=users, pending=pending, **ctx())
 
 @app.route('/admin/approve/<username>', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def approve_user(username):
@@ -1788,6 +1854,7 @@ def approve_user(username):
     return redirect(url_for('admin_users'))
 
 @app.route('/admin/reject/<username>', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def reject_user(username):
@@ -1797,6 +1864,7 @@ def reject_user(username):
     return redirect(url_for('admin_users'))
 
 @app.route('/admin/remove/<username>', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def remove_user(username):
@@ -1831,6 +1899,7 @@ def download_backup(filename):
     return send_from_directory(BACKUP_FOLDER, filename, as_attachment=True)
 
 @app.route('/admin/backups/restore/<filename>', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def restore_backup(filename):
@@ -1841,6 +1910,7 @@ def restore_backup(filename):
     return redirect(url_for('admin_backups'))
 
 @app.route('/admin/backups/manual', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def manual_backup():
@@ -1884,6 +1954,7 @@ def price_tag(sku):
 # ── Store Configuration (white-label admin) ───────────────────────────────────
 # ── App Settings (single API key for all AI features) ─────────────────────────
 @app.route('/admin/settings', methods=['GET','POST'])
+@rate_limit
 @login_required
 @admin_required
 def admin_settings():
@@ -1909,6 +1980,7 @@ def admin_settings():
         **ctx())
 
 @app.route('/admin/settings/stripe', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def admin_settings_stripe():
@@ -1924,6 +1996,7 @@ def admin_settings_stripe():
     return redirect(url_for('admin_settings'))
 
 @app.route('/admin/settings/smtp', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def admin_settings_smtp():
@@ -1936,6 +2009,7 @@ def admin_settings_smtp():
     return redirect(url_for('admin_settings'))
 
 @app.route('/admin/settings/smtp/test', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def admin_settings_smtp_test():
@@ -1952,6 +2026,7 @@ def admin_settings_smtp_test():
     return redirect(url_for('admin_settings'))
 
 @app.route('/admin/branding', methods=['GET','POST'])
+@rate_limit
 @login_required
 @admin_required
 def admin_branding():
@@ -1972,6 +2047,7 @@ def admin_branding():
 
 # ── Onboarding Wizard ────────────────────────────────────────────────────────
 @app.route('/onboarding', methods=['GET','POST'])
+@rate_limit
 def onboarding():
     cfg = load_store_config()
     # If onboarding already done and user is logged in, redirect to dashboard
@@ -2048,6 +2124,7 @@ def wizard():
     return render_template('wizard.html')
 
 @app.route('/wizard-submit', methods=['POST'])
+@rate_limit
 def wizard_submit():
     """Handle wizard submission — create customer store with auto-provisioned demo data."""
     data = request.get_json()
@@ -2128,6 +2205,7 @@ def payment_plan(plan):
     return redirect(url_for('start_trial'))
 
 @app.route('/start-trial', methods=['GET', 'POST'])
+@rate_limit
 def start_trial():
     """Provision a real client store for the trial signup and log them in."""
     if request.method == 'POST':
@@ -2277,6 +2355,7 @@ def overseer_client_detail(slug):
     )
 
 @app.route('/overseer/client/create', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_create_client():
@@ -2343,6 +2422,7 @@ def overseer_create_client():
     return redirect(url_for('overseer_client_detail', slug=slug))
 
 @app.route('/overseer/client/<slug>/impersonate', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_impersonate(slug):
@@ -2362,6 +2442,7 @@ def overseer_exit_impersonate():
     return redirect(url_for('overseer_dashboard'))
 
 @app.route('/overseer/client/<slug>/suspend', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_suspend(slug):
@@ -2375,6 +2456,7 @@ def overseer_suspend(slug):
     return redirect(url_for('overseer_client_detail', slug=slug))
 
 @app.route('/overseer/client/<slug>/delete', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_delete(slug):
@@ -2392,6 +2474,7 @@ def overseer_delete(slug):
     return redirect(url_for('overseer_dashboard'))
 
 @app.route('/overseer/client/<slug>/reset-password', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_reset_password(slug):
@@ -2424,6 +2507,7 @@ def overseer_reset_password(slug):
     return redirect(url_for('overseer_client_detail', slug=slug))
 
 @app.route('/overseer/client/<slug>/update', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_update_client(slug):
@@ -2445,6 +2529,7 @@ def overseer_update_client(slug):
 
 # ── Client Dashboard ───────────────────────────────────────────────────────────
 @app.route('/my-store/branding', methods=['GET', 'POST'])
+@rate_limit
 @client_required
 def my_store_branding():
     slug = session.get('store_slug')
@@ -2515,6 +2600,7 @@ def my_store():
     )
 
 @app.route('/my-store/change-password', methods=['GET', 'POST'])
+@rate_limit
 @client_required
 def my_store_change_password():
     slug = session.get('store_slug')
@@ -2615,6 +2701,7 @@ def build_assistant_context():
 
 
 @app.route('/overseer/assistant/chat', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_assistant_chat():
@@ -2722,6 +2809,7 @@ Rules:
 
 
 @app.route('/overseer/assistant/send-email', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_assistant_send_email():
@@ -2740,6 +2828,7 @@ def overseer_assistant_send_email():
 
 
 @app.route('/overseer/assistant/alerts', methods=['POST'])
+@rate_limit
 @login_required
 @overseer_required
 def overseer_assistant_alerts():
@@ -2827,7 +2916,8 @@ def require_api_key(f):
 
 # ── API Routes ─────────────────────────────────────────────────────────────
 
-@app.route('/api/keys', methods=['GET'])
+@app.route("/api/keys", methods=["GET"])
+@rate_limit
 @login_required
 @admin_required
 def list_api_keys():
@@ -2837,6 +2927,7 @@ def list_api_keys():
     return jsonify(masked)
 
 @app.route('/api/keys', methods=['POST'])
+@rate_limit
 @login_required
 @admin_required
 def create_api_key():
@@ -2872,6 +2963,7 @@ def delete_api_key(key):
 # ── Inventory API ──────────────────────────────────────────────────────────
 
 @app.route('/api/inventory', methods=['GET'])
+@rate_limit
 @require_api_key
 def api_get_inventory():
     """Get all products"""
@@ -2879,6 +2971,7 @@ def api_get_inventory():
     return jsonify({'count': len(products), 'products': products})
 
 @app.route('/api/inventory/<sku>', methods=['GET'])
+@rate_limit
 @require_api_key
 def api_get_product(sku):
     """Get single product"""
@@ -2889,6 +2982,7 @@ def api_get_product(sku):
     return jsonify({'error': 'Product not found'}), 404
 
 @app.route('/api/inventory', methods=['POST'])
+@rate_limit
 @require_api_key
 def api_create_product():
     """Create new product"""
@@ -2934,6 +3028,7 @@ def api_delete_product(sku):
     return jsonify({'error': 'Product not found'}), 404
 
 @app.route('/api/stats', methods=['GET'])
+@rate_limit
 @require_api_key
 def api_stats():
     """Get inventory stats"""
@@ -2944,6 +3039,7 @@ def api_stats():
 # ── Ad API ─────────────────────────────────────────────────────────────────
 
 @app.route('/api/ads/generate', methods=['POST'])
+@rate_limit
 @require_api_key
 def api_generate_ad():
     """Generate ad for product"""
