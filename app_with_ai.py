@@ -56,6 +56,8 @@ import time as time_module
 rate_limits = defaultdict(list)
 RATE_LIMIT_WINDOW = 60  # 1 minute
 RATE_LIMIT_MAX = 100  # max requests per minute
+# Higher limit for AI-specific routes to avoid blocking legitimate use
+AI_RATE_LIMIT_MAX = 30  # AI requests per minute per IP
 
 def check_rate_limit():
     """Check if request exceeds rate limit"""
@@ -68,12 +70,33 @@ def check_rate_limit():
     rate_limits[ip].append(now)
     return True
 
+def check_ai_rate_limit():
+    """Check if AI request exceeds rate limit - separate from general rate limit"""
+    ip = request.remote_addr
+    now = time_module.time()
+    # Use a separate key for AI endpoints
+    ai_key = f"ai_{ip}"
+    rate_limits[ai_key] = [t for t in rate_limits[ai_key] if now - t < RATE_LIMIT_WINDOW]
+    if len(rate_limits[ai_key]) >= AI_RATE_LIMIT_MAX:
+        return False
+    rate_limits[ai_key].append(now)
+    return True
+
 # Decorator for rate-limited routes
 def rate_limit(f):
     @functools.wraps(f)
     def decorated(*args, **kwargs):
         if not check_rate_limit():
             return jsonify({'error': 'Rate limit exceeded. Try again later.'}), 429
+        return f(*args, **kwargs)
+    return decorated
+
+# Special decorator for AI routes with higher limit
+def ai_rate_limit(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        if not check_ai_rate_limit():
+            return jsonify({'error': '⚠️ API rate limit reached. Please wait a moment before trying again.'}), 429
         return f(*args, **kwargs)
     return decorated
 
@@ -1130,7 +1153,7 @@ def save_image(sku):
 
 # ── AI Analysis ───────────────────────────────────────────────────────────────
 @app.route('/ai-analyze', methods=['POST'])
-@rate_limit
+@ai_rate_limit
 @login_required
 def ai_analyze():
     # Accept key from the request first (user-supplied), fall back to server env var
@@ -1282,7 +1305,7 @@ def ad_generator():
     return resp
 
 @app.route('/generate-ads', methods=['POST'])
-@rate_limit
+@ai_rate_limit
 @login_required
 def generate_ads():
     """Generate AI-written JPEG picture ads, streaming results via SSE."""
