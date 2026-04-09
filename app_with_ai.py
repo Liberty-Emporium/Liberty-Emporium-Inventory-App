@@ -166,10 +166,15 @@ if DATA_DIR != BASE_DIR:
 
 def get_ai_api_key():
     """Get the unified Claude API key.
-    Checks: 1) app config JSON (admin-entered) → 2) store_config.json → 3) env var.
-    This is the SINGLE source for ALL AI features.
+    Checks: 1) environment variable → 2) app config JSON (admin-entered) → 3) store_config.json.
+    Environment variable takes priority so client stores can access the main key.
     """
-    # 1. Check app config file (set by admin via settings page)
+    # 1. Environment variable - shared across all stores (including multi-tenant)
+    env_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
+    if env_key:
+        return env_key
+    
+    # 2. Check app config file (set by admin via settings page)
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
     if os.path.exists(app_config_file):
         try:
@@ -181,14 +186,71 @@ def get_ai_api_key():
         except Exception:
             pass
 
-    # 2. Check store_config.json
+    # 3. Check store_config.json
     cfg = load_store_config()
     key = cfg.get('anthropic_api_key', '').strip()
     if key:
         return key
 
-    # 3. Fall back to environment variable (avoid infinite recursion)
-    return os.environ.get('ANTHROPIC_API_KEY', '').strip()
+    return ''
+
+def get_groq_api_key():
+    """Get Groq API key for customer stores.
+    Checks: 1) environment variable → 2) app config JSON → 3) store config.
+    """
+    # 1. Environment variable
+    env_key = os.environ.get('GROQ_API_KEY', '').strip()
+    if env_key:
+        return env_key
+    
+    # 2. Check app config file
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                app_cfg = json.load(f)
+            key = app_cfg.get('groq_api_key', '').strip()
+            if key:
+                return key
+        except Exception:
+            pass
+
+    # 3. Check store_config.json
+    cfg = load_store_config()
+    key = cfg.get('groq_api_key', '').strip()
+    if key:
+        return key
+
+    return ''
+
+def get_xai_api_key():
+    """Get xAI (Grok) API key for customer stores.
+    Checks: 1) environment variable → 2) app config JSON → 3) store config.
+    """
+    # 1. Environment variable
+    env_key = os.environ.get('XAI_API_KEY', '').strip()
+    if env_key:
+        return env_key
+    
+    # 2. Check app config file
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                app_cfg = json.load(f)
+            key = app_cfg.get('xai_api_key', '').strip()
+            if key:
+                return key
+        except Exception:
+            pass
+
+    # 3. Check store_config.json
+    cfg = load_store_config()
+    key = cfg.get('xai_api_key', '').strip()
+    if key:
+        return key
+
+    return ''
 
 def save_ai_api_key(key):
     """Save the Claude API key. Stored in-app (not in env vars)."""
@@ -201,6 +263,34 @@ def save_ai_api_key(key):
         except Exception:
             pass
     config['anthropic_api_key'] = key.strip()
+    with open(app_config_file, 'w') as f:
+        json.dump(config, f, indent=2)
+
+def save_groq_api_key(key):
+    """Save the Groq API key."""
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    config = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                config = json.load(f)
+        except Exception:
+            pass
+    config['groq_api_key'] = key.strip()
+    with open(app_config_file, 'w') as f:
+        json.dump(config, f, indent=2)
+
+def save_xai_api_key(key):
+    """Save the xAI (Grok) API key."""
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    config = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                config = json.load(f)
+        except Exception:
+            pass
+    config['xai_api_key'] = key.strip()
     with open(app_config_file, 'w') as f:
         json.dump(config, f, indent=2)
 
@@ -587,7 +677,7 @@ def inject_globals():
         if cfg:
             impersonating_store_name = cfg.get('store_name', impersonating_slug)
     user_role = session.get('role', 'overseer' if is_admin else 'guest')
-    server_has_ai_key = bool(get_ai_api_key())
+    server_has_ai_key = bool(get_ai_api_key() or get_groq_api_key() or get_xai_api_key())
     return dict(
         store_name=STORE_NAME,
         demo_mode=DEMO_MODE,
@@ -1156,10 +1246,28 @@ def save_image(sku):
 @ai_rate_limit
 @login_required
 def ai_analyze():
-    # Accept key from the request first (user-supplied), fall back to server env var
-    api_key = request.form.get('api_key', '').strip() or get_ai_api_key()
+    # Check which AI provider is available
+    # Priority: Anthropic > Groq > xAI
+    api_key = request.form.get('api_key', '').strip()
+    ai_provider = request.form.get('ai_provider', '').strip()
+    
     if not api_key:
-        return jsonify({'error': 'No API key provided. Ask the admin to configure the Claude API key in App Settings.'})
+        # Try to find an available API key
+        api_key = get_ai_api_key()  # Anthropic
+        ai_provider = 'anthropic'
+        if not api_key:
+            api_key = get_groq_api_key()  # Groq
+            ai_provider = 'groq'
+        if not api_key:
+            api_key = get_xai_api_key()  # xAI/Grok
+            ai_provider = 'xai'
+    
+    if not api_key:
+        return jsonify({'error': 'No API key configured. Ask the admin to configure an AI API key in App Settings or Railway variables.'})
+    
+    # Override provider if user specified one
+    if request.form.get('ai_provider'):
+        ai_provider = request.form.get('ai_provider')
     file = request.files.get('image')
     if not file:
         return jsonify({'error': 'No image provided.'})
@@ -1192,49 +1300,154 @@ def ai_analyze():
 
     img_b64      = base64.b64encode(img_bytes).decode('utf-8')
     content_type = 'image/jpeg'
+    
+    # Auto-detect provider based on API key prefix
+    if not ai_provider:
+        if api_key.startswith('sk-ant-'):
+            ai_provider = 'anthropic'
+        elif api_key.startswith('gsk_'):
+            ai_provider = 'groq'
+        elif api_key.startswith('xai-'):
+            ai_provider = 'xai'
+        else:
+            ai_provider = 'anthropic'  # default
+    
     try:
         import urllib.request as ur
         import json as _json
-        payload = {
-            'model': 'claude-haiku-4-5-20251001',
-            'max_tokens': 1024,
-            'messages': [{
-                'role': 'user',
-                'content': [
-                    {'type': 'image', 'source': {'type': 'base64', 'media_type': content_type, 'data': img_b64}},
-                    {'type': 'text', 'text': (
-                        'Analyze this thrift store item photo. '
-                        'Return JSON only with keys: title, category, condition, description, suggested_price, labels, objects. '
-                        'condition must be one of: New, Like New, Good, Fair, Poor. '
-                        'suggested_price is a number string like "24.99". '
-                        'labels is a list of up to 5 descriptive tags. '
-                        'objects is a list of up to 3 detected objects.'
-                    )}
-                ]
-            }]
-        }
-        req = ur.Request(
-            'https://api.anthropic.com/v1/messages',
-            data=_json.dumps(payload).encode(),
-            headers={
-                'x-api-key': api_key,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json'
+        
+        if ai_provider == 'anthropic':
+            # Use Anthropic API
+            payload = {
+                'model': 'claude-haiku-4-5-20251001',
+                'max_tokens': 1024,
+                'messages': [{
+                    'role': 'user',
+                    'content': [
+                        {'type': 'image', 'source': {'type': 'base64', 'media_type': content_type, 'data': img_b64}},
+                        {'type': 'text', 'text': (
+                            'Analyze this thrift store item photo. '
+                            'Return JSON only with keys: title, category, condition, description, suggested_price, labels, objects. '
+                            'condition must be one of: New, Like New, Good, Fair, Poor. '
+                            'suggested_price is a number string like "24.99". '
+                            'labels is a list of up to 5 descriptive tags. '
+                            'objects is a list of up to 3 detected objects.'
+                        )}
+                    ]
+                }]
             }
-        )
-        with ur.urlopen(req, timeout=30) as resp:
-            result = _json.loads(resp.read())
-        text = result['content'][0]['text'].strip()
-        if text.startswith('```'):
-            text = text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
-        parsed = _json.loads(text)
-        # Attach token usage so the frontend can calculate cost
-        usage = result.get('usage', {})
-        parsed['_usage'] = {
-            'input_tokens':  usage.get('input_tokens', 0),
-            'output_tokens': usage.get('output_tokens', 0),
-        }
-        return jsonify(parsed)
+            req = ur.Request(
+                'https://api.anthropic.com/v1/messages',
+                data=_json.dumps(payload).encode(),
+                headers={
+                    'x-api-key': api_key,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json'
+                }
+            )
+            with ur.urlopen(req, timeout=30) as resp:
+                result = _json.loads(resp.read())
+            text = result['content'][0]['text'].strip()
+            if text.startswith('```'):
+                text = text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
+            parsed = _json.loads(text)
+            usage = result.get('usage', {})
+            parsed['_usage'] = {
+                'input_tokens':  usage.get('input_tokens', 0),
+                'output_tokens': usage.get('output_tokens', 0),
+            }
+            parsed['_provider'] = 'anthropic'
+            return jsonify(parsed)
+            
+        elif ai_provider == 'groq':
+            # Use Groq API (Vision)
+            payload = {
+                'model': 'llama-3.2-90b-vision-preview',
+                'messages': [{
+                    'role': 'user',
+                    'content': [
+                        {'type': 'image_url', 'image_url': {'url': f'data:{content_type};base64,{img_b64}'}},
+                        {'type': 'text', 'text': (
+                            'Analyze this thrift store item photo. '
+                            'Return JSON only with keys: title, category, condition, description, suggested_price, labels, objects. '
+                            'condition must be one of: New, Like New, Good, Fair, Poor. '
+                            'suggested_price is a number string like "24.99". '
+                            'labels is a list of up to 5 descriptive tags. '
+                            'objects is a list of up to 3 detected objects.'
+                        )}
+                    ]
+                }],
+                'temperature': 0.5,
+                'max_tokens': 1024,
+                'response_format': {'type': 'json_object'}
+            }
+            req = ur.Request(
+                'https://api.groq.com/openai/v1/chat/completions',
+                data=_json.dumps(payload).encode(),
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json'
+                }
+            )
+            with ur.urlopen(req, timeout=30) as resp:
+                result = _json.loads(resp.read())
+            text = result['choices'][0]['message']['content'].strip()
+            try:
+                parsed = _json.loads(text)
+            except:
+                parsed = {'title': 'Item', 'category': 'Miscellaneous', 'condition': 'Good', 'description': text, 'suggested_price': '25.00', 'labels': [], 'objects': []}
+            usage = result.get('usage', {})
+            parsed['_usage'] = {
+                'input_tokens':  usage.get('prompt_tokens', 0),
+                'output_tokens':  usage.get('completion_tokens', 0),
+            }
+            parsed['_provider'] = 'groq'
+            return jsonify(parsed)
+            
+        elif ai_provider == 'xai':
+            # Use xAI Grok API
+            payload = {
+                'model': 'grok-2-vision-1212',
+                'messages': [{
+                    'role': 'user',
+                    'content': [
+                        {'type': 'image_url', 'image_url': {'url': f'data:{content_type};base64,{img_b64}'}},
+                        {'type': 'text', 'text': (
+                            'Analyze this thrift store item photo. '
+                            'Return JSON only with keys: title, category, condition, description, suggested_price, labels, objects. '
+                            'condition must be one of: New, Like New, Good, Fair, Poor. '
+                            'suggested_price is a number string like "24.99". '
+                            'labels is a list of up to 5 descriptive tags. '
+                            'objects is a list of up to 3 detected objects.'
+                        )}
+                    ]
+                }],
+                'temperature': 0.5,
+                'max_tokens': 1024
+            }
+            req = ur.Request(
+                'https://api.xai.com/v1/chat/completions',
+                data=_json.dumps(payload).encode(),
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json'
+                }
+            )
+            with ur.urlopen(req, timeout=30) as resp:
+                result = _json.loads(resp.read())
+            text = result['choices'][0]['message']['content'].strip()
+            try:
+                parsed = _json.loads(text)
+            except:
+                parsed = {'title': 'Item', 'category': 'Miscellaneous', 'condition': 'Good', 'description': text, 'suggested_price': '25.00', 'labels': [], 'objects': []}
+            usage = result.get('usage', {})
+            parsed['_usage'] = {
+                'input_tokens':  usage.get('prompt_tokens', 0),
+                'output_tokens':  usage.get('completion_tokens', 0),
+            }
+            parsed['_provider'] = 'xai'
+            return jsonify(parsed)
+            
     except Exception as e:
         return jsonify({'error': str(e)})
 
