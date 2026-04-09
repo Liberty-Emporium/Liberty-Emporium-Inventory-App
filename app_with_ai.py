@@ -252,6 +252,35 @@ def get_xai_api_key():
 
     return ''
 
+def get_qwen_api_key():
+    """Get Qwen (Alibaba) API key for customer stores.
+    Checks: 1) environment variable → 2) app config JSON → 3) store config.
+    """
+    # 1. Environment variable
+    env_key = os.environ.get('QWEN_API_KEY', '').strip()
+    if env_key:
+        return env_key
+    
+    # 2. Check app config file
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                app_cfg = json.load(f)
+            key = app_cfg.get('qwen_api_key', '').strip()
+            if key:
+                return key
+        except Exception:
+            pass
+
+    # 3. Check store_config.json
+    cfg = load_store_config()
+    key = cfg.get('qwen_api_key', '').strip()
+    if key:
+        return key
+
+    return ''
+
 def save_ai_api_key(key):
     """Save the Claude API key. Stored in-app (not in env vars)."""
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
@@ -677,7 +706,7 @@ def inject_globals():
         if cfg:
             impersonating_store_name = cfg.get('store_name', impersonating_slug)
     user_role = session.get('role', 'overseer' if is_admin else 'guest')
-    server_has_ai_key = bool(get_ai_api_key() or get_groq_api_key() or get_xai_api_key())
+    server_has_ai_key = bool(get_ai_api_key() or get_groq_api_key() or get_xai_api_key() or get_qwen_api_key())
     return dict(
         store_name=STORE_NAME,
         demo_mode=DEMO_MODE,
@@ -1261,6 +1290,9 @@ def ai_analyze():
         if not api_key:
             api_key = get_xai_api_key()  # xAI/Grok
             ai_provider = 'xai'
+        if not api_key:
+            api_key = get_qwen_api_key()  # Qwen
+            ai_provider = 'qwen'
     
     if not api_key:
         return jsonify({'error': 'No API key configured. Ask the admin to configure an AI API key in App Settings or Railway variables.'})
@@ -1309,6 +1341,8 @@ def ai_analyze():
             ai_provider = 'groq'
         elif api_key.startswith('xai-'):
             ai_provider = 'xai'
+        elif api_key.startswith('sk-'):
+            ai_provider = 'qwen'  # Qwen keys start with sk-
         else:
             ai_provider = 'anthropic'  # default
     
@@ -1446,6 +1480,51 @@ def ai_analyze():
                 'output_tokens':  usage.get('completion_tokens', 0),
             }
             parsed['_provider'] = 'xai'
+            return jsonify(parsed)
+            
+        elif ai_provider == 'qwen':
+            # Use Qwen (Alibaba) API
+            payload = {
+                'model': 'qwen-vl-plus',
+                'messages': [{
+                    'role': 'user',
+                    'content': [
+                        {'image': f'data:{content_type};base64,{img_b64}'},
+                        {'text': (
+                            'Analyze this thrift store item photo. '
+                            'Return JSON only with keys: title, category, condition, description, suggested_price, labels, objects. '
+                            'condition must be one of: New, Like New, Good, Fair, Poor. '
+                            'suggested_price is a number string like "24.99". '
+                            'labels is a list of up to 5 descriptive tags. '
+                            'objects is a list of up to 3 detected objects.'
+                        )}
+                    ]
+                }]
+            }
+            req = ur.Request(
+                'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation',
+                data=_json.dumps(payload).encode(),
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json',
+                    'X-DashScope-Async': 'disable'
+                }
+            )
+            with ur.urlopen(req, timeout=30) as resp:
+                result = _json.loads(resp.read())
+            # Qwen response format varies, try to extract
+            try:
+                output = result.get('output', {}).get('choices', [{}])[0].get('message', {}).get('content', [])
+                text = ''
+                for item in output:
+                    if item.get('text'):
+                        text = item['text']
+                        break
+                parsed = _json.loads(text)
+            except:
+                parsed = {'title': 'Item', 'category': 'Miscellaneous', 'condition': 'Good', 'description': str(result), 'suggested_price': '25.00', 'labels': [], 'objects': []}
+            parsed['_usage'] = {'input_tokens': 0, 'output_tokens': 0}
+            parsed['_provider'] = 'qwen'
             return jsonify(parsed)
             
     except Exception as e:
