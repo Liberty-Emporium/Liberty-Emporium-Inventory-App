@@ -256,13 +256,13 @@
                    style="color:#ecf0f1; font-size:0.85rem; text-decoration:none; background:rgba(255,255,255,0.15); padding:0.4rem 0.8rem; border-radius:4px;">
                     🚪 Logout
                 </a>
+                {% endif %}
                 {% if session.get('logged_in') or session.get('is_guest') %}
                 <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu" style="margin-left:auto;">
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                 </button>
-                {% endif %}
                 {% endif %}
             </div>
         </nav>
