@@ -92,6 +92,10 @@
         max-width:860px; margin:0 auto 0.7rem auto;
         display:flex; justify-content:flex-end;
       }
+      /* Hide help button in demo mode */
+      {% if demo_mode %}
+      .ht-page-bar { display: none !important; }
+      {% endif %}
     </style>
 </head>
 <body>
