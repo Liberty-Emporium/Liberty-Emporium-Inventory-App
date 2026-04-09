@@ -203,8 +203,11 @@
             .nav-right > span,
             .stats-badge { display: none !important; }
 
-            /* Hamburger always visible */
+            /* Hamburger only when logged in or guest */
+            .hamburger { display: none !important; }
+            {% if session.get('logged_in') or session.get('is_guest') or demo_mode %}
             .hamburger { display: flex !important; margin-left: 0.5rem !important; padding: 0.4rem !important; }
+            {% endif %}
             .hamburger span { background: #ecf0f1 !important; }
 
             /* Page content */
