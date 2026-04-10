@@ -2526,6 +2526,13 @@ def wizard_submit():
     with open(customer_file, 'w') as f:
         json.dump(config, f, indent=2)
     
+    # === ALSO SAVE TO config.json FOR LOGIN TO WORK ===
+    customer_dir = os.path.join(CUSTOMERS_DIR, slug)
+    os.makedirs(customer_dir, exist_ok=True)
+    with open(os.path.join(customer_dir, 'config.json'), 'w') as f2:
+        json.dump(config, f2, indent=2)
+    # =================================================
+    
     # === CREATE CLIENT USER ACCOUNT ===
     # This is the bug fix - create users.json so client can login
     contact_email = data.get('contact_email', '').strip()
