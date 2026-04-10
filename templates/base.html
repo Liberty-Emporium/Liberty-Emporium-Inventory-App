@@ -389,21 +389,80 @@
 
     <!-- Settings Modal Popup -->
     <div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
-      <div style="background:#1e293b; border-radius:16px; padding:1.5rem; max-width:400px; width:90%; color:#fff;">
+      <div style="background:#1e293b; border-radius:16px; padding:1.5rem; max-width:450px; width:90%; color:#fff;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-          <h2 style="margin:0;">⚙️ Settings</h2>
+          <h2 style="margin:0;">⚙️ API Settings</h2>
           <button onclick="document.getElementById('settingsModal').style.display='none'" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
         </div>
         <div style="color:#94a3b8; font-size:0.9rem;">
-          <p style="margin-bottom:1rem;">Configure your store settings:</p>
-          <ul style="list-style:none; padding:0;">
-            <li style="padding:0.5rem 0; border-bottom:1px solid #334155;">🏪 Store Name: {{ store_name }}</li>
-            <li style="padding:0.5rem 0; border-bottom:1px solid #334155;">🎨 Theme: Dark Mode</li>
-            <li style="padding:0.5rem 0; border-bottom:1px solid #334155;">📊 Demo Mode: Active</li>
-          </ul>
-          <p style="margin-top:1rem; font-size:0.8rem; color:#64748b;">More settings coming soon!</p>
+          <p style="margin-bottom:1rem;">Enter your API keys to enable AI features:</p>
+          
+          <form id="apiSettingsForm" style="display:flex; flex-direction:column; gap:0.75rem;">
+            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+              <label style="font-size:0.8rem; color:#94a3b8;">🔑 Groq API Key</label>
+              <input type="password" name="GROQ_API_KEY" placeholder="gsk_..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+              <label style="font-size:0.8rem; color:#94a3b8;">🧠 Anthropic API Key (Claude)</label>
+              <input type="password" name="ANTHROPIC_API_KEY" placeholder="sk-ant-..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+              <label style="font-size:0.8rem; color:#94a3b8;">🚀 xAI API Key (Grok)</label>
+              <input type="password" name="XAI_API_KEY" placeholder="xai-..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+              <label style="font-size:0.8rem; color:#94a3b8;">💎 Qwen API Key</label>
+              <input type="password" name="QWEN_API_KEY" placeholder="sk-qwen-..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
+            </div>
+            
+            <button type="submit" style="background:#10b981; color:white; border:none; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer; margin-top:0.5rem;">💾 Save API Keys</button>
+          </form>
+          
+          <p style="margin-top:1rem; font-size:0.75rem; color:#64748b;">
+            Keys are stored locally and used for AI features. Get free keys at:
+            <a href="https://console.groq.com" target="_blank" style="color:#10b981;">groq.com</a>,
+            <a href="https://console.anthropic.com" target="_blank" style="color:#10b981;">anthropic.com</a>,
+            <a href="https://console.x.ai" target="_blank" style="color:#10b981;">x.ai</a>
+          </p>
         </div>
       </div>
     </div>
+    
+    <script>
+      document.getElementById('apiSettingsForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const keys = {};
+        for (let [key, value] of formData.entries()) {
+          if (value.trim()) keys[key] = value.trim();
+        }
+        
+        try {
+          const response = await fetch('/api/save-settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(keys)
+          });
+          const result = await response.json();
+          
+          if (result.success) {
+            alert('API keys saved! AI features will use these keys.');
+            document.getElementById('settingsModal').style.display='none';
+          } else {
+            alert('Error: ' + result.error);
+          }
+        } catch(err) {
+          // Fallback to localStorage if API fails
+          const existing = JSON.parse(localStorage.getItem('api_settings') || '{}');
+          const updated = {...existing, ...keys};
+          localStorage.setItem('api_settings', JSON.stringify(updated));
+          alert('API keys saved to localStorage (offline mode).');
+          document.getElementById('settingsModal').style.display='none';
+        }
+      });
+    </script>
 </body>
 </html>

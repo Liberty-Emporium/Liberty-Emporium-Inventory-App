@@ -3417,3 +3417,42 @@ def api_generate_ad():
     # (Would integrate with existing ad_generator logic)
     return jsonify({'sku': sku, 'status': 'generated', 'message': 'Ad generation endpoint ready'})
 
+
+# ── API Settings Endpoint ──
+@app.route('/api/save-settings', methods=['POST'])
+@rate_limit
+def api_save_settings():
+    """Save API keys from settings popup to app_config.json"""
+    data = request.get_json() or {}
+    
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    
+    # Load existing config
+    app_cfg = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                app_cfg = json.load(f)
+        except:
+            pass
+    
+    # Update with new keys
+    for key in ['GROQ_API_KEY', 'ANTHROPIC_API_KEY', 'XAI_API_KEY', 'QWEN_API_KEY']:
+        if data.get(key):
+            # Map to internal names
+            if key == 'GROQ_API_KEY':
+                app_cfg['groq_api_key'] = data[key].strip()
+            elif key == 'ANTHROPIC_API_KEY':
+                app_cfg['anthropic_api_key'] = data[key].strip()
+            elif key == 'XAI_API_KEY':
+                app_cfg['xai_api_key'] = data[key].strip()
+            elif key == 'QWEN_API_KEY':
+                app_cfg['qwen_api_key'] = data[key].strip()
+    
+    # Save
+    try:
+        with open(app_config_file, 'w') as f:
+            json.dump(app_cfg, f, indent=2)
+        return jsonify({'success': True, 'message': 'API keys saved!'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
