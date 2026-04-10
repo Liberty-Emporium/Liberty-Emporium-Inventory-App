@@ -126,3 +126,29 @@ railway deploy
 ---
 
 *Last updated: 2026-04-10*
+
+---
+
+## Using the Wizard to Create Client Stores
+
+The **Wizard** (`/wizard`) is how you create new client stores in the multi-tenant system.
+
+### Option 1: Direct Wizard
+1. Go to `/wizard`
+2. Fill in:
+   - Store Name (e.g., "My Thrift Store")
+   - Contact Email
+   - Temporary Password
+   - Plan (Starter/Pro/Enterprise)
+   - Industry Type
+   - Brand colors
+3. Submit → Creates new client store!
+
+### Option 2: Overseer Panel
+1. Go to `/overseer` (logged in as admin)
+2. Click "➕ Add New Client"
+3. Same form as wizard
+
+---
+
+*Wizard documentation added: 2026-04-10*
