@@ -2526,6 +2526,31 @@ def wizard_submit():
     with open(customer_file, 'w') as f:
         json.dump(config, f, indent=2)
     
+    # === CREATE CLIENT USER ACCOUNT ===
+    # This is the bug fix - create users.json so client can login
+    contact_email = data.get('contact_email', '').strip()
+    temp_password = data.get('temp_password', '').strip()
+    
+    if contact_email and temp_password:
+        import hashlib
+        customer_dir = os.path.join(CUSTOMERS_DIR, slug)
+        os.makedirs(customer_dir, exist_ok=True)
+        
+        users_data = {
+            contact_email: {
+                'password': hashlib.sha256(temp_password.encode()).hexdigest(),
+                'role': 'client',
+                'name': data.get('contact_name', ''),
+                'email': contact_email,
+                'created': datetime.datetime.now().isoformat()
+            }
+        }
+        
+        users_file = os.path.join(customer_dir, 'users.json')
+        with open(users_file, 'w') as f:
+            json.dump(users_data, f, indent=2)
+    # === END USER CREATION ===
+    
     # Add to leads
     leads = load_leads()
     leads.append(config)
