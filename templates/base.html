@@ -261,6 +261,8 @@
                 </a>
                 {% endif %}
                 {% if session.get('logged_in') or session.get('is_guest') %}
+                <!-- Settings button that opens popup -->
+                <button onclick="document.getElementById('settingsModal').style.display='flex'" style="background:none;border:none;cursor:pointer;font-size:1.2rem;padding:0.4rem;" title="Settings">⚙️</button>
                 <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu" style="margin-left:auto;">
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
@@ -384,5 +386,24 @@
       });
     })();
     </script>
+
+    <!-- Settings Modal Popup -->
+    <div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+      <div style="background:#1e293b; border-radius:16px; padding:1.5rem; max-width:400px; width:90%; color:#fff;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h2 style="margin:0;">⚙️ Settings</h2>
+          <button onclick="document.getElementById('settingsModal').style.display='none'" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+        </div>
+        <div style="color:#94a3b8; font-size:0.9rem;">
+          <p style="margin-bottom:1rem;">Configure your store settings:</p>
+          <ul style="list-style:none; padding:0;">
+            <li style="padding:0.5rem 0; border-bottom:1px solid #334155;">🏪 Store Name: {{ store_name }}</li>
+            <li style="padding:0.5rem 0; border-bottom:1px solid #334155;">🎨 Theme: Dark Mode</li>
+            <li style="padding:0.5rem 0; border-bottom:1px solid #334155;">📊 Demo Mode: Active</li>
+          </ul>
+          <p style="margin-top:1rem; font-size:0.8rem; color:#64748b;">More settings coming soon!</p>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
