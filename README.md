@@ -38,7 +38,7 @@
 - ✅ Price tag generation
 
 ### Multi-Tenant System
-- ✅ **Wizard** - Create new client stores via `/wizard` or overseer panel
+- ✅ **Wizard** - Create new client stores via `Create new client store (wizard)` or overseer panel
 - ✅ Individual store branding (colors, logo, tagline)
 - ✅ Client login/management
 - ✅ Overseer dashboard (super admin view)
@@ -67,7 +67,7 @@
 | `/import-square` | Import from Square |
 | `/seasonal-sale` | Manage sales |
 | `/overseer` | Admin panel (create client stores) |
-| `/wizard` | Create new client store |
+| `Create new client store (wizard)` | Create new client store |
 
 ---
 
@@ -131,10 +131,10 @@ railway deploy
 
 ## Using the Wizard to Create Client Stores
 
-The **Wizard** (`/wizard`) is how you create new client stores in the multi-tenant system.
+The **Wizard** (`Create new client store (wizard)`) is how you create new client stores in the multi-tenant system.
 
 ### Option 1: Direct Wizard
-1. Go to `/wizard`
+1. Go to `Create new client store (wizard)`
 2. Fill in:
    - Store Name (e.g., "My Thrift Store")
    - Contact Email
