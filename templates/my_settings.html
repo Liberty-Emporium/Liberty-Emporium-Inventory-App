@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}My AI Settings{% endblock %}
+{% block content %}
+<div style="max-width:600px; margin:2rem auto; padding:0 1rem;">
+    <h2>⚙️ My AI Settings</h2>
+    <p style="color:#666; margin-bottom:1.5rem;">Your personal AI API keys — these override the system defaults.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <div class="card" style="padding:1.5rem;">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Active AI Provider</label>
+                <select name="active_provider" class="form-control">
+                    <option value="qwen" {% if keys.active_provider == 'qwen' %}selected{% endif %}>Qwen (Recommended - Affordable)</option>
+                    <option value="groq" {% if keys.active_provider == 'groq' %}selected{% endif %}>Groq (Fast)</option>
+                    <option value="anthropic" {% if keys.active_provider == 'anthropic' %}selected{% endif %}>Anthropic Claude</option>
+                    <option value="xai" {% if keys.active_provider == 'xai' %}selected{% endif %}>xAI Grok</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Qwen API Key</label>
+                <input type="password" name="qwen_key" class="form-control"
+                    placeholder="{% if keys.qwen_key %}{{ keys.qwen_key }}{% else %}Enter Qwen API key{% endif %}">
+                <small class="text-muted">Get at dashscope.aliyuncs.com</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Groq API Key</label>
+                <input type="password" name="groq_key" class="form-control"
+                    placeholder="{% if keys.groq_key %}{{ keys.groq_key }}{% else %}Enter Groq API key{% endif %}">
+                <small class="text-muted">Free tier at console.groq.com</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Anthropic API Key</label>
+                <input type="password" name="anthropic_key" class="form-control"
+                    placeholder="{% if keys.anthropic_key %}{{ keys.anthropic_key }}{% else %}Enter Anthropic API key{% endif %}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">xAI (Grok) API Key</label>
+                <input type="password" name="xai_key" class="form-control"
+                    placeholder="{% if keys.xai_key %}{{ keys.xai_key }}{% else %}Enter xAI API key{% endif %}">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">💾 Save My AI Settings</button>
+        </form>
+    </div>
+    <div class="mt-3">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -11,8 +11,9 @@ import tempfile
 import threading
 import time
 import functools
+import sqlite3
 from flask import (Flask, render_template, request, redirect, url_for,
-                   session, flash, jsonify, send_file, send_from_directory, make_response)
+                   session, flash, jsonify, send_file, send_from_directory, make_response, g)
 from werkzeug.utils import secure_filename
 
 # Load .env file
@@ -140,6 +141,37 @@ def _find_writable_data_dir():
 DATA_DIR = _find_writable_data_dir()
 print(f"[STARTUP] DATA_DIR={DATA_DIR}", flush=True)
 
+# ── User API Keys Database ─────────────────────────────────────────────────
+USER_KEYS_DB = os.path.join(DATA_DIR, 'user_api_keys.db')
+
+def get_db():
+    if 'db' not in g:
+        g.db = sqlite3.connect(USER_KEYS_DB)
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
+@app.teardown_appcontext
+def close_db(e=None):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
+
+def init_user_keys_db():
+    db = sqlite3.connect(USER_KEYS_DB)
+    db.execute('''CREATE TABLE IF NOT EXISTS user_api_keys (
+        user_id TEXT PRIMARY KEY,
+        groq_key TEXT DEFAULT '',
+        qwen_key TEXT DEFAULT '',
+        anthropic_key TEXT DEFAULT '',
+        xai_key TEXT DEFAULT '',
+        active_provider TEXT DEFAULT 'qwen',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
+    db.commit()
+    db.close()
+
+init_user_keys_db()
+
 INVENTORY_FILE = os.path.join(DATA_DIR, 'inventory.csv')
 UPLOAD_FOLDER  = os.path.join(DATA_DIR, 'uploads')
 BACKUP_FOLDER  = os.path.join(DATA_DIR, 'backups')
@@ -164,17 +196,21 @@ if DATA_DIR != BASE_DIR:
 
 # ── Centralized AI API Key Management ─────────────────────────────────────────
 
-def get_ai_api_key():
-    """Get the unified Claude API key.
-    Checks: 1) environment variable → 2) app config JSON (admin-entered) → 3) store_config.json.
-    Environment variable takes priority so client stores can access the main key.
+def get_ai_api_key(user_id=None):
+    """Get Claude API key. Checks: 1) user DB key → 2) app config JSON → 3) store config.
+    NO environment variable fallback.
     """
-    # 1. Environment variable - shared across all stores (including multi-tenant)
-    env_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
-    if env_key:
-        return env_key
-    
-    # 2. Check app config file (set by admin via settings page)
+    # 1. Per-user key from DB
+    if user_id:
+        try:
+            db = get_db()
+            row = db.execute('SELECT anthropic_key FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
+            if row and row[0]:
+                return row[0].strip()
+        except Exception:
+            pass
+
+    # 2. Check app config file (admin-entered)
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
     if os.path.exists(app_config_file):
         try:
@@ -189,21 +225,21 @@ def get_ai_api_key():
     # 3. Check store_config.json
     cfg = load_store_config()
     key = cfg.get('anthropic_api_key', '').strip()
-    if key:
-        return key
+    return key if key else ''
 
-    return ''
-
-def get_groq_api_key():
-    """Get Groq API key for customer stores.
-    Checks: 1) environment variable → 2) app config JSON → 3) store config.
+def get_groq_api_key(user_id=None):
+    """Get Groq API key. Checks: 1) user DB key → 2) app config JSON → 3) store config.
+    NO environment variable fallback.
     """
-    # 1. Environment variable
-    env_key = os.environ.get('GROQ_API_KEY', '').strip()
-    if env_key:
-        return env_key
-    
-    # 2. Check app config file
+    if user_id:
+        try:
+            db = get_db()
+            row = db.execute('SELECT groq_key FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
+            if row and row[0]:
+                return row[0].strip()
+        except Exception:
+            pass
+
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
     if os.path.exists(app_config_file):
         try:
@@ -215,24 +251,23 @@ def get_groq_api_key():
         except Exception:
             pass
 
-    # 3. Check store_config.json
     cfg = load_store_config()
     key = cfg.get('groq_api_key', '').strip()
-    if key:
-        return key
+    return key if key else ''
 
-    return ''
-
-def get_xai_api_key():
-    """Get xAI (Grok) API key for customer stores.
-    Checks: 1) environment variable → 2) app config JSON → 3) store config.
+def get_xai_api_key(user_id=None):
+    """Get xAI API key. Checks: 1) user DB key → 2) app config JSON → 3) store config.
+    NO environment variable fallback.
     """
-    # 1. Environment variable
-    env_key = os.environ.get('XAI_API_KEY', '').strip()
-    if env_key:
-        return env_key
-    
-    # 2. Check app config file
+    if user_id:
+        try:
+            db = get_db()
+            row = db.execute('SELECT xai_key FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
+            if row and row[0]:
+                return row[0].strip()
+        except Exception:
+            pass
+
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
     if os.path.exists(app_config_file):
         try:
@@ -244,24 +279,23 @@ def get_xai_api_key():
         except Exception:
             pass
 
-    # 3. Check store_config.json
     cfg = load_store_config()
     key = cfg.get('xai_api_key', '').strip()
-    if key:
-        return key
+    return key if key else ''
 
-    return ''
-
-def get_qwen_api_key():
-    """Get Qwen (Alibaba) API key for customer stores.
-    Checks: 1) environment variable → 2) app config JSON → 3) store config.
+def get_qwen_api_key(user_id=None):
+    """Get Qwen API key. Checks: 1) user DB key → 2) app config JSON → 3) store config.
+    NO environment variable fallback.
     """
-    # 1. Environment variable
-    env_key = os.environ.get('QWEN_API_KEY', '').strip()
-    if env_key:
-        return env_key
-    
-    # 2. Check app config file
+    if user_id:
+        try:
+            db = get_db()
+            row = db.execute('SELECT qwen_key FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
+            if row and row[0]:
+                return row[0].strip()
+        except Exception:
+            pass
+
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
     if os.path.exists(app_config_file):
         try:
@@ -273,13 +307,9 @@ def get_qwen_api_key():
         except Exception:
             pass
 
-    # 3. Check store_config.json
     cfg = load_store_config()
     key = cfg.get('qwen_api_key', '').strip()
-    if key:
-        return key
-
-    return ''
+    return key if key else ''
 
 def save_ai_api_key(key):
     """Save the Claude API key. Stored in-app (not in env vars)."""
@@ -2340,6 +2370,32 @@ def admin_settings():
         stripe_public_key=get_stripe_keys()[1],
         smtp_config=get_smtp_config(),
         **ctx())
+
+@app.route('/my-settings', methods=['GET', 'POST'])
+@login_required
+def my_settings():
+    """Per-user AI API key settings"""
+    user_id = session.get('user_id')
+    db = get_db()
+    if request.method == 'POST':
+        groq_key = request.form.get('groq_key', '').strip()
+        qwen_key = request.form.get('qwen_key', '').strip()
+        anthropic_key = request.form.get('anthropic_key', '').strip()
+        xai_key = request.form.get('xai_key', '').strip()
+        active_provider = request.form.get('active_provider', 'qwen')
+        db.execute('''INSERT OR REPLACE INTO user_api_keys
+            (user_id, groq_key, qwen_key, anthropic_key, xai_key, active_provider, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)''',
+            (user_id, groq_key, qwen_key, anthropic_key, xai_key, active_provider))
+        db.commit()
+        flash('Your AI settings saved!', 'success')
+        return redirect(url_for('my_settings'))
+    row = db.execute('SELECT * FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
+    keys = dict(row) if row else {'groq_key': '', 'qwen_key': '', 'anthropic_key': '', 'xai_key': '', 'active_provider': 'qwen'}
+    for k in ['groq_key', 'qwen_key', 'anthropic_key', 'xai_key']:
+        if keys.get(k):
+            keys[k] = keys[k][:8] + '...'
+    return render_template('my_settings.html', keys=keys, **ctx())
 
 @app.route('/admin/settings/stripe', methods=['POST'])
 @rate_limit
