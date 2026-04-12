@@ -3328,6 +3328,246 @@ def overseer_assistant_alerts():
     return jsonify({'alerts': alerts})
 
 
+# ── Stripe Self-Serve Checkout & Webhook ─────────────────────────────────────
+#
+# Allows new clients to sign up and pay without Jay manually provisioning them.
+# Flow:
+#   1. /subscribe  → shows pricing page
+#   2. /create-checkout-session → creates Stripe checkout
+#   3. Stripe redirects to /subscribe/success?session_id=...
+#   4. Webhook (checkout.session.completed) auto-provisions the store
+#
+# Required env vars:
+#   STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY
+#   STRIPE_PRICE_ID_MONTHLY  (e.g. price_xxx for $20/mo)
+#   STRIPE_WEBHOOK_SECRET
+
+STRIPE_PRICE_ID_MONTHLY = os.environ.get('STRIPE_PRICE_ID_MONTHLY', '')
+STRIPE_WEBHOOK_SECRET_KEY = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+
+
+def _stripe_module():
+    """Lazy-load stripe only when needed."""
+    stripe_sk, _ = get_stripe_keys()
+    if not stripe_sk:
+        return None
+    try:
+        import stripe as _s
+        _s.api_key = stripe_sk
+        return _s
+    except ImportError:
+        return None
+
+
+@app.route('/subscribe')
+def subscribe():
+    """Public pricing / signup page."""
+    _, stripe_pk = get_stripe_keys()
+    cfg = load_store_config()
+    return render_template('subscribe.html',
+                           stripe_public_key=stripe_pk,
+                           price_id=STRIPE_PRICE_ID_MONTHLY,
+                           config=cfg)
+
+
+@app.route('/create-checkout-session', methods=['POST'])
+@rate_limit
+def create_checkout_session():
+    """Create a Stripe Checkout session for a new client subscription."""
+    stripe = _stripe_module()
+    if not stripe or not STRIPE_PRICE_ID_MONTHLY:
+        return jsonify({'error': 'Stripe is not configured. Contact support.'}), 400
+
+    data = request.get_json() or {}
+    store_name = data.get('store_name', '').strip()
+    contact_email = data.get('email', '').strip()
+
+    if not store_name or not contact_email:
+        return jsonify({'error': 'Store name and email are required.'}), 400
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=contact_email,
+            payment_method_types=['card'],
+            line_items=[{'price': STRIPE_PRICE_ID_MONTHLY, 'quantity': 1}],
+            mode='subscription',
+            success_url=request.host_url.rstrip('/') + '/subscribe/success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.host_url.rstrip('/') + '/subscribe?cancelled=1',
+            metadata={
+                'store_name': store_name,
+                'contact_email': contact_email,
+            }
+        )
+        return jsonify({'url': checkout_session.url})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@app.route('/subscribe/success')
+def subscribe_success():
+    """Landing page after Stripe checkout — webhook handles the actual provisioning."""
+    cfg = load_store_config()
+    return render_template('subscribe_success.html', config=cfg)
+
+
+@app.route('/stripe/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events.
+    Automatically provisions a new client store on successful subscription.
+    """
+    stripe = _stripe_module()
+    if not stripe:
+        return jsonify({'error': 'Stripe not configured'}), 400
+
+    payload = request.data
+    sig_header = request.headers.get('stripe-signature', '')
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET_KEY)
+    except stripe.error.SignatureVerificationError:
+        return jsonify({'error': 'Invalid signature'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+    if event['type'] == 'checkout.session.completed':
+        obj = event['data']['object']
+        meta = obj.get('metadata', {})
+        store_name = meta.get('store_name', '').strip()
+        contact_email = meta.get('contact_email', '').strip()
+        stripe_customer_id = obj.get('customer', '')
+        stripe_subscription_id = obj.get('subscription', '')
+
+        if store_name and contact_email:
+            _auto_provision_store(
+                store_name=store_name,
+                contact_email=contact_email,
+                stripe_customer_id=stripe_customer_id,
+                stripe_subscription_id=stripe_subscription_id,
+            )
+
+    elif event['type'] == 'customer.subscription.deleted':
+        # Suspend the store when subscription is cancelled
+        customer_id = event['data']['object'].get('customer', '')
+        if customer_id:
+            _suspend_store_by_stripe_customer(customer_id)
+
+    elif event['type'] == 'invoice.payment_failed':
+        # Optionally notify or flag the store
+        customer_id = event['data']['object'].get('customer', '')
+        if customer_id:
+            _flag_store_payment_failed(customer_id)
+
+    return jsonify({'success': True})
+
+
+def _auto_provision_store(store_name, contact_email, stripe_customer_id='', stripe_subscription_id=''):
+    """Create a new client store from Stripe checkout data."""
+    import secrets as _secrets
+
+    slug = slugify(store_name)
+    base_slug = slug
+    counter = 1
+    while os.path.exists(os.path.join(CUSTOMERS_DIR, slug)):
+        slug = f'{base_slug}-{counter}'
+        counter += 1
+
+    store_dir = os.path.join(CUSTOMERS_DIR, slug)
+    os.makedirs(os.path.join(store_dir, 'uploads'), exist_ok=True)
+    os.makedirs(os.path.join(store_dir, 'backups'), exist_ok=True)
+
+    temp_password = _secrets.token_urlsafe(10)
+
+    config = {
+        'store_name': store_name,
+        'slug': slug,
+        'primary_color': '#2e7d6e',
+        'industry': 'general',
+        'tagline': '',
+        'plan': 'starter',
+        'status': 'active',
+        'contact_email': contact_email,
+        'stripe_customer_id': stripe_customer_id,
+        'stripe_subscription_id': stripe_subscription_id,
+        'created_at': datetime.datetime.now().isoformat(),
+        'self_serve': True,
+    }
+    save_client_config(slug, config)
+
+    # Seed empty inventory
+    inv_path = os.path.join(store_dir, 'inventory.csv')
+    fieldnames = ['SKU', 'Title', 'Description', 'Category', 'Condition',
+                  'Price', 'Cost Paid', 'Status', 'Date Added', 'Images', 'Section', 'Shelf']
+    with open(inv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+        writer.writeheader()
+
+    # Create user account
+    users_path = os.path.join(store_dir, 'users.json')
+    users = {
+        contact_email: {
+            'password': hash_password(temp_password),
+            'role': 'client',
+            'store_slug': slug,
+            'created_at': datetime.datetime.now().isoformat(),
+        }
+    }
+    with open(users_path, 'w') as f:
+        json.dump(users, f, indent=2)
+
+    # Email credentials to new client
+    store_url = ''
+    send_smtp_email(
+        to=contact_email,
+        subject=f'Welcome to {store_name} — Your Store is Ready!',
+        body=(
+            f'Hi,\n\n'
+            f'Your Liberty Emporium inventory store is ready!\n\n'
+            f'Login: {contact_email}\n'
+            f'Temp Password: {temp_password}\n\n'
+            f'Please change your password after first login.\n\n'
+            f'— Liberty Emporium Programs'
+        )
+    )
+
+    print(f'[WEBHOOK] Auto-provisioned store: {slug} for {contact_email}', flush=True)
+    return slug
+
+
+def _suspend_store_by_stripe_customer(stripe_customer_id):
+    """Set a store's status to suspended when their subscription is cancelled."""
+    for entry in os.listdir(CUSTOMERS_DIR) if os.path.exists(CUSTOMERS_DIR) else []:
+        cfg_path = os.path.join(CUSTOMERS_DIR, entry, 'config.json')
+        if not os.path.exists(cfg_path):
+            continue
+        try:
+            with open(cfg_path) as f:
+                cfg = json.load(f)
+            if cfg.get('stripe_customer_id') == stripe_customer_id:
+                cfg['status'] = 'suspended'
+                with open(cfg_path, 'w') as f:
+                    json.dump(cfg, f, indent=2)
+                print(f'[WEBHOOK] Suspended store: {entry}', flush=True)
+        except Exception:
+            pass
+
+
+def _flag_store_payment_failed(stripe_customer_id):
+    """Mark a store as payment_failed so the Overseer dashboard can surface it."""
+    for entry in os.listdir(CUSTOMERS_DIR) if os.path.exists(CUSTOMERS_DIR) else []:
+        cfg_path = os.path.join(CUSTOMERS_DIR, entry, 'config.json')
+        if not os.path.exists(cfg_path):
+            continue
+        try:
+            with open(cfg_path) as f:
+                cfg = json.load(f)
+            if cfg.get('stripe_customer_id') == stripe_customer_id:
+                cfg['payment_status'] = 'failed'
+                with open(cfg_path, 'w') as f:
+                    json.dump(cfg, f, indent=2)
+        except Exception:
+            pass
+
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     app.run(debug=True)
