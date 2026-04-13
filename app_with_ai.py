@@ -161,10 +161,10 @@ def init_user_keys_db():
     db.execute('''CREATE TABLE IF NOT EXISTS user_api_keys (
         user_id TEXT PRIMARY KEY,
         groq_key TEXT DEFAULT '',
-        qwen_key TEXT DEFAULT '',
+        openrouter_key TEXT DEFAULT '',
         anthropic_key TEXT DEFAULT '',
         xai_key TEXT DEFAULT '',
-        active_provider TEXT DEFAULT 'qwen',
+        active_provider TEXT DEFAULT 'openrouter',
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
     db.commit()
@@ -283,14 +283,14 @@ def get_xai_api_key(user_id=None):
     key = cfg.get('xai_api_key', '').strip()
     return key if key else ''
 
-def get_qwen_api_key(user_id=None):
-    """Get Qwen API key. Checks: 1) user DB key → 2) app config JSON → 3) store config.
+def get_openrouter_api_key(user_id=None):
+    """Get OpenRouter API key. Checks: 1) user DB key → 2) app config JSON → 3) store config.
     NO environment variable fallback.
     """
     if user_id:
         try:
             db = get_db()
-            row = db.execute('SELECT qwen_key FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
+            row = db.execute('SELECT openrouter_key FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
             if row and row[0]:
                 return row[0].strip()
         except Exception:
@@ -301,14 +301,14 @@ def get_qwen_api_key(user_id=None):
         try:
             with open(app_config_file, 'r') as f:
                 app_cfg = json.load(f)
-            key = app_cfg.get('qwen_api_key', '').strip()
+            key = app_cfg.get('openrouter_api_key', '').strip()
             if key:
                 return key
         except Exception:
             pass
 
     cfg = load_store_config()
-    key = cfg.get('qwen_api_key', '').strip()
+    key = cfg.get('openrouter_api_key', '').strip()
     return key if key else ''
 
 def save_ai_api_key(key):
@@ -736,7 +736,7 @@ def inject_globals():
         if cfg:
             impersonating_store_name = cfg.get('store_name', impersonating_slug)
     user_role = session.get('role', 'overseer' if is_admin else 'guest')
-    server_has_ai_key = bool(get_ai_api_key() or get_groq_api_key() or get_xai_api_key() or get_qwen_api_key())
+    server_has_ai_key = bool(get_ai_api_key() or get_groq_api_key() or get_xai_api_key() or get_openrouter_api_key())
     return dict(
         store_name=STORE_NAME,
         demo_mode=DEMO_MODE,
@@ -1321,8 +1321,8 @@ def ai_analyze():
             api_key = get_xai_api_key()  # xAI/Grok
             ai_provider = 'xai'
         if not api_key:
-            api_key = get_qwen_api_key()  # Qwen
-            ai_provider = 'qwen'
+            api_key = get_openrouter_api_key()  # OpenRouter
+            ai_provider = 'openrouter'
     
     if not api_key:
         return jsonify({'error': 'No API key configured. Ask the admin to configure an AI API key in App Settings or Railway variables.'})
@@ -1372,7 +1372,7 @@ def ai_analyze():
         elif api_key.startswith('xai-'):
             ai_provider = 'xai'
         elif api_key.startswith('sk-'):
-            ai_provider = 'qwen'  # Qwen keys start with sk-
+            ai_provider = 'openrouter'  # OpenRouter keys start with sk-or-
         else:
             ai_provider = 'anthropic'  # default
     
@@ -1512,15 +1512,15 @@ def ai_analyze():
             parsed['_provider'] = 'xai'
             return jsonify(parsed)
             
-        elif ai_provider == 'qwen':
-            # Use Qwen (Alibaba) API
+        elif ai_provider == 'openrouter':
+            # Use OpenRouter API (supports many vision models)
             payload = {
-                'model': 'qwen-vl-plus',
+                'model': 'google/gemini-flash-1.5',
                 'messages': [{
                     'role': 'user',
                     'content': [
-                        {'image': f'data:{content_type};base64,{img_b64}'},
-                        {'text': (
+                        {'type': 'image_url', 'image_url': {'url': f'data:{content_type};base64,{img_b64}'}},
+                        {'type': 'text', 'text': (
                             'Analyze this thrift store item photo. '
                             'Return JSON only with keys: title, category, condition, description, suggested_price, labels, objects. '
                             'condition must be one of: New, Like New, Good, Fair, Poor. '
@@ -1532,29 +1532,32 @@ def ai_analyze():
                 }]
             }
             req = ur.Request(
-                'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation',
+                'https://openrouter.ai/api/v1/chat/completions',
                 data=_json.dumps(payload).encode(),
                 headers={
                     'Authorization': f'Bearer {api_key}',
                     'Content-Type': 'application/json',
-                    'X-DashScope-Async': 'disable'
+                    'HTTP-Referer': 'https://liberty-emporium.app',
+                    'X-Title': 'Liberty Inventory'
                 }
             )
             with ur.urlopen(req, timeout=30) as resp:
                 result = _json.loads(resp.read())
-            # Qwen response format varies, try to extract
+            text = result['choices'][0]['message']['content'].strip()
             try:
-                output = result.get('output', {}).get('choices', [{}])[0].get('message', {}).get('content', [])
-                text = ''
-                for item in output:
-                    if item.get('text'):
-                        text = item['text']
-                        break
-                parsed = _json.loads(text)
+                if text.startswith('```'):
+                    text = text.split('```')[1]
+                    if text.startswith('json'):
+                        text = text[4:]
+                parsed = _json.loads(text.strip())
             except:
-                parsed = {'title': 'Item', 'category': 'Miscellaneous', 'condition': 'Good', 'description': str(result), 'suggested_price': '25.00', 'labels': [], 'objects': []}
-            parsed['_usage'] = {'input_tokens': 0, 'output_tokens': 0}
-            parsed['_provider'] = 'qwen'
+                parsed = {'title': 'Item', 'category': 'Miscellaneous', 'condition': 'Good', 'description': text, 'suggested_price': '25.00', 'labels': [], 'objects': []}
+            usage = result.get('usage', {})
+            parsed['_usage'] = {
+                'input_tokens': usage.get('prompt_tokens', 0),
+                'output_tokens': usage.get('completion_tokens', 0),
+            }
+            parsed['_provider'] = 'openrouter'
             return jsonify(parsed)
             
     except Exception as e:
@@ -2379,20 +2382,20 @@ def my_settings():
     db = get_db()
     if request.method == 'POST':
         groq_key = request.form.get('groq_key', '').strip()
-        qwen_key = request.form.get('qwen_key', '').strip()
+        openrouter_key = request.form.get('openrouter_key', '').strip()
         anthropic_key = request.form.get('anthropic_key', '').strip()
         xai_key = request.form.get('xai_key', '').strip()
-        active_provider = request.form.get('active_provider', 'qwen')
+        active_provider = request.form.get('active_provider', 'openrouter')
         db.execute('''INSERT OR REPLACE INTO user_api_keys
-            (user_id, groq_key, qwen_key, anthropic_key, xai_key, active_provider, updated_at)
+            (user_id, groq_key, openrouter_key, anthropic_key, xai_key, active_provider, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)''',
-            (user_id, groq_key, qwen_key, anthropic_key, xai_key, active_provider))
+            (user_id, groq_key, openrouter_key, anthropic_key, xai_key, active_provider))
         db.commit()
         flash('Your AI settings saved!', 'success')
         return redirect(url_for('my_settings'))
     row = db.execute('SELECT * FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
-    keys = dict(row) if row else {'groq_key': '', 'qwen_key': '', 'anthropic_key': '', 'xai_key': '', 'active_provider': 'qwen'}
-    for k in ['groq_key', 'qwen_key', 'anthropic_key', 'xai_key']:
+    keys = dict(row) if row else {'groq_key': '', 'openrouter_key': '', 'anthropic_key': '', 'xai_key': '', 'active_provider': 'openrouter'}
+    for k in ['groq_key', 'openrouter_key', 'anthropic_key', 'xai_key']:
         if keys.get(k):
             keys[k] = keys[k][:8] + '...'
     return render_template('my_settings.html', keys=keys, **ctx())
@@ -3587,17 +3590,17 @@ def api_save_settings():
             pass
     
     # Update with new keys
-    for key in ['GROQ_API_KEY', 'ANTHROPIC_API_KEY', 'XAI_API_KEY', 'QWEN_API_KEY']:
+    for key in ['OPENROUTER_API_KEY', 'ANTHROPIC_API_KEY', 'XAI_API_KEY', 'GROQ_API_KEY']:
         if data.get(key):
             # Map to internal names
-            if key == 'GROQ_API_KEY':
-                app_cfg['groq_api_key'] = data[key].strip()
+            if key == 'OPENROUTER_API_KEY':
+                app_cfg['openrouter_api_key'] = data[key].strip()
             elif key == 'ANTHROPIC_API_KEY':
                 app_cfg['anthropic_api_key'] = data[key].strip()
             elif key == 'XAI_API_KEY':
                 app_cfg['xai_api_key'] = data[key].strip()
-            elif key == 'QWEN_API_KEY':
-                app_cfg['qwen_api_key'] = data[key].strip()
+            elif key == 'GROQ_API_KEY':
+                app_cfg['groq_api_key'] = data[key].strip()
     
     # Save
     try:

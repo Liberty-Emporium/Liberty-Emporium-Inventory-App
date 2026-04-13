@@ -16,17 +16,17 @@
             <div class="mb-3">
                 <label class="form-label fw-bold">Active AI Provider</label>
                 <select name="active_provider" class="form-control">
-                    <option value="qwen" {% if keys.active_provider == 'qwen' %}selected{% endif %}>Qwen (Recommended - Affordable)</option>
-                    <option value="groq" {% if keys.active_provider == 'groq' %}selected{% endif %}>Groq (Fast)</option>
+                    <option value="openrouter" {% if keys.active_provider == 'openrouter' %}selected{% endif %}>OpenRouter (Recommended - Many Models)</option>
                     <option value="anthropic" {% if keys.active_provider == 'anthropic' %}selected{% endif %}>Anthropic Claude</option>
                     <option value="xai" {% if keys.active_provider == 'xai' %}selected{% endif %}>xAI Grok</option>
+                    <option value="groq" {% if keys.active_provider == 'groq' %}selected{% endif %}>Groq (Fast)</option>
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Qwen API Key</label>
-                <input type="password" name="qwen_key" class="form-control"
-                    placeholder="{% if keys.qwen_key %}{{ keys.qwen_key }}{% else %}Enter Qwen API key{% endif %}">
-                <small class="text-muted">Get at dashscope.aliyuncs.com</small>
+                <label class="form-label fw-bold">OpenRouter API Key</label>
+                <input type="password" name="openrouter_key" class="form-control"
+                    placeholder="{% if keys.openrouter_key %}{{ keys.openrouter_key }}{% else %}Enter OpenRouter API key{% endif %}">
+                <small class="text-muted">Get at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></small>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Groq API Key</label>
