@@ -3740,12 +3740,14 @@ def api_bot_chat():
                 'Content-Type':  'application/json',
             }
         )
-        with _ur.urlopen(req, timeout=30) as resp:
+        with _ur.urlopen(req, timeout=90) as resp:
             result = json.loads(resp.read())
         reply = result['choices'][0]['message']['content']
         return jsonify({'reply': reply})
     except _ue.HTTPError as e:
         return jsonify({'error': f"Gateway error {e.code}: {e.reason}"}), 502
+    except _ue.URLError as e:
+        return jsonify({'error': f"Connection error: {e.reason}. Check gateway URL in Settings."}), 502
     except Exception as e:
         return jsonify({'error': str(e)}), 502
 
