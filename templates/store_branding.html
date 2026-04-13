@@ -239,12 +239,6 @@
     <div class="br-card">
       <h2>📸 Store Gallery &amp; Hero Slideshow</h2>
       <p style="font-size:0.85rem;color:#7a7a8c;margin:0 0 1rem;">Upload up to 8 photos. These appear as a hero slideshow at the top of your store page and in a gallery section below your products.</p>
-      {% set gallery = cfg.gallery_images | default('[]') %}
-      {% if gallery is string %}
-        {% set gallery_list = gallery | from_json if gallery else [] %}
-      {% else %}
-        {% set gallery_list = gallery %}
-      {% endif %}
       <div class="gallery-grid">
         {% for i in range(8) %}
         {% set existing = gallery_list[i] if gallery_list and i < gallery_list|length else None %}
@@ -274,19 +268,18 @@
       <table class="hours-table">
         {% set days = [('mon','Monday'),('tue','Tuesday'),('wed','Wednesday'),('thu','Thursday'),('fri','Friday'),('sat','Saturday'),('sun','Sunday')] %}
         {% for d, label in days %}
-        {% set hours_obj = cfg.business_hours | default('{}') %}
+        {% set day_val = hours_obj.get(d, '') %}
         <tr>
           <td>{{ label[:3] }}</td>
           <td>
             <input type="text" name="hours_{{ d }}" id="hours_{{ d }}"
-              value=""
+              value="{% if day_val != 'Closed' %}{{ day_val }}{% endif %}"
               placeholder="e.g. 9am–5pm"
-              data-day="{{ d }}"
-              data-hours="{{ hours_obj }}">
+              {% if day_val == 'Closed' %}disabled{% endif %}>
           </td>
           <td>
             <label class="closed-lbl">
-              <input type="checkbox" name="hours_{{ d }}_closed" id="closed_{{ d }}" onchange="toggleClosed('{{ d }}')">
+              <input type="checkbox" name="hours_{{ d }}_closed" id="closed_{{ d }}" onchange="toggleClosed('{{ d }}')" {% if day_val == 'Closed' %}checked{% endif %}>
               Closed
             </label>
           </td>
@@ -394,26 +387,6 @@ function selectFont(card, val) {
   card.classList.add('selected');
   card.querySelector('input[type=radio]').checked = true;
 }
-
-// ── Business hours pre-fill ──
-(function() {
-  const inputs = document.querySelectorAll('[data-day]');
-  if (!inputs.length) return;
-  let hoursObj = {};
-  try { hoursObj = JSON.parse(inputs[0].getAttribute('data-hours') || '{}'); } catch(e) {}
-  inputs.forEach(inp => {
-    const d = inp.getAttribute('data-day');
-    const val = hoursObj[d] || '';
-    if (val === 'Closed') {
-      inp.value = '';
-      inp.disabled = true;
-      const cb = document.getElementById('closed_' + d);
-      if (cb) cb.checked = true;
-    } else {
-      inp.value = val;
-    }
-  });
-})();
 
 function toggleClosed(day) {
   const cb = document.getElementById('closed_' + day);

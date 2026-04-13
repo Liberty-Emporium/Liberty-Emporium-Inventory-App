@@ -284,13 +284,7 @@
 <script>
 (function(){
   // ── Gallery data from config ──
-  var galleryRaw = {{ config.gallery_images | default('[]') | tojson }};
-  var gallery = [];
-  if (typeof galleryRaw === 'string') {
-    try { gallery = JSON.parse(galleryRaw); } catch(e) { gallery = []; }
-  } else if (Array.isArray(galleryRaw)) {
-    gallery = galleryRaw;
-  }
+  var gallery = {{ config.gallery_images | default([]) | tojson }};
 
   // ── Hero slideshow ──
   var hero = document.getElementById('spHero');
@@ -335,13 +329,7 @@
   }
 
   // ── Business hours ──
-  var hoursRaw = {{ config.business_hours | default('{}') | tojson }};
-  var hours = {};
-  if (typeof hoursRaw === 'string') {
-    try { hours = JSON.parse(hoursRaw); } catch(e) {}
-  } else if (typeof hoursRaw === 'object') {
-    hours = hoursRaw;
-  }
+  var hours = {{ config.business_hours | default({}) | tojson }};
   var tbl = document.getElementById('spHoursTable');
   if (tbl) {
     var dayLabels = {mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'};

@@ -2641,9 +2641,20 @@ def customer_store(slug):
         config = json.load(f)
     
     sample_products = config.get('sample_products') or load_sample_products(config.get('industry', 'general'))
-    
-    return render_template('store_page.html', 
-        config=config, 
+
+    # Parse JSON string fields so templates get proper Python objects
+    raw_gallery = config.get('gallery_images', '[]')
+    if isinstance(raw_gallery, str):
+        try: config['gallery_images'] = json.loads(raw_gallery)
+        except: config['gallery_images'] = []
+
+    raw_hours = config.get('business_hours', '{}')
+    if isinstance(raw_hours, str):
+        try: config['business_hours'] = json.loads(raw_hours)
+        except: config['business_hours'] = {}
+
+    return render_template('store_page.html',
+        config=config,
         tagline=config.get('tagline', ''),
         sample_products=sample_products,
         **ctx())
@@ -3050,7 +3061,25 @@ def my_store_branding():
         flash('Branding saved!', 'success')
         return redirect(url_for('my_store_branding'))
 
-    return render_template('store_branding.html', cfg=cfg, slug=slug, **ctx())
+    # Parse gallery_images and business_hours for template
+    gallery_list = []
+    raw_gallery = cfg.get('gallery_images', '[]')
+    if isinstance(raw_gallery, str):
+        try: gallery_list = json.loads(raw_gallery)
+        except: gallery_list = []
+    elif isinstance(raw_gallery, list):
+        gallery_list = raw_gallery
+
+    hours_obj = {}
+    raw_hours = cfg.get('business_hours', '{}')
+    if isinstance(raw_hours, str):
+        try: hours_obj = json.loads(raw_hours)
+        except: hours_obj = {}
+    elif isinstance(raw_hours, dict):
+        hours_obj = raw_hours
+
+    return render_template('store_branding.html', cfg=cfg, slug=slug,
+                           gallery_list=gallery_list, hours_obj=hours_obj, **ctx())
 
 
 @app.route('/customer-upload/<slug>/<filename>')
