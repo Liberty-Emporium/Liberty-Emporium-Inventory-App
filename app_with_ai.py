@@ -3632,15 +3632,34 @@ def api_save_settings():
 # ── OpenClaw Bot Integration ──────────────────────────────────────────────────
 
 def get_openclaw_config(slug=None):
-    """Get OpenClaw bot config for a store (or system-wide if no slug)."""
+    """Get OpenClaw bot config for a store, falling back to system-wide config."""
+    # Always load system-wide config as the base
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    app_cfg = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file) as f:
+                app_cfg = json.load(f)
+        except: pass
+
+    # Per-store overrides (only if set)
+    store_url   = ''
+    store_token = ''
+    store_agent = ''
     if slug:
         cfg = load_client_config(slug) or {}
-        return {
-            'gateway_url': cfg.get('openclaw_gateway_url', '').strip(),
-            'token':       cfg.get('openclaw_token', '').strip(),
-            'agent':       cfg.get('openclaw_agent', 'openclaw/default').strip(),
-        }
-    # System-wide from app_config.json
+        store_url   = cfg.get('openclaw_gateway_url', '').strip()
+        store_token = cfg.get('openclaw_token', '').strip()
+        store_agent = cfg.get('openclaw_agent', '').strip()
+
+    return {
+        'gateway_url': store_url   or app_cfg.get('openclaw_gateway_url', '').strip(),
+        'token':       store_token or app_cfg.get('openclaw_token', '').strip(),
+        'agent':       store_agent or app_cfg.get('openclaw_agent', 'openclaw/default').strip(),
+    }
+
+def _get_openclaw_config_system_only():
+    """System-wide only — used internally."""
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
     app_cfg = {}
     if os.path.exists(app_config_file):
