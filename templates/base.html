@@ -389,70 +389,61 @@
 
     <!-- Settings Modal Popup -->
     <div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
-      <div style="background:#1e293b; border-radius:16px; padding:1.5rem; max-width:450px; width:90%; color:#fff;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-          <h2 style="margin:0;">⚙️ API Settings</h2>
-          <button onclick="document.getElementById('settingsModal').style.display='none'" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <div style="background:#1e293b; border-radius:16px; padding:1.5rem; max-width:460px; width:90%; color:#fff; max-height:90vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+          <div>
+            <h2 style="margin:0; font-size:1.2rem;">🤖 AI Settings</h2>
+            <div style="font-size:0.78rem; color:#64748b; margin-top:0.2rem;">Power up your store's AI assistant</div>
+          </div>
+          <button onclick="document.getElementById('settingsModal').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:1.5rem;cursor:pointer;">✕</button>
         </div>
-        <div style="color:#94a3b8; font-size:0.9rem;">
-          <p style="margin-bottom:1rem;">Enter your API keys to enable AI features:</p>
-          
-          <form id="apiSettingsForm" style="display:flex; flex-direction:column; gap:0.75rem;">
-            <div style="display:flex; flex-direction:column; gap:0.25rem;">
-              <label style="font-size:0.8rem; color:#94a3b8;">🔀 OpenRouter API Key (Recommended)</label>
-              <input type="password" name="OPENROUTER_API_KEY" placeholder="sk-or-..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
-            </div>
 
-            <div style="display:flex; flex-direction:column; gap:0.25rem;">
-              <label style="font-size:0.8rem; color:#94a3b8;">🤖 OpenRouter Model</label>
-              <select name="OPENROUTER_MODEL" id="openrouterModelSelect" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
-                <optgroup label="Vision Models (for photo analysis)">
-                  <option value="google/gemini-flash-1.5">Gemini Flash 1.5 — Fast &amp; cheap ⭐ Recommended</option>
-                  <option value="google/gemini-pro-1.5">Gemini Pro 1.5 — Highest quality</option>
-                  <option value="anthropic/claude-3-haiku">Claude 3 Haiku — Fast &amp; accurate</option>
-                  <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet — Best quality</option>
-                  <option value="openai/gpt-4o-mini">GPT-4o Mini — Affordable OpenAI</option>
-                  <option value="openai/gpt-4o">GPT-4o — Premium OpenAI</option>
-                  <option value="meta-llama/llama-3.2-11b-vision-instruct:free">Llama 3.2 11B Vision — Free</option>
-                </optgroup>
-                <optgroup label="Free Text Models">
-                  <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B — Free</option>
-                  <option value="mistralai/mistral-7b-instruct:free">Mistral 7B — Free</option>
-                  <option value="google/gemma-2-9b-it:free">Gemma 2 9B — Free</option>
-                </optgroup>
-              </select>
-              <span style="font-size:0.72rem; color:#64748b;">Browse all models: <a href="https://openrouter.ai/models" target="_blank" style="color:#10b981;">openrouter.ai/models</a></span>
-            </div>
-            
-            <div style="display:flex; flex-direction:column; gap:0.25rem;">
-              <label style="font-size:0.8rem; color:#94a3b8;">🧠 Anthropic API Key (Claude)</label>
-              <input type="password" name="ANTHROPIC_API_KEY" placeholder="sk-ant-..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
-            </div>
-            
-            <div style="display:flex; flex-direction:column; gap:0.25rem;">
-              <label style="font-size:0.8rem; color:#94a3b8;">🚀 xAI API Key (Grok)</label>
-              <input type="password" name="XAI_API_KEY" placeholder="xai-..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
-            </div>
-            
-            <div style="display:flex; flex-direction:column; gap:0.25rem;">
-              <label style="font-size:0.8rem; color:#94a3b8;">🔑 Groq API Key</label>
-              <input type="password" name="GROQ_API_KEY" placeholder="gsk_..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
-            </div>
-            
-            <button type="submit" style="background:#10b981; color:white; border:none; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer; margin-top:0.5rem;">💾 Save API Keys</button>
-          </form>
-
-          <p style="margin-top:1rem; font-size:0.75rem; color:#64748b;">
-            Get free keys at:
-            <a href="https://openrouter.ai/keys" target="_blank" style="color:#10b981;">openrouter.ai</a>,
-            <a href="https://console.anthropic.com" target="_blank" style="color:#10b981;">anthropic.com</a>,
-            <a href="https://console.x.ai" target="_blank" style="color:#10b981;">x.ai</a>,
-            <a href="https://console.groq.com" target="_blank" style="color:#10b981;">groq.com</a>
-          </p>
-
-          <!-- AI Chat powered by OpenRouter (no separate config needed) -->
-
+        <!-- What is this? -->
+        <div style="background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.3); border-radius:10px; padding:1rem; margin-bottom:1.25rem; font-size:0.82rem; color:#c4b5fd; line-height:1.6;">
+          💡 <strong>Your AI CEO needs an API key to work.</strong> It's like a free membership card for the AI service. Get one at <a href="https://openrouter.ai/keys" target="_blank" style="color:#a78bfa; font-weight:600;">openrouter.ai/keys</a> (free, takes 2 min).
         </div>
+
+        <form id="apiSettingsForm" style="display:flex; flex-direction:column; gap:1rem;">
+
+          <!-- OpenRouter key -->
+          <div style="display:flex; flex-direction:column; gap:0.3rem;">
+            <label style="font-size:0.82rem; font-weight:700; color:#e2e8f0;">🔑 OpenRouter API Key
+              <span style="background:#10b981; color:white; font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:8px; margin-left:0.4rem; font-weight:600;">Recommended</span>
+            </label>
+            <input type="password" name="OPENROUTER_API_KEY" placeholder="Paste your key: sk-or-v1-..." style="width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem; box-sizing:border-box;">
+            <div style="font-size:0.72rem; color:#64748b;">
+              Don't have one? → <a href="https://openrouter.ai/keys" target="_blank" style="color:#a78bfa;">openrouter.ai/keys</a> — free account, takes 2 min
+            </div>
+          </div>
+
+          <!-- Model picker -->
+          <div style="display:flex; flex-direction:column; gap:0.3rem;">
+            <label style="font-size:0.82rem; font-weight:700; color:#e2e8f0;">🧠 AI Model (which brain to use)</label>
+            <select name="OPENROUTER_MODEL" id="openrouterModelSelect" style="width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
+              <optgroup label="⭐ Best for photo + chat (Recommended)">
+                <option value="google/gemini-flash-1.5">Gemini Flash 1.5 — Fast &amp; affordable ⭐</option>
+                <option value="openai/gpt-4o-mini">GPT-4o Mini — Great all-rounder</option>
+                <option value="anthropic/claude-3-haiku">Claude 3 Haiku — Smart &amp; fast</option>
+                <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet — Best quality</option>
+                <option value="openai/gpt-4o">GPT-4o — Premium</option>
+              </optgroup>
+              <optgroup label="🆓 Free models">
+                <option value="meta-llama/llama-3.2-11b-vision-instruct:free">Llama 3.2 Vision — Free</option>
+                <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B — Free</option>
+                <option value="mistralai/mistral-7b-instruct:free">Mistral 7B — Free</option>
+              </optgroup>
+            </select>
+            <div style="font-size:0.72rem; color:#64748b;">Browse 100+ models: <a href="https://openrouter.ai/models" target="_blank" style="color:#a78bfa;">openrouter.ai/models</a></div>
+          </div>
+
+          <button type="submit" style="background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; border:none; padding:0.75rem; border-radius:10px; font-weight:700; font-size:0.95rem; cursor:pointer;">💾 Save &mdash; Turn On My AI</button>
+        </form>
+
+        <!-- Full setup guide link -->
+        <div style="text-align:center; margin-top:1rem; padding-top:1rem; border-top:1px solid #1e293b;">
+          <a href="/my-settings" style="font-size:0.82rem; color:#a78bfa;">&#x1F4CB; Full setup guide with step-by-step instructions &rarr;</a>
+        </div>
+
       </div>
     </div>
     

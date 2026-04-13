@@ -1,54 +1,170 @@
 {% extends 'base.html' %}
 {% block title %}My AI Settings{% endblock %}
 {% block content %}
-<div style="max-width:600px; margin:2rem auto; padding:0 1rem;">
-    <h2>⚙️ My AI Settings</h2>
-    <p style="color:#666; margin-bottom:1.5rem;">Your personal AI API keys — these override the system defaults.</p>
+<div style="max-width:680px; margin:2rem auto; padding:0 1rem 4rem;">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-      {% endfor %}
-    {% endwith %}
+  <!-- Header -->
+  <div style="text-align:center; margin-bottom:2rem;">
+    <div style="font-size:3rem; margin-bottom:0.5rem;">🤖</div>
+    <h2 style="font-size:1.75rem; font-weight:800; margin-bottom:0.5rem;">Power Up Your AI Assistant</h2>
+    <p style="color:#666; font-size:1rem; max-width:480px; margin:0 auto;">Your store's AI CEO needs one free API key to work. Don't worry — we'll walk you through every step. It takes about 2 minutes.</p>
+  </div>
 
-    <div class="card" style="padding:1.5rem;">
-        <form method="POST">
-            <div class="mb-3">
-                <label class="form-label fw-bold">Active AI Provider</label>
-                <select name="active_provider" class="form-control">
-                    <option value="openrouter" {% if keys.active_provider == 'openrouter' %}selected{% endif %}>OpenRouter (Recommended - Many Models)</option>
-                    <option value="anthropic" {% if keys.active_provider == 'anthropic' %}selected{% endif %}>Anthropic Claude</option>
-                    <option value="xai" {% if keys.active_provider == 'xai' %}selected{% endif %}>xAI Grok</option>
-                    <option value="groq" {% if keys.active_provider == 'groq' %}selected{% endif %}>Groq (Fast)</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">OpenRouter API Key</label>
-                <input type="password" name="openrouter_key" class="form-control"
-                    placeholder="{% if keys.openrouter_key %}{{ keys.openrouter_key }}{% else %}Enter OpenRouter API key{% endif %}">
-                <small class="text-muted">Get at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></small>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Groq API Key</label>
-                <input type="password" name="groq_key" class="form-control"
-                    placeholder="{% if keys.groq_key %}{{ keys.groq_key }}{% else %}Enter Groq API key{% endif %}">
-                <small class="text-muted">Free tier at console.groq.com</small>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Anthropic API Key</label>
-                <input type="password" name="anthropic_key" class="form-control"
-                    placeholder="{% if keys.anthropic_key %}{{ keys.anthropic_key }}{% else %}Enter Anthropic API key{% endif %}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">xAI (Grok) API Key</label>
-                <input type="password" name="xai_key" class="form-control"
-                    placeholder="{% if keys.xai_key %}{{ keys.xai_key }}{% else %}Enter xAI API key{% endif %}">
-            </div>
-            <button type="submit" class="btn btn-primary w-100">💾 Save My AI Settings</button>
-        </form>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}" style="margin-bottom:1rem;">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- What is an API key? -->
+  <div style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:14px; padding:1.5rem; margin-bottom:1.5rem;">
+    <h3 style="font-size:1rem; font-weight:700; color:#166534; margin-bottom:0.5rem;">💡 What's an API key and why do I need one?</h3>
+    <p style="color:#166534; font-size:0.92rem; line-height:1.7; margin:0;">
+      Think of an API key like a <strong>membership card</strong> for an AI service. OpenRouter is the AI service that powers your store's AI assistant. When you create a free account and get a key, it's like handing your store a membership card so it can access the AI. <strong>No key = no AI.</strong> The key is free to get and free to use for normal store activity.
+    </p>
+  </div>
+
+  <!-- Step-by-step guide -->
+  <div style="background:white; border:1.5px solid #e5e7eb; border-radius:16px; padding:1.75rem; margin-bottom:1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+    <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:1.25rem; color:#0f172a;">📋 Step-by-Step: Get Your Free API Key</h3>
+
+    <div style="display:flex; flex-direction:column; gap:1.1rem;">
+
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <div style="background:#7c3aed; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0; margin-top:2px;">1</div>
+        <div>
+          <div style="font-weight:700; margin-bottom:0.2rem; color:#0f172a;">Go to OpenRouter.ai</div>
+          <div style="color:#6b7280; font-size:0.9rem; line-height:1.6;">
+            Open a new tab and visit <a href="https://openrouter.ai" target="_blank" style="color:#7c3aed; font-weight:600;">openrouter.ai</a> — it's free to sign up. Think of it as the AI hub that connects to dozens of AI models including GPT-4, Claude, and Gemini.
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <div style="background:#7c3aed; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0; margin-top:2px;">2</div>
+        <div>
+          <div style="font-weight:700; margin-bottom:0.2rem; color:#0f172a;">Create a free account</div>
+          <div style="color:#6b7280; font-size:0.9rem; line-height:1.6;">
+            Click <strong>"Sign In"</strong> at the top right, then <strong>"Create account."</strong> You can sign up with Google in one click — no credit card needed.
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <div style="background:#7c3aed; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0; margin-top:2px;">3</div>
+        <div>
+          <div style="font-weight:700; margin-bottom:0.2rem; color:#0f172a;">Get your API key</div>
+          <div style="color:#6b7280; font-size:0.9rem; line-height:1.6;">
+            Once logged in, go to <a href="https://openrouter.ai/keys" target="_blank" style="color:#7c3aed; font-weight:600;">openrouter.ai/keys</a>. Click <strong>"Create Key,"</strong> give it any name (like "My Store"), then click <strong>"Create."</strong> You'll see a long code that starts with <code style="background:#f3f4f6; padding:0.1rem 0.35rem; border-radius:4px; font-size:0.85rem;">sk-or-v1-...</code>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <div style="background:#7c3aed; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0; margin-top:2px;">4</div>
+        <div>
+          <div style="font-weight:700; margin-bottom:0.2rem; color:#0f172a;">Copy it and paste it below</div>
+          <div style="color:#6b7280; font-size:0.9rem; line-height:1.6;">
+            Click the copy button next to your key, come back to this page, paste it into the <strong>"OpenRouter API Key"</strong> field below, and hit <strong>Save.</strong> That's it — your AI is ready to go! 🎉
+          </div>
+        </div>
+      </div>
+
     </div>
-    <div class="mt-3">
-        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+  </div>
+
+  <!-- Warning: keep key safe -->
+  <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.5rem; font-size:0.88rem; color:#92400e; line-height:1.6;">
+    🔒 <strong>Keep your key private.</strong> Never share it or post it publicly. Treat it like a password. OpenRouter lets you delete or reset it any time at openrouter.ai/keys if you ever need to.
+  </div>
+
+  <!-- The actual form -->
+  <div style="background:white; border:1.5px solid #e5e7eb; border-radius:16px; padding:1.75rem; box-shadow:0 2px 8px rgba(0,0,0,0.05); margin-bottom:1.5rem;">
+    <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:1.25rem; color:#0f172a;">🔑 Enter Your API Key</h3>
+
+    <form method="POST">
+
+      <!-- OpenRouter key — the main one -->
+      <div style="margin-bottom:1.5rem;">
+        <label style="display:block; font-size:0.88rem; font-weight:700; color:#374151; margin-bottom:0.4rem;">
+          OpenRouter API Key <span style="background:#dcfce7; color:#166534; font-size:0.72rem; padding:0.1rem 0.5rem; border-radius:10px; font-weight:600; margin-left:0.4rem;">Recommended</span>
+        </label>
+        <input type="password" name="openrouter_key"
+          placeholder="{% if keys.openrouter_key %}Key is saved ✓ — paste new key to update{% else %}Paste your key here: sk-or-v1-...{% endif %}"
+          style="width:100%; padding:0.65rem 0.85rem; border-radius:10px; border:2px solid {% if keys.openrouter_key %}#10b981{% else %}#d1d5db{% endif %}; font-size:0.9rem; outline:none; box-sizing:border-box; color:#111;">
+        {% if keys.openrouter_key %}
+        <div style="color:#10b981; font-size:0.8rem; margin-top:0.35rem;">✅ API key is saved and active</div>
+        {% else %}
+        <div style="color:#6b7280; font-size:0.8rem; margin-top:0.35rem;">Get yours free at <a href="https://openrouter.ai/keys" target="_blank" style="color:#7c3aed;">openrouter.ai/keys</a></div>
+        {% endif %}
+      </div>
+
+      <!-- Model picker -->
+      <div style="margin-bottom:1.5rem;">
+        <label style="display:block; font-size:0.88rem; font-weight:700; color:#374151; margin-bottom:0.4rem;">
+          AI Model <span style="color:#6b7280; font-weight:400;">(Which AI brain to use)</span>
+        </label>
+        <select name="active_provider" style="width:100%; padding:0.65rem 0.85rem; border-radius:10px; border:2px solid #d1d5db; font-size:0.9rem; background:white; color:#111; box-sizing:border-box;">
+          <option value="openrouter" {% if keys.active_provider == 'openrouter' or not keys.active_provider %}selected{% endif %}>🌟 OpenRouter — Best Choice (uses the key above)</option>
+          <option value="groq" {% if keys.active_provider == 'groq' %}selected{% endif %}>⚡ Groq — Super fast, great for quick answers</option>
+          <option value="anthropic" {% if keys.active_provider == 'anthropic' %}selected{% endif %}>🧠 Anthropic Claude — Very smart, detailed answers</option>
+          <option value="xai" {% if keys.active_provider == 'xai' %}selected{% endif %}>🚀 xAI Grok — Good all-around AI</option>
+        </select>
+        <div style="color:#6b7280; font-size:0.8rem; margin-top:0.35rem;">Stick with OpenRouter — it works great and gives you access to many AI models.</div>
+      </div>
+
+      <!-- Advanced: other keys (collapsed) -->
+      <details style="margin-bottom:1.5rem;">
+        <summary style="cursor:pointer; font-size:0.85rem; color:#6b7280; font-weight:600; user-select:none;">⚙️ Advanced: Other AI provider keys (optional)</summary>
+        <div style="margin-top:1rem; display:flex; flex-direction:column; gap:1rem; padding:1rem; background:#f9fafb; border-radius:10px; border:1px solid #e5e7eb;">
+          <div>
+            <label style="display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:0.3rem;">Groq API Key</label>
+            <input type="password" name="groq_key" placeholder="{% if keys.groq_key %}Saved ✓{% else %}gsk_...{% endif %}"
+              style="width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #d1d5db; font-size:0.88rem; box-sizing:border-box;">
+            <div style="color:#9ca3af; font-size:0.78rem; margin-top:0.2rem;">Free tier at <a href="https://console.groq.com" target="_blank" style="color:#7c3aed;">console.groq.com</a></div>
+          </div>
+          <div>
+            <label style="display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:0.3rem;">Anthropic API Key</label>
+            <input type="password" name="anthropic_key" placeholder="{% if keys.anthropic_key %}Saved ✓{% else %}sk-ant-...{% endif %}"
+              style="width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #d1d5db; font-size:0.88rem; box-sizing:border-box;">
+            <div style="color:#9ca3af; font-size:0.78rem; margin-top:0.2rem;"><a href="https://console.anthropic.com" target="_blank" style="color:#7c3aed;">console.anthropic.com</a></div>
+          </div>
+          <div>
+            <label style="display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:0.3rem;">xAI (Grok) API Key</label>
+            <input type="password" name="xai_key" placeholder="{% if keys.xai_key %}Saved ✓{% else %}xai-...{% endif %}"
+              style="width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #d1d5db; font-size:0.88rem; box-sizing:border-box;">
+            <div style="color:#9ca3af; font-size:0.78rem; margin-top:0.2rem;"><a href="https://console.x.ai" target="_blank" style="color:#7c3aed;">console.x.ai</a></div>
+          </div>
+        </div>
+      </details>
+
+      <button type="submit" style="width:100%; background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; border:none; padding:0.9rem; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 4px 14px rgba(124,58,237,0.35);">
+        💾 Save My Settings — Turn On My AI
+      </button>
+    </form>
+  </div>
+
+  <!-- What can the AI do? -->
+  <div style="background:linear-gradient(135deg,#1e1b4b,#0f172a); border-radius:16px; padding:1.75rem; color:white; margin-bottom:1.5rem;">
+    <h3 style="font-size:1rem; font-weight:800; margin-bottom:1rem; color:#c4b5fd;">🤖 Once you save your key, your AI CEO can:</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; font-size:0.88rem; color:#cbd5e1;">
+      <div>✅ Add inventory items for you</div>
+      <div>✅ Suggest prices for your items</div>
+      <div>✅ Identify items from photos</div>
+      <div>✅ Write product descriptions</div>
+      <div>✅ Tell you what's not selling</div>
+      <div>✅ Give you business advice</div>
+      <div>✅ Write social media posts</div>
+      <div>✅ Answer any store question</div>
     </div>
+    <p style="color:#94a3b8; font-size:0.82rem; margin-top:1rem; margin-bottom:0;">
+      Just click the 🤖 button in the bottom-right corner of any page to chat with your AI.
+    </p>
+  </div>
+
+  <div style="text-align:center;">
+    <a href="{{ url_for('dashboard') }}" style="color:#6b7280; font-size:0.9rem; text-decoration:none;">← Back to Dashboard</a>
+  </div>
+
 </div>
 {% endblock %}
