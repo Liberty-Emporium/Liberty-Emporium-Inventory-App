@@ -22,6 +22,29 @@
       Start Free Trial →
     </button>
   </form>
+
+  {# Admin bypass — only shown when logged in as admin/overseer #}
+  {% if session.get('is_admin') or session.get('is_overseer') %}
+  <hr class="my-4">
+  <div class="card border-warning">
+    <div class="card-body">
+      <h6 class="card-title text-warning">⚡ Admin Bypass — No Payment Required</h6>
+      <p class="card-text small text-muted">Create a store instantly without going through Stripe. Use for demos, testing, or onboarding clients manually.</p>
+      <form id="bypass-form">
+        <div class="mb-2">
+          <input type="text" class="form-control form-control-sm" id="bypass_store_name" required placeholder="Store Name">
+        </div>
+        <div class="mb-2">
+          <input type="email" class="form-control form-control-sm" id="bypass_email" required placeholder="Contact Email">
+        </div>
+        <button type="submit" class="btn btn-warning btn-sm w-100" id="bypass-btn">
+          🔓 Create Store (Bypass Payment)
+        </button>
+      </form>
+      <div id="bypass-result" class="mt-2"></div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <script>
@@ -48,5 +71,32 @@ document.getElementById('subscribe-form').addEventListener('submit', async funct
     btn.textContent = 'Start Free Trial →';
   }
 });
+
+{% if session.get('is_admin') or session.get('is_overseer') %}
+document.getElementById('bypass-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('bypass-btn');
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  const res = await fetch('/admin/provision-bypass', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      store_name: document.getElementById('bypass_store_name').value,
+      email: document.getElementById('bypass_email').value,
+    })
+  });
+  const data = await res.json();
+  const result = document.getElementById('bypass-result');
+  if (data.success) {
+    result.innerHTML = '<div class="alert alert-success">✅ Store created! Slug: <strong>' + data.slug + '</strong><br>Login: ' + data.email + ' / ' + data.temp_password + '</div>';
+  } else {
+    result.innerHTML = '<div class="alert alert-danger">❌ ' + (data.error || 'Failed') + '</div>';
+  }
+  btn.disabled = false;
+  btn.textContent = '🔓 Create Store (Bypass Payment)';
+});
+{% endif %}
 </script>
 {% endblock %}

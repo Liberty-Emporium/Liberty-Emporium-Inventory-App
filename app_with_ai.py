@@ -3534,7 +3534,7 @@ def _auto_provision_store(store_name, contact_email, stripe_customer_id='', stri
 
 
 def _suspend_store_by_stripe_customer(stripe_customer_id):
-    """Set a store's status to suspended when their subscription is cancelled."""
+    """Suspend store when subscription is cancelled (not just payment failure)."""
     for entry in os.listdir(CUSTOMERS_DIR) if os.path.exists(CUSTOMERS_DIR) else []:
         cfg_path = os.path.join(CUSTOMERS_DIR, entry, 'config.json')
         if not os.path.exists(cfg_path):
@@ -3544,6 +3544,7 @@ def _suspend_store_by_stripe_customer(stripe_customer_id):
                 cfg = json.load(f)
             if cfg.get('stripe_customer_id') == stripe_customer_id:
                 cfg['status'] = 'suspended'
+                cfg['suspended_at'] = datetime.datetime.now().isoformat()
                 with open(cfg_path, 'w') as f:
                     json.dump(cfg, f, indent=2)
                 print(f'[WEBHOOK] Suspended store: {entry}', flush=True)
@@ -3552,7 +3553,10 @@ def _suspend_store_by_stripe_customer(stripe_customer_id):
 
 
 def _flag_store_payment_failed(stripe_customer_id):
-    """Mark a store as payment_failed so the Overseer dashboard can surface it."""
+    """On payment failure, give a 2-month grace period before suspending.
+    First failure: flag as payment_failed + record the date.
+    If already flagged and >60 days have passed: suspend.
+    """
     for entry in os.listdir(CUSTOMERS_DIR) if os.path.exists(CUSTOMERS_DIR) else []:
         cfg_path = os.path.join(CUSTOMERS_DIR, entry, 'config.json')
         if not os.path.exists(cfg_path):
@@ -3560,12 +3564,67 @@ def _flag_store_payment_failed(stripe_customer_id):
         try:
             with open(cfg_path) as f:
                 cfg = json.load(f)
-            if cfg.get('stripe_customer_id') == stripe_customer_id:
+            if cfg.get('stripe_customer_id') != stripe_customer_id:
+                continue
+
+            first_failure = cfg.get('payment_failed_at')
+            now = datetime.datetime.now()
+
+            if first_failure:
+                # Already flagged — check if 60 days have passed
+                failed_dt = datetime.datetime.fromisoformat(first_failure)
+                days_overdue = (now - failed_dt).days
+                if days_overdue >= 60:
+                    cfg['status'] = 'suspended'
+                    cfg['suspended_at'] = now.isoformat()
+                    cfg['payment_status'] = 'suspended_overdue'
+                    print(f'[WEBHOOK] Suspended {entry} after {days_overdue} days overdue', flush=True)
+                else:
+                    cfg['payment_status'] = 'overdue'
+                    print(f'[WEBHOOK] {entry} overdue {days_overdue}/60 days — grace period active', flush=True)
+            else:
+                # First failure — start the grace period clock
+                cfg['payment_failed_at'] = now.isoformat()
                 cfg['payment_status'] = 'failed'
-                with open(cfg_path, 'w') as f:
-                    json.dump(cfg, f, indent=2)
-        except Exception:
-            pass
+                print(f'[WEBHOOK] Payment failed for {entry} — 60-day grace period started', flush=True)
+
+            with open(cfg_path, 'w') as f:
+                json.dump(cfg, f, indent=2)
+        except Exception as e:
+            print(f'[WEBHOOK] Error processing payment failure for {entry}: {e}', flush=True)
+
+
+@app.route('/admin/provision-bypass', methods=['POST'])
+@login_required
+def admin_provision_bypass():
+    """Admin-only: provision a store without Stripe payment."""
+    if not (session.get('is_admin') or session.get('is_overseer')):
+        return jsonify({'error': 'Admin access required'}), 403
+
+    data = request.get_json() or {}
+    store_name = data.get('store_name', '').strip()
+    contact_email = data.get('contact_email', data.get('email', '')).strip()
+
+    if not store_name or not contact_email:
+        return jsonify({'error': 'Store name and email are required'}), 400
+
+    slug = _auto_provision_store(
+        store_name=store_name,
+        contact_email=contact_email,
+        stripe_customer_id='',
+        stripe_subscription_id='bypass',
+    )
+
+    # Read back the temp password from the users.json
+    users_path = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+    temp_password = '(see welcome email)'
+    if os.path.exists(users_path):
+        with open(users_path) as f:
+            users = json.load(f)
+        # Can't recover plaintext — just note it was emailed
+    
+    return jsonify({'success': True, 'slug': slug, 'email': contact_email,
+                    'temp_password': '(sent to email)', 'login_url': f'/store/{slug}/login'})
 
 
 # ── Run ───────────────────────────────────────────────────────────────────────
