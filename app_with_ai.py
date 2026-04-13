@@ -311,6 +311,21 @@ def get_openrouter_api_key(user_id=None):
     key = cfg.get('openrouter_api_key', '').strip()
     return key if key else ''
 
+def get_openrouter_model():
+    """Get selected OpenRouter model from app config. Defaults to gemini-flash-1.5."""
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file, 'r') as f:
+                app_cfg = json.load(f)
+            model = app_cfg.get('openrouter_model', '').strip()
+            if model:
+                return model
+        except Exception:
+            pass
+    cfg = load_store_config()
+    return cfg.get('openrouter_model', 'google/gemini-flash-1.5')
+
 def save_ai_api_key(key):
     """Save the Claude API key. Stored in-app (not in env vars)."""
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
@@ -1515,7 +1530,7 @@ def ai_analyze():
         elif ai_provider == 'openrouter':
             # Use OpenRouter API (supports many vision models)
             payload = {
-                'model': 'google/gemini-flash-1.5',
+                'model': get_openrouter_model(),
                 'messages': [{
                     'role': 'user',
                     'content': [
@@ -3572,10 +3587,12 @@ def api_generate_ad():
 
 
 # ── API Settings Endpoint ──
-@app.route('/api/save-settings', methods=['POST'])
+@app.route('/api/save-settings', methods=['GET', 'POST'])
 @rate_limit
 def api_save_settings():
-    """Save API keys from settings popup to app_config.json"""
+    """Save API keys from settings popup to app_config.json. GET returns current model."""
+    if request.method == 'GET':
+        return jsonify({'openrouter_model': get_openrouter_model()})
     data = request.get_json() or {}
     
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
@@ -3590,11 +3607,12 @@ def api_save_settings():
             pass
     
     # Update with new keys
-    for key in ['OPENROUTER_API_KEY', 'ANTHROPIC_API_KEY', 'XAI_API_KEY', 'GROQ_API_KEY']:
+    for key in ['OPENROUTER_API_KEY', 'OPENROUTER_MODEL', 'ANTHROPIC_API_KEY', 'XAI_API_KEY', 'GROQ_API_KEY']:
         if data.get(key):
-            # Map to internal names
             if key == 'OPENROUTER_API_KEY':
                 app_cfg['openrouter_api_key'] = data[key].strip()
+            elif key == 'OPENROUTER_MODEL':
+                app_cfg['openrouter_model'] = data[key].strip()
             elif key == 'ANTHROPIC_API_KEY':
                 app_cfg['anthropic_api_key'] = data[key].strip()
             elif key == 'XAI_API_KEY':
@@ -3609,3 +3627,174 @@ def api_save_settings():
         return jsonify({'success': True, 'message': 'API keys saved!'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ── OpenClaw Bot Integration ──────────────────────────────────────────────────
+
+def get_openclaw_config(slug=None):
+    """Get OpenClaw bot config for a store (or system-wide if no slug)."""
+    if slug:
+        cfg = load_client_config(slug) or {}
+        return {
+            'gateway_url': cfg.get('openclaw_gateway_url', '').strip(),
+            'token':       cfg.get('openclaw_token', '').strip(),
+            'agent':       cfg.get('openclaw_agent', 'openclaw/default').strip(),
+        }
+    # System-wide from app_config.json
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    app_cfg = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file) as f:
+                app_cfg = json.load(f)
+        except: pass
+    return {
+        'gateway_url': app_cfg.get('openclaw_gateway_url', '').strip(),
+        'token':       app_cfg.get('openclaw_token', '').strip(),
+        'agent':       app_cfg.get('openclaw_agent', 'openclaw/default').strip(),
+    }
+
+
+@app.route('/api/bot/chat', methods=['POST'])
+@rate_limit
+@login_required
+def api_bot_chat():
+    """Proxy chat messages to OpenClaw gateway with store context injected."""
+    import urllib.request as _ur
+    import urllib.error as _ue
+
+    data = request.get_json() or {}
+    user_message = data.get('message', '').strip()
+    history      = data.get('history', [])  # [{role, content}, ...]
+
+    if not user_message:
+        return jsonify({'error': 'No message provided'}), 400
+
+    # Determine which store context to use
+    slug = session.get('impersonating_slug') or session.get('store_slug') or None
+    oc   = get_openclaw_config(slug)
+
+    if not oc['gateway_url'] or not oc['token']:
+        return jsonify({'error': 'OpenClaw not configured. Add your Gateway URL and token in Settings ⚙️'}), 400
+
+    # Build store context
+    try:
+        products  = load_inventory()
+        total_val = sum(float(p.get('Price') or 0) for p in products)
+        available = sum(1 for p in products if p.get('Status','').lower() == 'available')
+        sold      = sum(1 for p in products if p.get('Status','').lower() == 'sold')
+        store_cfg = load_store_config()
+        if slug:
+            client_cfg = load_client_config(slug) or {}
+            store_name = client_cfg.get('store_name', 'this store')
+        else:
+            store_name = store_cfg.get('store_name', 'Liberty Emporium')
+        context = (
+            f"You are the AI assistant for {store_name}, a retail/thrift store using RetailTrack inventory management. "
+            f"Current inventory: {len(products)} items, {available} available, {sold} sold, "
+            f"total value ${total_val:.2f}. "
+            f"You can help with inventory decisions, pricing, ads, and store management. "
+            f"Be concise, practical, and friendly."
+        )
+    except Exception:
+        context = "You are the AI assistant for a retail store using RetailTrack."
+
+    # Build messages
+    messages = [{'role': 'system', 'content': context}]
+    for h in history[-10:]:  # last 10 turns
+        if h.get('role') in ('user', 'assistant') and h.get('content'):
+            messages.append({'role': h['role'], 'content': h['content']})
+    messages.append({'role': 'user', 'content': user_message})
+
+    payload = json.dumps({
+        'model':    oc['agent'],
+        'messages': messages,
+        'stream':   False
+    }).encode()
+
+    try:
+        req = _ur.Request(
+            oc['gateway_url'].rstrip('/') + '/v1/chat/completions',
+            data=payload,
+            headers={
+                'Authorization': f"Bearer {oc['token']}",
+                'Content-Type':  'application/json',
+            }
+        )
+        with _ur.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+        reply = result['choices'][0]['message']['content']
+        return jsonify({'reply': reply})
+    except _ue.HTTPError as e:
+        return jsonify({'error': f"Gateway error {e.code}: {e.reason}"}), 502
+    except Exception as e:
+        return jsonify({'error': str(e)}), 502
+
+
+@app.route('/api/bot/config', methods=['GET', 'POST'])
+@rate_limit
+@login_required
+def api_bot_config():
+    """Get or save OpenClaw bot config for current store or system."""
+    slug = session.get('store_slug') or None
+    is_admin = session.get('username') == ADMIN_USER
+
+    if request.method == 'GET':
+        oc = get_openclaw_config(slug if not is_admin else None)
+        # Mask token
+        masked = oc['token'][:8] + '...' if len(oc['token']) > 8 else ('set' if oc['token'] else '')
+        return jsonify({'gateway_url': oc['gateway_url'], 'agent': oc['agent'], 'token_set': bool(oc['token']), 'token_masked': masked})
+
+    data = request.get_json() or {}
+    gateway_url = data.get('gateway_url', '').strip()
+    token       = data.get('token', '').strip()
+    agent       = data.get('agent', 'openclaw/default').strip()
+
+    if slug and not is_admin:
+        # Save to client config
+        cfg = load_client_config(slug) or {}
+        cfg['openclaw_gateway_url'] = gateway_url
+        cfg['openclaw_agent']       = agent
+        if token:
+            cfg['openclaw_token'] = token
+        save_client_config(slug, cfg)
+    else:
+        # Save system-wide
+        app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+        app_cfg = {}
+        if os.path.exists(app_config_file):
+            try:
+                with open(app_config_file) as f: app_cfg = json.load(f)
+            except: pass
+        app_cfg['openclaw_gateway_url'] = gateway_url
+        app_cfg['openclaw_agent']       = agent
+        if token:
+            app_cfg['openclaw_token'] = token
+        with open(app_config_file, 'w') as f:
+            json.dump(app_cfg, f, indent=2)
+
+    return jsonify({'success': True})
+
+
+@app.route('/api/bot/test', methods=['POST'])
+@rate_limit
+@login_required
+def api_bot_test():
+    """Test OpenClaw gateway connection by hitting /v1/models."""
+    import urllib.request as _ur
+    import urllib.error as _ue
+    data = request.get_json() or {}
+    url   = data.get('gateway_url', '').strip().rstrip('/')
+    token = data.get('token', '').strip()
+    if not url or not token:
+        return jsonify({'ok': False, 'error': 'URL and token required'}), 400
+    try:
+        req = _ur.Request(url + '/v1/models', headers={'Authorization': f'Bearer {token}'})
+        with _ur.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read())
+        models = [m['id'] for m in result.get('data', [])]
+        return jsonify({'ok': True, 'models': models})
+    except _ue.HTTPError as e:
+        return jsonify({'ok': False, 'error': f'HTTP {e.code}: {e.reason}'})
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)})

@@ -402,6 +402,27 @@
               <label style="font-size:0.8rem; color:#94a3b8;">🔀 OpenRouter API Key (Recommended)</label>
               <input type="password" name="OPENROUTER_API_KEY" placeholder="sk-or-..." style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
             </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+              <label style="font-size:0.8rem; color:#94a3b8;">🤖 OpenRouter Model</label>
+              <select name="OPENROUTER_MODEL" id="openrouterModelSelect" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
+                <optgroup label="Vision Models (for photo analysis)">
+                  <option value="google/gemini-flash-1.5">Gemini Flash 1.5 — Fast &amp; cheap ⭐ Recommended</option>
+                  <option value="google/gemini-pro-1.5">Gemini Pro 1.5 — Highest quality</option>
+                  <option value="anthropic/claude-3-haiku">Claude 3 Haiku — Fast &amp; accurate</option>
+                  <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet — Best quality</option>
+                  <option value="openai/gpt-4o-mini">GPT-4o Mini — Affordable OpenAI</option>
+                  <option value="openai/gpt-4o">GPT-4o — Premium OpenAI</option>
+                  <option value="meta-llama/llama-3.2-11b-vision-instruct:free">Llama 3.2 11B Vision — Free</option>
+                </optgroup>
+                <optgroup label="Free Text Models">
+                  <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B — Free</option>
+                  <option value="mistralai/mistral-7b-instruct:free">Mistral 7B — Free</option>
+                  <option value="google/gemma-2-9b-it:free">Gemma 2 9B — Free</option>
+                </optgroup>
+              </select>
+              <span style="font-size:0.72rem; color:#64748b;">Browse all models: <a href="https://openrouter.ai/models" target="_blank" style="color:#10b981;">openrouter.ai/models</a></span>
+            </div>
             
             <div style="display:flex; flex-direction:column; gap:0.25rem;">
               <label style="font-size:0.8rem; color:#94a3b8;">🧠 Anthropic API Key (Claude)</label>
@@ -420,19 +441,61 @@
             
             <button type="submit" style="background:#10b981; color:white; border:none; padding:0.75rem; border-radius:8px; font-weight:600; cursor:pointer; margin-top:0.5rem;">💾 Save API Keys</button>
           </form>
-          
+
           <p style="margin-top:1rem; font-size:0.75rem; color:#64748b;">
-            Keys are stored locally and used for AI features. Get free keys at:
+            Get free keys at:
             <a href="https://openrouter.ai/keys" target="_blank" style="color:#10b981;">openrouter.ai</a>,
             <a href="https://console.anthropic.com" target="_blank" style="color:#10b981;">anthropic.com</a>,
             <a href="https://console.x.ai" target="_blank" style="color:#10b981;">x.ai</a>,
             <a href="https://console.groq.com" target="_blank" style="color:#10b981;">groq.com</a>
           </p>
+
+          <!-- ── OpenClaw Bot Connection ── -->
+          <div style="border-top:1px solid #1e293b; margin-top:1.25rem; padding-top:1.25rem;">
+            <div style="font-size:0.85rem; font-weight:700; color:#e2e8f0; margin-bottom:0.75rem;">🐙 Connect OpenClaw Bot</div>
+            <div style="display:flex; flex-direction:column; gap:0.6rem;">
+              <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                <label style="font-size:0.78rem; color:#94a3b8;">Gateway URL</label>
+                <input type="text" id="ocGatewayUrl" placeholder="https://your-openclaw-instance.fly.dev" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.82rem; box-sizing:border-box;">
+              </div>
+              <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                <label style="font-size:0.78rem; color:#94a3b8;">Gateway Token</label>
+                <input type="password" id="ocToken" placeholder="Bearer token" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.82rem; box-sizing:border-box;">
+              </div>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <button onclick="ocTestConnection()" style="background:#3b82f6; color:white; border:none; padding:0.5rem 1rem; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; flex-shrink:0;">🔌 Test</button>
+                <span id="ocStatus" style="font-size:0.78rem; color:#64748b;">Not connected</span>
+              </div>
+              <div id="ocAgentRow" style="display:none; flex-direction:column; gap:0.25rem;">
+                <label style="font-size:0.78rem; color:#94a3b8;">Agent</label>
+                <select id="ocAgentSelect" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.82rem;">
+                  <option value="openclaw/default">openclaw/default</option>
+                </select>
+              </div>
+              <button onclick="ocSaveConnection()" id="ocSaveBtn" style="background:#7c3aed; color:white; border:none; padding:0.6rem; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:none;">💾 Save Bot Connection</button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
     
     <script>
+      // Pre-load saved OpenRouter model when gear icon clicked
+      (function() {
+        var gearBtn = document.querySelector('button[onclick*="settingsModal"]');
+        if (gearBtn) {
+          gearBtn.addEventListener('click', function() {
+            fetch('/api/save-settings').then(function(r){ return r.json(); }).then(function(data) {
+              if (data.openrouter_model) {
+                var sel = document.getElementById('openrouterModelSelect');
+                if (sel) sel.value = data.openrouter_model;
+              }
+            }).catch(function(){});
+          });
+        }
+      })();
+
       document.getElementById('apiSettingsForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(this);
@@ -465,5 +528,159 @@
         }
       });
     </script>
+
+<!-- ── Floating OpenClaw Bot Panel ── -->
+<style>
+  #ocFloatBtn { position:fixed; bottom:1.5rem; right:1.5rem; z-index:8000; background:#7c3aed; color:white; border:none; width:52px; height:52px; border-radius:50%; font-size:1.4rem; cursor:pointer; box-shadow:0 4px 16px rgba(124,58,237,0.5); display:none; align-items:center; justify-content:center; transition:transform 0.15s; }
+  #ocFloatBtn:hover { transform:scale(1.1); }
+  #ocPanel { position:fixed; bottom:5rem; right:1.5rem; z-index:8001; width:340px; background:#0f172a; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.5); display:none; flex-direction:column; overflow:hidden; border:1px solid #1e293b; }
+  #ocPanelHeader { background:#1e1b4b; padding:0.75rem 1rem; display:flex; align-items:center; justify-content:space-between; }
+  #ocPanelHeader span { font-size:0.9rem; font-weight:700; color:#e2e8f0; }
+  #ocPanelHeader button { background:none; border:none; color:#94a3b8; font-size:1.1rem; cursor:pointer; }
+  #ocMsgs { height:280px; overflow-y:auto; padding:0.75rem; display:flex; flex-direction:column; gap:0.5rem; }
+  .oc-msg { max-width:85%; padding:0.5rem 0.75rem; border-radius:10px; font-size:0.82rem; line-height:1.4; word-wrap:break-word; }
+  .oc-msg.user { background:#7c3aed; color:white; align-self:flex-end; border-bottom-right-radius:3px; }
+  .oc-msg.bot { background:#1e293b; color:#e2e8f0; align-self:flex-start; border-bottom-left-radius:3px; }
+  .oc-msg.thinking { background:#1e293b; color:#64748b; align-self:flex-start; font-style:italic; }
+  #ocInputRow { display:flex; border-top:1px solid #1e293b; }
+  #ocInputRow input { flex:1; padding:0.65rem 0.75rem; background:#0f172a; border:none; color:#fff; font-size:0.85rem; outline:none; }
+  #ocInputRow button { background:#7c3aed; color:white; border:none; padding:0.65rem 1rem; font-size:0.85rem; font-weight:600; cursor:pointer; }
+  #ocInputRow button:disabled { opacity:0.5; cursor:not-allowed; }
+  @media(max-width:400px){ #ocPanel { width:calc(100vw - 2rem); right:1rem; } }
+</style>
+
+<button id="ocFloatBtn" onclick="ocTogglePanel()" title="Chat with your AI Bot">🐙</button>
+
+<div id="ocPanel">
+  <div id="ocPanelHeader">
+    <span>🐙 Store AI Assistant</span>
+    <button onclick="ocTogglePanel()">✕</button>
+  </div>
+  <div id="ocMsgs"></div>
+  <div id="ocInputRow">
+    <input type="text" id="ocInput" placeholder="Ask about your store..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ocSend();}">
+    <button id="ocSendBtn" onclick="ocSend()">Send</button>
+  </div>
+</div>
+
+<script>
+// ── OpenClaw Settings Modal helpers ──
+function ocLoadConfig() {
+  fetch('/api/bot/config').then(r=>r.json()).then(d=>{
+    if (d.gateway_url) document.getElementById('ocGatewayUrl').value = d.gateway_url;
+    if (d.agent)       document.getElementById('ocAgentSelect').value = d.agent;
+    if (d.token_set) {
+      document.getElementById('ocStatus').textContent = '\u2705 Connected (' + (d.token_masked||'set') + ')';
+      document.getElementById('ocStatus').style.color = '#10b981';
+      document.getElementById('ocSaveBtn').style.display = 'block';
+      document.getElementById('ocAgentRow').style.display = 'flex';
+    }
+  }).catch(()=>{});
+}
+document.querySelector('button[onclick*="settingsModal"]').addEventListener('click', function(){
+  ocLoadConfig();
+  fetch('/api/save-settings').then(r=>r.json()).then(d=>{
+    if (d.openrouter_model) { var s=document.getElementById('openrouterModelSelect'); if(s) s.value=d.openrouter_model; }
+  }).catch(()=>{});
+});
+
+function ocTestConnection() {
+  var url   = document.getElementById('ocGatewayUrl').value.trim();
+  var token = document.getElementById('ocToken').value.trim();
+  var st    = document.getElementById('ocStatus');
+  if (!url || !token) { st.textContent = '\u26a0\ufe0f Enter URL and token first'; st.style.color='#f59e0b'; return; }
+  st.textContent = 'Testing...'; st.style.color='#94a3b8';
+  fetch('/api/bot/test', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({gateway_url:url, token:token})})
+    .then(r=>r.json()).then(d=>{
+      if (d.ok) {
+        st.textContent = '\u2705 Connected! Models: ' + (d.models||[]).join(', '); st.style.color='#10b981';
+        var sel = document.getElementById('ocAgentSelect');
+        sel.innerHTML = '';
+        (d.models||['openclaw/default']).forEach(function(m){
+          var o = document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o);
+        });
+        document.getElementById('ocAgentRow').style.display='flex';
+        document.getElementById('ocSaveBtn').style.display='block';
+      } else {
+        st.textContent = '\u274c ' + d.error; st.style.color='#ef4444';
+      }
+    }).catch(function(e){ st.textContent='\u274c '+e; st.style.color='#ef4444'; });
+}
+
+function ocSaveConnection() {
+  var url   = document.getElementById('ocGatewayUrl').value.trim();
+  var token = document.getElementById('ocToken').value.trim();
+  var agent = document.getElementById('ocAgentSelect').value.trim();
+  fetch('/api/bot/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({gateway_url:url, token:token, agent:agent})})
+    .then(r=>r.json()).then(d=>{
+      if (d.success) {
+        document.getElementById('ocStatus').textContent = '\u2705 Saved!';
+        document.getElementById('ocStatus').style.color = '#10b981';
+        document.getElementById('ocFloatBtn').style.display = 'flex';
+        document.getElementById('settingsModal').style.display = 'none';
+      }
+    });
+}
+
+// ── Floating bot panel ──
+var ocHistory = [];
+var ocOpen    = false;
+
+// Show bot button if configured
+fetch('/api/bot/config').then(r=>r.json()).then(d=>{
+  if (d.token_set && d.gateway_url) {
+    document.getElementById('ocFloatBtn').style.display = 'flex';
+  }
+}).catch(()=>{});
+
+function ocTogglePanel() {
+  ocOpen = !ocOpen;
+  document.getElementById('ocPanel').style.display = ocOpen ? 'flex' : 'none';
+  if (ocOpen) {
+    if (document.getElementById('ocMsgs').children.length === 0) {
+      ocAddMsg('bot', 'Hi! I\'m your store AI assistant. Ask me anything about your inventory, pricing, or how to grow your store.');
+    }
+    setTimeout(function(){ document.getElementById('ocInput').focus(); }, 100);
+  }
+}
+
+function ocAddMsg(role, text) {
+  var msgs = document.getElementById('ocMsgs');
+  var d    = document.createElement('div');
+  d.className = 'oc-msg ' + role;
+  d.textContent = text;
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+  return d;
+}
+
+function ocSend() {
+  var input = document.getElementById('ocInput');
+  var btn   = document.getElementById('ocSendBtn');
+  var msg   = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  btn.disabled = true;
+  ocAddMsg('user', msg);
+  var thinking = ocAddMsg('thinking', '\u2026 thinking');
+  fetch('/api/bot/chat', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message:msg, history:ocHistory})
+  }).then(r=>r.json()).then(d=>{
+    thinking.remove();
+    var reply = d.reply || d.error || 'No response';
+    ocAddMsg('bot', reply);
+    ocHistory.push({role:'user', content:msg});
+    ocHistory.push({role:'assistant', content:reply});
+    if (ocHistory.length > 20) ocHistory = ocHistory.slice(-20);
+    btn.disabled = false;
+  }).catch(function(e){
+    thinking.remove();
+    ocAddMsg('bot', '\u274c Error: ' + e);
+    btn.disabled = false;
+  });
+}
+</script>
 </body>
 </html>
