@@ -2990,12 +2990,29 @@ def my_store_branding():
 
     if request.method == 'POST':
         # Text fields
-        cfg['store_name']       = request.form.get('store_name', cfg.get('store_name', '')).strip()
-        cfg['tagline']          = request.form.get('tagline', '').strip()
-        cfg['store_description']= request.form.get('store_description', '').strip()
-        cfg['primary_color']    = request.form.get('primary_color', cfg.get('primary_color', '#2e7d6e'))
-        cfg['secondary_color']  = request.form.get('secondary_color', cfg.get('secondary_color', '#1a1a2e'))
-        cfg['accent_color']     = request.form.get('accent_color', cfg.get('accent_color', '#10b981'))
+        cfg['store_name']        = request.form.get('store_name', cfg.get('store_name', '')).strip()
+        cfg['tagline']           = request.form.get('tagline', '').strip()
+        cfg['hero_slogan']       = request.form.get('hero_slogan', '').strip()
+        cfg['store_description'] = request.form.get('store_description', '').strip()
+        cfg['announcement']      = request.form.get('announcement', '').strip()
+        cfg['primary_color']     = request.form.get('primary_color', cfg.get('primary_color', '#2e7d6e'))
+        cfg['secondary_color']   = request.form.get('secondary_color', cfg.get('secondary_color', '#1a1a2e'))
+        cfg['accent_color']      = request.form.get('accent_color', cfg.get('accent_color', '#10b981'))
+        cfg['font_choice']       = request.form.get('font_choice', 'classic')
+        cfg['contact_phone']     = request.form.get('contact_phone', '').strip()
+        cfg['contact_address']   = request.form.get('contact_address', '').strip()
+        cfg['social_facebook']   = request.form.get('social_facebook', '').strip()
+        cfg['social_instagram']  = request.form.get('social_instagram', '').strip()
+        cfg['social_tiktok']     = request.form.get('social_tiktok', '').strip()
+        cfg['social_twitter']    = request.form.get('social_twitter', '').strip()
+
+        # Business hours
+        days = ['mon','tue','wed','thu','fri','sat','sun']
+        hours_data = {}
+        for d in days:
+            closed = request.form.get(f'hours_{d}_closed') == 'on'
+            hours_data[d] = 'Closed' if closed else request.form.get(f'hours_{d}', '').strip()
+        cfg['business_hours'] = json.dumps(hours_data)
 
         # Logo upload
         logo_file = request.files.get('logo')
@@ -3012,6 +3029,22 @@ def my_store_branding():
             banner_path = os.path.join(uploads_dir, f'banner{ext}')
             banner_file.save(banner_path)
             cfg['banner_url'] = f'/customer-upload/{slug}/banner{ext}'
+
+        # Gallery uploads (up to 8)
+        gallery_images = cfg.get('gallery_images') or []
+        if isinstance(gallery_images, str):
+            try: gallery_images = json.loads(gallery_images)
+            except: gallery_images = []
+        for i in range(8):
+            gfile = request.files.get(f'gallery_{i}')
+            if gfile and gfile.filename:
+                ext = os.path.splitext(gfile.filename)[1].lower() or '.jpg'
+                gname = f'gallery_{i}{ext}'
+                gfile.save(os.path.join(uploads_dir, gname))
+                url = f'/customer-upload/{slug}/{gname}'
+                if url not in gallery_images:
+                    gallery_images.append(url)
+        cfg['gallery_images'] = json.dumps(gallery_images)
 
         save_client_config(slug, cfg)
         flash('Branding saved!', 'success')

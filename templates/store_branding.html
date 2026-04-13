@@ -4,7 +4,7 @@
 
 {% block content %}
 <style>
-  .br-wrap { max-width:760px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+  .br-wrap { max-width:800px; margin:0 auto; padding:1.5rem 1rem 4rem; }
   .br-header { margin-bottom:2rem; }
   .br-header h1 { font-family:'Playfair Display',serif; font-size:2rem; color:#1a1a2e; margin:0 0 0.3rem; }
   .br-header p { color:#7a7a8c; font-size:0.9rem; }
@@ -12,7 +12,7 @@
   .br-card h2 { font-family:'Playfair Display',serif; font-size:1.15rem; color:#1a1a2e; margin:0 0 1.25rem; padding-bottom:0.6rem; border-bottom:2px solid #f0ede8; }
   .field { margin-bottom:1.1rem; }
   .field label { display:block; font-size:0.8rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.35rem; }
-  .field input[type=text], .field input[type=email], .field textarea {
+  .field input[type=text], .field input[type=email], .field input[type=tel], .field input[type=url], .field textarea {
     width:100%; padding:0.65rem 0.9rem; border:1.5px solid #d1c9bc; border-radius:10px;
     font-size:0.92rem; font-family:inherit; box-sizing:border-box;
   }
@@ -22,8 +22,6 @@
   .color-field { display:flex; flex-direction:column; gap:0.35rem; }
   .color-field label { font-size:0.8rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.05em; }
   .color-field input[type=color] { width:60px; height:44px; border:1.5px solid #d1c9bc; border-radius:8px; padding:2px; cursor:pointer; }
-  .upload-row { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
-  @media(max-width:600px){ .upload-row { grid-template-columns:1fr; } }
   .upload-box { border:2px dashed #d1c9bc; border-radius:12px; padding:1.25rem; text-align:center; cursor:pointer; transition:border-color 0.15s; position:relative; }
   .upload-box:hover { border-color:#2e7d6e; }
   .upload-box input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
@@ -32,33 +30,64 @@
   .upload-icon { font-size:2rem; margin-bottom:0.3rem; }
   .upload-label { font-size:0.82rem; font-weight:600; color:#555; }
   .upload-sub { font-size:0.72rem; color:#9ca3af; margin-top:0.15rem; }
+  .upload-row { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  @media(max-width:600px){ .upload-row { grid-template-columns:1fr; } }
 
   /* Live preview */
   .preview-panel { border-radius:14px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.1); margin-bottom:1.5rem; }
   .preview-banner {
-    height:120px;
-    background: var(--prev-primary, #2e7d6e);
+    height:140px; background:var(--prev-primary,#2e7d6e);
     display:flex; align-items:flex-end; justify-content:flex-start;
-    padding:0 1.5rem 0.75rem;
-    position:relative;
+    padding:0 1.5rem 0.75rem; position:relative;
     background-size:cover; background-position:center;
   }
-  .preview-logo {
-    width:64px; height:64px; border-radius:12px;
-    background:rgba(255,255,255,0.2);
-    border:2px solid rgba(255,255,255,0.5);
-    display:flex; align-items:center; justify-content:center;
-    font-size:1.5rem; margin-right:1rem; flex-shrink:0;
-    overflow:hidden;
-  }
+  .preview-logo { width:64px; height:64px; border-radius:12px; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-right:1rem; flex-shrink:0; overflow:hidden; }
   .preview-logo img { width:100%; height:100%; object-fit:cover; }
-  .preview-store-info { }
   .preview-store-name { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; color:white; text-shadow:0 1px 4px rgba(0,0,0,0.4); line-height:1.1; }
   .preview-tagline { font-size:0.78rem; color:rgba(255,255,255,0.8); }
+  .preview-slogan { font-size:0.92rem; color:rgba(255,255,255,0.95); font-weight:700; margin-top:0.1rem; }
   .preview-body { background:white; padding:1rem 1.5rem; }
   .preview-desc { font-size:0.82rem; color:#7a7a8c; font-style:italic; }
   .preview-colors { display:flex; gap:0.5rem; margin-top:0.6rem; }
   .preview-swatch { width:28px; height:28px; border-radius:50%; border:2px solid rgba(0,0,0,0.1); }
+
+  /* Font cards */
+  .font-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; }
+  @media(max-width:600px){ .font-cards { grid-template-columns:repeat(2,1fr); } }
+  .font-card { border:2px solid #d1c9bc; border-radius:12px; padding:1rem 0.75rem; text-align:center; cursor:pointer; transition:all 0.15s; }
+  .font-card:hover { border-color:#2e7d6e; }
+  .font-card input[type=radio] { display:none; }
+  .font-card.selected { border-color:#2e7d6e; background:#f0fdf9; }
+  .font-card .font-sample { font-size:1.3rem; margin-bottom:0.25rem; }
+  .font-card .font-name { font-size:0.75rem; font-weight:700; color:#555; text-transform:uppercase; }
+  .font-playfair .font-sample { font-family:'Playfair Display',serif; }
+  .font-inter .font-sample { font-family:'Inter',sans-serif; }
+  .font-oswald .font-sample { font-family:'Oswald',sans-serif; }
+  .font-pacifico .font-sample { font-family:'Pacifico',cursive; }
+
+  /* Gallery grid */
+  .gallery-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; }
+  @media(max-width:600px){ .gallery-grid { grid-template-columns:repeat(2,1fr); } }
+  .gallery-slot { position:relative; border:2px dashed #d1c9bc; border-radius:10px; aspect-ratio:1; overflow:hidden; cursor:pointer; }
+  .gallery-slot:hover { border-color:#2e7d6e; }
+  .gallery-slot input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .gallery-slot img { width:100%; height:100%; object-fit:cover; display:block; }
+  .gallery-slot .slot-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:#9ca3af; font-size:0.75rem; padding:0.5rem; }
+  .gallery-slot .slot-empty span { font-size:1.5rem; margin-bottom:0.25rem; }
+
+  /* Hours table */
+  .hours-table { width:100%; border-collapse:collapse; }
+  .hours-table td { padding:0.45rem 0.5rem; vertical-align:middle; }
+  .hours-table td:first-child { font-weight:700; font-size:0.85rem; color:#555; width:50px; }
+  .hours-table input[type=text] { width:100%; padding:0.45rem 0.7rem; border:1.5px solid #d1c9bc; border-radius:8px; font-size:0.85rem; box-sizing:border-box; }
+  .hours-table input[type=text]:focus { outline:none; border-color:#2e7d6e; }
+  .hours-table td:last-child { width:80px; text-align:center; }
+  .hours-table label.closed-lbl { font-size:0.78rem; color:#9ca3af; display:flex; align-items:center; gap:0.3rem; justify-content:center; }
+
+  /* Social inputs */
+  .social-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+  @media(max-width:600px){ .social-row { grid-template-columns:1fr; } }
+  .social-field label { display:flex; align-items:center; gap:0.4rem; font-size:0.8rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.35rem; }
 
   .btn-save { background:#1a1a2e; color:white; border:none; padding:0.8rem 2rem; border-radius:10px; font-weight:700; font-size:1rem; cursor:pointer; margin-top:0.5rem; }
   .btn-save:hover { opacity:0.88; }
@@ -66,23 +95,27 @@
   .back-link:hover { color:#1a1a2e; }
 </style>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
+
 <div class="br-wrap">
   <a href="/my-store" class="back-link">← Back to Dashboard</a>
 
   <div class="br-header">
     <h1>🎨 Store Branding</h1>
-    <p>Customize how your store looks — your logo, banner, colors, and description.</p>
+    <p>Customize everything — how your storefront looks, feels, and what customers see.</p>
   </div>
 
   <!-- Live Preview -->
   <div class="preview-panel" id="previewPanel">
-    <div class="preview-banner" id="prevBanner">
+    <div class="preview-banner" id="prevBanner" style="background:{{ cfg.primary_color or '#2e7d6e' }};">
       <div class="preview-logo" id="prevLogo">
         {% if cfg.logo_url %}<img src="{{ cfg.logo_url }}" id="prevLogoImg">{% else %}<span id="prevLogoEmoji">🏪</span>{% endif %}
       </div>
-      <div class="preview-store-info">
+      <div>
         <div class="preview-store-name" id="prevName">{{ cfg.store_name }}</div>
         <div class="preview-tagline" id="prevTagline">{{ cfg.tagline or '' }}</div>
+        <div class="preview-slogan" id="prevSlogan">{{ cfg.hero_slogan or '' }}</div>
       </div>
     </div>
     <div class="preview-body">
@@ -105,12 +138,48 @@
         <input type="text" name="store_name" value="{{ cfg.store_name }}" required id="inputName">
       </div>
       <div class="field">
-        <label>Tagline</label>
+        <label>Tagline <span style="font-weight:400;text-transform:none;color:#9ca3af">— short phrase under your name</span></label>
         <input type="text" name="tagline" value="{{ cfg.tagline or '' }}" placeholder="e.g. Quality finds at unbeatable prices" id="inputTagline">
+      </div>
+      <div class="field">
+        <label>Hero Slogan <span style="font-weight:400;text-transform:none;color:#9ca3af">— big bold headline on your storefront</span></label>
+        <input type="text" name="hero_slogan" value="{{ cfg.hero_slogan or '' }}" placeholder="e.g. The best deals in town!" id="inputSlogan">
       </div>
       <div class="field">
         <label>Store Description</label>
         <textarea name="store_description" placeholder="Tell customers about your store..." id="inputDesc">{{ cfg.store_description or '' }}</textarea>
+      </div>
+      <div class="field">
+        <label>📣 Announcement Banner <span style="font-weight:400;text-transform:none;color:#9ca3af">— shown at top of your store page</span></label>
+        <input type="text" name="announcement" value="{{ cfg.announcement or '' }}" placeholder="e.g. 🔥 Weekend sale — 30% off everything!">
+      </div>
+    </div>
+
+    <!-- Font -->
+    <div class="br-card">
+      <h2>Font Style</h2>
+      <div class="font-cards">
+        {% set fc = cfg.font_choice or 'classic' %}
+        <label class="font-card font-playfair {% if fc == 'classic' %}selected{% endif %}" onclick="selectFont(this,'classic')">
+          <input type="radio" name="font_choice" value="classic" {% if fc == 'classic' %}checked{% endif %}>
+          <div class="font-sample">Aa</div>
+          <div class="font-name">Classic</div>
+        </label>
+        <label class="font-card font-inter {% if fc == 'modern' %}selected{% endif %}" onclick="selectFont(this,'modern')">
+          <input type="radio" name="font_choice" value="modern" {% if fc == 'modern' %}checked{% endif %}>
+          <div class="font-sample">Aa</div>
+          <div class="font-name">Modern</div>
+        </label>
+        <label class="font-card font-oswald {% if fc == 'bold' %}selected{% endif %}" onclick="selectFont(this,'bold')">
+          <input type="radio" name="font_choice" value="bold" {% if fc == 'bold' %}checked{% endif %}>
+          <div class="font-sample">Aa</div>
+          <div class="font-name">Bold</div>
+        </label>
+        <label class="font-card font-pacifico {% if fc == 'playful' %}selected{% endif %}" onclick="selectFont(this,'playful')">
+          <input type="radio" name="font_choice" value="playful" {% if fc == 'playful' %}checked{% endif %}>
+          <div class="font-sample">Aa</div>
+          <div class="font-name">Playful</div>
+        </label>
       </div>
     </div>
 
@@ -133,7 +202,7 @@
       </div>
     </div>
 
-    <!-- Images -->
+    <!-- Logo & Banner -->
     <div class="br-card">
       <h2>Logo &amp; Banner</h2>
       <div class="upload-row">
@@ -166,17 +235,116 @@
       </div>
     </div>
 
+    <!-- Gallery / Slideshow -->
+    <div class="br-card">
+      <h2>📸 Store Gallery &amp; Hero Slideshow</h2>
+      <p style="font-size:0.85rem;color:#7a7a8c;margin:0 0 1rem;">Upload up to 8 photos. These appear as a hero slideshow at the top of your store page and in a gallery section below your products.</p>
+      {% set gallery = cfg.gallery_images | default('[]') %}
+      {% if gallery is string %}
+        {% set gallery_list = gallery | from_json if gallery else [] %}
+      {% else %}
+        {% set gallery_list = gallery %}
+      {% endif %}
+      <div class="gallery-grid">
+        {% for i in range(8) %}
+        {% set existing = gallery_list[i] if gallery_list and i < gallery_list|length else None %}
+        <div class="gallery-slot" id="gslot_{{ i }}">
+          <input type="file" name="gallery_{{ i }}" accept="image/*" onchange="previewGallery(this, {{ i }})">
+          {% if existing %}
+            <img src="{{ existing }}" id="gimg_{{ i }}">
+          {% else %}
+            <div class="slot-empty" id="gempty_{{ i }}">
+              <span>📷</span>
+              Photo {{ i + 1 }}
+            </div>
+            <img src="" id="gimg_{{ i }}" style="display:none;width:100%;height:100%;object-fit:cover;">
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Business Hours -->
+    <div class="br-card">
+      <h2>🕐 Business Hours</h2>
+      {% set hours_raw = cfg.business_hours or '{}' %}
+      {% if hours_raw is string %}
+        {# parse in JS — we'll pre-fill via data attribute #}
+      {% endif %}
+      <table class="hours-table">
+        {% set days = [('mon','Monday'),('tue','Tuesday'),('wed','Wednesday'),('thu','Thursday'),('fri','Friday'),('sat','Saturday'),('sun','Sunday')] %}
+        {% for d, label in days %}
+        {% set hours_obj = cfg.business_hours | default('{}') %}
+        <tr>
+          <td>{{ label[:3] }}</td>
+          <td>
+            <input type="text" name="hours_{{ d }}" id="hours_{{ d }}"
+              value=""
+              placeholder="e.g. 9am–5pm"
+              data-day="{{ d }}"
+              data-hours="{{ hours_obj }}">
+          </td>
+          <td>
+            <label class="closed-lbl">
+              <input type="checkbox" name="hours_{{ d }}_closed" id="closed_{{ d }}" onchange="toggleClosed('{{ d }}')">
+              Closed
+            </label>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- Social Links -->
+    <div class="br-card">
+      <h2>🔗 Social Links</h2>
+      <div class="social-row">
+        <div class="social-field">
+          <label>📘 Facebook</label>
+          <input type="url" name="social_facebook" value="{{ cfg.social_facebook or '' }}" placeholder="https://facebook.com/yourstore">
+        </div>
+        <div class="social-field">
+          <label>📸 Instagram</label>
+          <input type="url" name="social_instagram" value="{{ cfg.social_instagram or '' }}" placeholder="https://instagram.com/yourstore">
+        </div>
+        <div class="social-field">
+          <label>🎵 TikTok</label>
+          <input type="url" name="social_tiktok" value="{{ cfg.social_tiktok or '' }}" placeholder="https://tiktok.com/@yourstore">
+        </div>
+        <div class="social-field">
+          <label>🐦 Twitter / X</label>
+          <input type="url" name="social_twitter" value="{{ cfg.social_twitter or '' }}" placeholder="https://x.com/yourstore">
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="br-card">
+      <h2>📞 Contact Info</h2>
+      <div class="field">
+        <label>Phone Number</label>
+        <input type="tel" name="contact_phone" value="{{ cfg.contact_phone or '' }}" placeholder="e.g. (555) 123-4567">
+      </div>
+      <div class="field">
+        <label>Address</label>
+        <textarea name="contact_address" placeholder="e.g. 123 Main St, Nashville, TN 37201">{{ cfg.contact_address or '' }}</textarea>
+      </div>
+    </div>
+
     <button type="submit" class="btn-save">💾 Save Branding</button>
   </form>
 </div>
 
 <script>
-// Live preview
+// ── Live preview ──
 document.getElementById('inputName').addEventListener('input', e => {
   document.getElementById('prevName').textContent = e.target.value || 'Your Store';
 });
 document.getElementById('inputTagline').addEventListener('input', e => {
   document.getElementById('prevTagline').textContent = e.target.value;
+});
+document.getElementById('inputSlogan').addEventListener('input', e => {
+  document.getElementById('prevSlogan').textContent = e.target.value;
 });
 document.getElementById('inputDesc').addEventListener('input', e => {
   document.getElementById('prevDesc').textContent = e.target.value || 'Your store description will appear here.';
@@ -196,23 +364,62 @@ function previewLogo(input) {
   if (!input.files[0]) return;
   const url = URL.createObjectURL(input.files[0]);
   const prev = document.getElementById('logoPreview');
-  prev.src = url;
-  prev.classList.add('visible');
-  // Update banner logo
-  const logo = document.getElementById('prevLogo');
-  logo.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+  prev.src = url; prev.classList.add('visible');
+  document.getElementById('prevLogo').innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
 }
-
 function previewBanner(input) {
   if (!input.files[0]) return;
   const url = URL.createObjectURL(input.files[0]);
   const prev = document.getElementById('bannerPreview');
-  prev.src = url;
-  prev.classList.add('visible');
-  // Update banner background
-  document.getElementById('prevBanner').style.backgroundImage = `url('${url}')`;
-  document.getElementById('prevBanner').style.backgroundSize = 'cover';
-  document.getElementById('prevBanner').style.backgroundPosition = 'center';
+  prev.src = url; prev.classList.add('visible');
+  const b = document.getElementById('prevBanner');
+  b.style.backgroundImage = `url('${url}')`;
+  b.style.backgroundSize = 'cover';
+  b.style.backgroundPosition = 'center';
+}
+
+// ── Gallery preview ──
+function previewGallery(input, i) {
+  if (!input.files[0]) return;
+  const url = URL.createObjectURL(input.files[0]);
+  const img = document.getElementById('gimg_' + i);
+  const empty = document.getElementById('gempty_' + i);
+  img.src = url; img.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+}
+
+// ── Font card selection ──
+function selectFont(card, val) {
+  document.querySelectorAll('.font-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  card.querySelector('input[type=radio]').checked = true;
+}
+
+// ── Business hours pre-fill ──
+(function() {
+  const inputs = document.querySelectorAll('[data-day]');
+  if (!inputs.length) return;
+  let hoursObj = {};
+  try { hoursObj = JSON.parse(inputs[0].getAttribute('data-hours') || '{}'); } catch(e) {}
+  inputs.forEach(inp => {
+    const d = inp.getAttribute('data-day');
+    const val = hoursObj[d] || '';
+    if (val === 'Closed') {
+      inp.value = '';
+      inp.disabled = true;
+      const cb = document.getElementById('closed_' + d);
+      if (cb) cb.checked = true;
+    } else {
+      inp.value = val;
+    }
+  });
+})();
+
+function toggleClosed(day) {
+  const cb = document.getElementById('closed_' + day);
+  const inp = document.getElementById('hours_' + day);
+  inp.disabled = cb.checked;
+  if (cb.checked) inp.value = '';
 }
 </script>
 {% endblock %}
