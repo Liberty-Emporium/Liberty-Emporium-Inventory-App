@@ -509,16 +509,16 @@ def list_client_stores():
 STORE_CONFIG_FILE = os.path.join(DATA_DIR, 'store_config.json')
 
 DEFAULT_STORE_CONFIG = {
-    'store_name': 'Liberty Emporium & Thrift',
-    'tagline': 'Inventory Management',
+    'store_name': "Andy's Inventory Management",
+    'tagline': 'AI-Powered Inventory Management',
     'contact_email': 'alexanderjay70@gmail.com',
     'jay_email': 'alexanderjay70@gmail.com',
-    'primary_color': '#2c3e50',
-    'secondary_color': '#27ae60',
-    'accent_color': '#4f46e5',
+    'primary_color': '#1a1a2e',
+    'secondary_color': '#e94560',
+    'accent_color': '#0f3460',
     'logo_url': '',  # empty = use emoji fallback
-    'logo_emoji': '🏪',
-    'store_description': 'RetailTrack — A beautiful inventory management app for your store.',
+    'logo_emoji': '🤖',
+    'store_description': "Andy's Inventory Management — AI-powered inventory for modern retailers.",
     # Pricing tiers (customizable per demo instance)
     'pricing': {
         'starter': {'name': 'Starter', 'price': 299, 'features': [
