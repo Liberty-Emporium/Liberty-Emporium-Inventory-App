@@ -3629,11 +3629,10 @@ def api_save_settings():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ── OpenClaw Bot Integration ──────────────────────────────────────────────────
+# ── AI Assistant (OpenRouter) ────────────────────────────────────────────────
 
-def get_openclaw_config(slug=None):
-    """Get OpenClaw bot config for a store, falling back to system-wide config."""
-    # Always load system-wide config as the base
+def _get_ai_api_key_for_chat(slug=None):
+    """Get OpenRouter API key for chat, checking per-store then system-wide."""
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
     app_cfg = {}
     if os.path.exists(app_config_file):
@@ -3641,25 +3640,18 @@ def get_openclaw_config(slug=None):
             with open(app_config_file) as f:
                 app_cfg = json.load(f)
         except: pass
-
-    # Per-store overrides (only if set)
-    store_url   = ''
-    store_token = ''
-    store_agent = ''
+    # Check per-store key first
     if slug:
         cfg = load_client_config(slug) or {}
-        store_url   = cfg.get('openclaw_gateway_url', '').strip()
-        store_token = cfg.get('openclaw_token', '').strip()
-        store_agent = cfg.get('openclaw_agent', '').strip()
+        key = cfg.get('openrouter_api_key', '').strip()
+        if key:
+            return key
+    # Fall back to system-wide key
+    return app_cfg.get('openrouter_api_key', '').strip()
 
-    return {
-        'gateway_url': store_url   or app_cfg.get('openclaw_gateway_url', '').strip(),
-        'token':       store_token or app_cfg.get('openclaw_token', '').strip(),
-        'agent':       store_agent or app_cfg.get('openclaw_agent', 'openclaw/default').strip(),
-    }
 
-def _get_openclaw_config_system_only():
-    """System-wide only — used internally."""
+def _get_ai_model(slug=None):
+    """Get the model to use for chat (from config or default)."""
     app_config_file = os.path.join(DATA_DIR, 'app_config.json')
     app_cfg = {}
     if os.path.exists(app_config_file):
@@ -3667,34 +3659,38 @@ def _get_openclaw_config_system_only():
             with open(app_config_file) as f:
                 app_cfg = json.load(f)
         except: pass
-    return {
-        'gateway_url': app_cfg.get('openclaw_gateway_url', '').strip(),
-        'token':       app_cfg.get('openclaw_token', '').strip(),
-        'agent':       app_cfg.get('openclaw_agent', 'openclaw/default').strip(),
-    }
+    if slug:
+        cfg = load_client_config(slug) or {}
+        model = cfg.get('ai_chat_model', '').strip()
+        if model:
+            return model
+    return app_cfg.get('ai_chat_model', 'openai/gpt-4o-mini').strip()
 
 
 @app.route('/api/bot/chat', methods=['POST'])
 @rate_limit
 @login_required
 def api_bot_chat():
-    """Proxy chat messages to OpenClaw gateway with store context injected."""
+    """AI assistant via OpenRouter — can control inventory, add customers, etc."""
     import urllib.request as _ur
     import urllib.error as _ue
+    import base64 as _b64
 
     data = request.get_json() or {}
     user_message = data.get('message', '').strip()
     history      = data.get('history', [])  # [{role, content}, ...]
+    image_b64    = data.get('image', None)   # base64 image from paperclip
+    image_mime   = data.get('image_mime', 'image/jpeg')
 
-    if not user_message:
+    if not user_message and not image_b64:
         return jsonify({'error': 'No message provided'}), 400
 
-    # Determine which store context to use
     slug = session.get('impersonating_slug') or session.get('store_slug') or None
-    oc   = get_openclaw_config(slug)
+    api_key = _get_ai_api_key_for_chat(slug)
+    model   = _get_ai_model(slug)
 
-    if not oc['gateway_url'] or not oc['token']:
-        return jsonify({'error': 'OpenClaw not configured. Add your Gateway URL and token in Settings ⚙️'}), 400
+    if not api_key:
+        return jsonify({'error': 'No OpenRouter API key configured. Add one in Settings ⚙️ → API Keys.'}), 400
 
     # Build store context
     try:
@@ -3708,36 +3704,57 @@ def api_bot_chat():
             store_name = client_cfg.get('store_name', 'this store')
         else:
             store_name = store_cfg.get('store_name', 'Liberty Emporium')
+        # Summarize recent inventory (up to 20 items)
+        items_summary = '; '.join(
+            f"{p.get('Title','?')} (${p.get('Price','?')}, {p.get('Status','?')})"
+            for p in products[:20]
+        )
         context = (
-            f"You are the AI assistant for {store_name}, a retail/thrift store using RetailTrack inventory management. "
-            f"Current inventory: {len(products)} items, {available} available, {sold} sold, "
+            f"You are the AI assistant for {store_name}, a retail/thrift store. "
+            f"You have full access to help manage the store. "
+            f"Current inventory: {len(products)} items total, {available} available, {sold} sold, "
             f"total value ${total_val:.2f}. "
-            f"You can help with inventory decisions, pricing, ads, and store management. "
-            f"Be concise, practical, and friendly."
+            f"Recent items: {items_summary}. "
+            f"You can help: add inventory, update prices, find products, analyze sales, "
+            f"write descriptions, identify items from photos, and give business advice. "
+            f"When the user uploads a photo, describe and suggest pricing for the item. "
+            f"Be concise, practical, and action-oriented."
         )
     except Exception:
-        context = "You are the AI assistant for a retail store using RetailTrack."
+        context = "You are the AI assistant for a retail store. Help with inventory, pricing, and store management."
 
     # Build messages
     messages = [{'role': 'system', 'content': context}]
-    for h in history[-10:]:  # last 10 turns
+    for h in history[-10:]:
         if h.get('role') in ('user', 'assistant') and h.get('content'):
             messages.append({'role': h['role'], 'content': h['content']})
-    messages.append({'role': 'user', 'content': user_message})
+
+    # Current user message (with optional image)
+    if image_b64:
+        user_content = [
+            {'type': 'text', 'text': user_message or 'What is this item? Suggest a price and description for my thrift store.'},
+            {'type': 'image_url', 'image_url': {'url': f'data:{image_mime};base64,{image_b64}'}}
+        ]
+    else:
+        user_content = user_message
+
+    messages.append({'role': 'user', 'content': user_content})
 
     payload = json.dumps({
-        'model':    oc['agent'],
+        'model':    model,
         'messages': messages,
         'stream':   False
     }).encode()
 
     try:
         req = _ur.Request(
-            oc['gateway_url'].rstrip('/') + '/v1/chat/completions',
+            'https://openrouter.ai/api/v1/chat/completions',
             data=payload,
             headers={
-                'Authorization': f"Bearer {oc['token']}",
+                'Authorization': f'Bearer {api_key}',
                 'Content-Type':  'application/json',
+                'HTTP-Referer':  'https://liberty-emporium.ai',
+                'X-Title':       'Liberty Inventory AI',
             }
         )
         with _ur.urlopen(req, timeout=90) as resp:
@@ -3745,77 +3762,11 @@ def api_bot_chat():
         reply = result['choices'][0]['message']['content']
         return jsonify({'reply': reply})
     except _ue.HTTPError as e:
-        return jsonify({'error': f"Gateway error {e.code}: {e.reason}"}), 502
+        body = ''
+        try: body = e.read().decode()
+        except: pass
+        return jsonify({'error': f'OpenRouter error {e.code}: {body or e.reason}'}), 502
     except _ue.URLError as e:
-        return jsonify({'error': f"Connection error: {e.reason}. Check gateway URL in Settings."}), 502
+        return jsonify({'error': f'Connection error: {e.reason}'}), 502
     except Exception as e:
         return jsonify({'error': str(e)}), 502
-
-
-@app.route('/api/bot/config', methods=['GET', 'POST'])
-@rate_limit
-@login_required
-def api_bot_config():
-    """Get or save OpenClaw bot config for current store or system."""
-    slug = session.get('store_slug') or None
-    is_admin = session.get('username') == ADMIN_USER
-
-    if request.method == 'GET':
-        oc = get_openclaw_config(slug if not is_admin else None)
-        # Mask token
-        masked = oc['token'][:8] + '...' if len(oc['token']) > 8 else ('set' if oc['token'] else '')
-        return jsonify({'gateway_url': oc['gateway_url'], 'agent': oc['agent'], 'token_set': bool(oc['token']), 'token_masked': masked})
-
-    data = request.get_json() or {}
-    gateway_url = data.get('gateway_url', '').strip()
-    token       = data.get('token', '').strip()
-    agent       = data.get('agent', 'openclaw/default').strip()
-
-    if slug and not is_admin:
-        # Save to client config
-        cfg = load_client_config(slug) or {}
-        cfg['openclaw_gateway_url'] = gateway_url
-        cfg['openclaw_agent']       = agent
-        if token:
-            cfg['openclaw_token'] = token
-        save_client_config(slug, cfg)
-    else:
-        # Save system-wide
-        app_config_file = os.path.join(DATA_DIR, 'app_config.json')
-        app_cfg = {}
-        if os.path.exists(app_config_file):
-            try:
-                with open(app_config_file) as f: app_cfg = json.load(f)
-            except: pass
-        app_cfg['openclaw_gateway_url'] = gateway_url
-        app_cfg['openclaw_agent']       = agent
-        if token:
-            app_cfg['openclaw_token'] = token
-        with open(app_config_file, 'w') as f:
-            json.dump(app_cfg, f, indent=2)
-
-    return jsonify({'success': True})
-
-
-@app.route('/api/bot/test', methods=['POST'])
-@rate_limit
-@login_required
-def api_bot_test():
-    """Test OpenClaw gateway connection by hitting /v1/models."""
-    import urllib.request as _ur
-    import urllib.error as _ue
-    data = request.get_json() or {}
-    url   = data.get('gateway_url', '').strip().rstrip('/')
-    token = data.get('token', '').strip()
-    if not url or not token:
-        return jsonify({'ok': False, 'error': 'URL and token required'}), 400
-    try:
-        req = _ur.Request(url + '/v1/models', headers={'Authorization': f'Bearer {token}'})
-        with _ur.urlopen(req, timeout=10) as resp:
-            result = json.loads(resp.read())
-        models = [m['id'] for m in result.get('data', [])]
-        return jsonify({'ok': True, 'models': models})
-    except _ue.HTTPError as e:
-        return jsonify({'ok': False, 'error': f'HTTP {e.code}: {e.reason}'})
-    except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
