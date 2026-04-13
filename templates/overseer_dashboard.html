@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{# NOTE: bypass provision modal is injected at bottom of this file #}
 
 {% block title %}Overseer Dashboard — Liberty Emporium{% endblock %}
 
@@ -119,6 +120,7 @@
         <p style="color:#7a7a8c;margin:0.3rem 0 0;font-size:0.9rem;">Manage all client stores.</p>
       </div>
       <button class="btn-add" onclick="document.getElementById('addModal').classList.add('open')">➕ Add New Client</button>
+      <button class="btn-add" style="background:#b45309;" onclick="document.getElementById('bypassModal').classList.add('open')">🎁 Give Free Access</button>
     </div>
 
     <div style="margin-bottom:1.25rem;">
@@ -390,6 +392,32 @@ asstInput.addEventListener('keydown', function(e) {
 document.getElementById('addModal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('open');
 });
+document.getElementById('bypassModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+// Bypass provision
+document.getElementById('bypass-submit').addEventListener('click', async function() {
+  const btn = this;
+  const storeName = document.getElementById('bp_store_name').value.trim();
+  const email = document.getElementById('bp_email').value.trim();
+  if (!storeName || !email) { alert('Store name and email are required.'); return; }
+  btn.disabled = true; btn.textContent = 'Creating...';
+  const res = await fetch('/admin/provision-bypass', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({store_name: storeName, email: email})
+  });
+  const data = await res.json();
+  const result = document.getElementById('bypass-result');
+  if (data.success) {
+    result.innerHTML = '<div style="color:#166534;background:#dcfce7;padding:0.75rem;border-radius:8px;margin-top:0.75rem;">\u2705 Store <strong>' + data.slug + '</strong> created!<br>Login credentials sent to ' + data.email + '</div>';
+    btn.textContent = '\ud83c\udf81 Give Free Access';
+  } else {
+    result.innerHTML = '<div style="color:#991b1b;">\u274c ' + (data.error || 'Failed') + '</div>';
+    btn.disabled = false; btn.textContent = '\ud83c\udf81 Give Free Access';
+  }
+});
 
 // Client search filter
 function filterClients() {
@@ -402,4 +430,25 @@ function filterClients() {
 // Load alerts on page load
 loadAlerts();
 </script>
+
+<!-- Free Access Bypass Modal -->
+<div class="modal-overlay" id="bypassModal">
+  <div class="modal">
+    <h2>🎁 Give Free Access</h2>
+    <p style="color:#555;font-size:0.9rem;">Create a store for a friend or tester — no payment required. They'll get login credentials by email.</p>
+    <div style="margin-bottom:0.75rem;">
+      <label style="font-size:0.82rem;font-weight:600;color:#444;display:block;margin-bottom:0.3rem;">Store Name</label>
+      <input type="text" id="bp_store_name" class="form-input" placeholder="e.g. Sarah's Thrift" style="width:100%;padding:0.55rem 0.75rem;border:1.5px solid #d1c9bc;border-radius:8px;font-size:0.9rem;box-sizing:border-box;">
+    </div>
+    <div style="margin-bottom:0.75rem;">
+      <label style="font-size:0.82rem;font-weight:600;color:#444;display:block;margin-bottom:0.3rem;">Their Email</label>
+      <input type="email" id="bp_email" class="form-input" placeholder="friend@example.com" style="width:100%;padding:0.55rem 0.75rem;border:1.5px solid #d1c9bc;border-radius:8px;font-size:0.9rem;box-sizing:border-box;">
+    </div>
+    <div id="bypass-result"></div>
+    <div style="display:flex;gap:0.75rem;margin-top:1rem;justify-content:flex-end;">
+      <button onclick="document.getElementById('bypassModal').classList.remove('open')" style="background:#f0ede8;color:#1a1a2e;border:none;padding:0.55rem 1.1rem;border-radius:8px;font-weight:600;cursor:pointer;">Cancel</button>
+      <button id="bypass-submit" style="background:#b45309;color:white;border:none;padding:0.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;">🎁 Give Free Access</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
