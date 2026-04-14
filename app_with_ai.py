@@ -3633,6 +3633,34 @@ Sitemap: {host}/sitemap.xml
     return content, 200, {'Content-Type': 'text/plain'}
 
 
+
+# ============================================================
+# BACKGROUND EMAIL QUEUE PROCESSOR
+# Uses threading.Timer — no external deps needed
+# ============================================================
+import threading as _sched_threading
+
+def _run_email_scheduler():
+    """Process email queue every 10 minutes."""
+    try:
+        with app.app_context():
+            process_email_queue()
+    except Exception as e:
+        app.logger.error(f"EMAIL_SCHEDULER_ERROR: {e}")
+    finally:
+        # Reschedule
+        t = _sched_threading.Timer(600, _run_email_scheduler)  # 10 minutes
+        t.daemon = True
+        t.start()
+
+def start_email_scheduler():
+    """Start the background email processor."""
+    t = _sched_threading.Timer(60, _run_email_scheduler)  # First run after 1min
+    t.daemon = True
+    t.start()
+    app.logger.info("EMAIL_SCHEDULER_STARTED: will process every 10 minutes")
+
+
 # GLOBAL ERROR HANDLERS
 # ============================================================
 @app.errorhandler(404)
@@ -3858,6 +3886,9 @@ def admin_process_emails():
     """Process pending email queue — call via cron or heartbeat."""
     process_email_queue()
     return __import__('flask').jsonify({'status': 'ok'})
+
+# Start email scheduler on app init
+start_email_scheduler()
 
 if __name__ == '__main__':
     app.run(debug=True)
