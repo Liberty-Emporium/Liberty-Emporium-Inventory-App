@@ -941,6 +941,40 @@ def store_change_password(slug):
 # In-memory reset tokens: { token: { 'slug': slug, 'username': username, 'expires': datetime } }
 _reset_tokens = {}
 
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password_general():
+    """General forgot password - finds store by email address."""
+    import os, json, secrets as _sec, datetime as _dt
+    if request.method == 'POST':
+        email = request.form.get('email','').strip().lower()
+        found_slug = None
+        # Search all stores for this email
+        if os.path.exists(CUSTOMERS_DIR):
+            for slug in os.listdir(CUSTOMERS_DIR):
+                cfg_path = os.path.join(CUSTOMERS_DIR, slug, 'config.json')
+                upath    = os.path.join(CUSTOMERS_DIR, slug, 'users.json')
+                # Check store contact email
+                if os.path.exists(cfg_path):
+                    try:
+                        with open(cfg_path) as f2:
+                            cfg = json.load(f2)
+                        if cfg.get('contact_email','').lower() == email:
+                            found_slug = slug; break
+                    except: pass
+                # Check users.json
+                if os.path.exists(upath):
+                    try:
+                        with open(upath) as f2:
+                            users = json.load(f2)
+                        if email in users:
+                            found_slug = slug; break
+                    except: pass
+        if found_slug:
+            return redirect(url_for('store_forgot_password', slug=found_slug))
+        flash('If that email is registered, a reset link has been sent.', 'info')
+    return render_template('forgot_password_general.html')
+
 @app.route('/store/<slug>/forgot-password', methods=['GET', 'POST'])
 @rate_limit
 def store_forgot_password(slug):
