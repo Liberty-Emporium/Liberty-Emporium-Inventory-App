@@ -2406,6 +2406,15 @@ def my_settings():
             VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)''',
             (user_id, groq_key, openrouter_key, anthropic_key, xai_key, active_provider))
         db.commit()
+        # Save Telegram config to client config
+        slug = session.get('impersonating_slug') or session.get('store_slug')
+        if slug:
+            telegram_bot_token = request.form.get('telegram_bot_token', '').strip()
+            telegram_chat_id   = request.form.get('telegram_chat_id', '').strip()
+            cfg = load_client_config(slug) or {}
+            if telegram_bot_token: cfg['telegram_bot_token'] = telegram_bot_token
+            if telegram_chat_id:   cfg['telegram_chat_id']   = telegram_chat_id
+            save_client_config(slug, cfg)
         flash('Your AI settings saved!', 'success')
         return redirect(url_for('my_settings'))
     row = db.execute('SELECT * FROM user_api_keys WHERE user_id = ?', (user_id,)).fetchone()
@@ -2413,7 +2422,9 @@ def my_settings():
     for k in ['groq_key', 'openrouter_key', 'anthropic_key', 'xai_key']:
         if keys.get(k):
             keys[k] = keys[k][:8] + '...'
-    return render_template('my_settings.html', keys=keys, **ctx())
+    slug = session.get('impersonating_slug') or session.get('store_slug')
+    client_config = load_client_config(slug) if slug else {}
+    return render_template('my_settings.html', keys=keys, client_config=client_config, **ctx())
 
 @app.route('/admin/settings/stripe', methods=['POST'])
 @rate_limit
@@ -3667,9 +3678,131 @@ def _get_ai_model(slug=None):
     return app_cfg.get('ai_chat_model', 'openai/gpt-4o-mini').strip()
 
 
+
+# ═══════════════════════════════════════════════════════════════
+# AI CEO MEMORY SYSTEM
+# ═══════════════════════════════════════════════════════════════
+
+def get_ai_memory_path(slug):
+    """Returns path to ai_memory.json for a tenant."""
+    if not slug:
+        return None
+    d = os.path.join(CUSTOMERS_DIR, slug)
+    os.makedirs(d, exist_ok=True)
+    return os.path.join(d, 'ai_memory.json')
+
+def load_ai_memory(slug):
+    """Load AI CEO memory for a tenant."""
+    path = get_ai_memory_path(slug)
+    if not path or not os.path.exists(path):
+        return {
+            'boss_name': '',
+            'business_goals': [],
+            'preferences': [],
+            'decisions': [],
+            'lessons_learned': [],
+            'conversation_count': 0,
+            'created_at': '',
+            'last_updated': '',
+        }
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_ai_memory(slug, memory):
+    """Save AI CEO memory for a tenant."""
+    path = get_ai_memory_path(slug)
+    if not path:
+        return
+    memory['last_updated'] = datetime.datetime.now().isoformat()
+    with open(path, 'w') as f:
+        json.dump(memory, f, indent=2)
+
+def memory_to_context(memory):
+    """Convert AI memory dict to a context string for the system prompt."""
+    if not memory:
+        return ""
+    parts = []
+    if memory.get('boss_name'):
+        parts.append(f"Boss name: {memory['boss_name']}")
+    if memory.get('business_goals'):
+        parts.append(f"Business goals: {'; '.join(memory['business_goals'][:5])}")
+    if memory.get('preferences'):
+        parts.append(f"Boss preferences: {'; '.join(memory['preferences'][:5])}")
+    if memory.get('lessons_learned'):
+        parts.append(f"Things you have learned about this business: {'; '.join(memory['lessons_learned'][-5:])}")
+    if memory.get('decisions'):
+        parts.append(f"Recent decisions made: {'; '.join(str(d) for d in memory['decisions'][-3:])}")
+    if memory.get('conversation_count'):
+        parts.append(f"You have had {memory['conversation_count']} previous conversations with this boss.")
+    return "\n".join(parts)
+
+def extract_memory_updates(reply, memory):
+    """
+    Try to extract memory-worthy info from AI reply.
+    Very simple heuristic — looks for certain patterns.
+    Returns updated memory dict.
+    """
+    import re as _re
+    memory = dict(memory)
+    # Bump conversation count
+    memory['conversation_count'] = memory.get('conversation_count', 0) + 1
+    # Extract if AI mentions learning something
+    learn_patterns = [
+        r"I(?:'ll| will) remember that (.+?)(?:\.|$)",
+        r"Note(?:d|:) (.+?)(?:\.|$)",
+        r"I see that (.+?)(?:\.|$)",
+    ]
+    for pat in learn_patterns:
+        match = _re.search(pat, reply, _re.IGNORECASE)
+        if match:
+            lesson = match.group(1).strip()[:120]
+            lessons = memory.get('lessons_learned', [])
+            if lesson not in lessons:
+                lessons.append(lesson)
+                memory['lessons_learned'] = lessons[-20:]  # keep last 20
+    return memory
+
+# ── Telegram notification for tenants ─────────────────────────
+
+def send_telegram_message(bot_token, chat_id, text):
+    """Send a message via Telegram bot to a chat/user."""
+    import urllib.request as _ur
+    import urllib.error as _ue
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = json.dumps({'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'}).encode()
+    try:
+        req = _ur.Request(url, data=payload, headers={'Content-Type': 'application/json'})
+        with _ur.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read())
+        return result.get('ok', False)
+    except Exception as e:
+        print(f"[Telegram] Error: {e}")
+        return False
+
+@app.route('/api/bot/telegram', methods=['POST'])
+@rate_limit
+def api_bot_telegram():
+    """Let the AI send a Telegram message to the store owner."""
+    data = request.get_json() or {}
+    slug = session.get('impersonating_slug') or session.get('store_slug') or None
+    if not slug:
+        return jsonify({'error': 'No store context'}), 400
+    cfg = load_client_config(slug) or {}
+    bot_token = cfg.get('telegram_bot_token', '')
+    chat_id   = cfg.get('telegram_chat_id', '')
+    if not bot_token or not chat_id:
+        return jsonify({'error': 'Telegram not configured. Add bot token and chat ID in Settings.'}), 400
+    message = data.get('message', '').strip()
+    if not message:
+        return jsonify({'error': 'No message'}), 400
+    ok = send_telegram_message(bot_token, chat_id, f"📦 <b>{cfg.get('store_name','Store')} AI:</b>\n{message}")
+    return jsonify({'ok': ok})
+
 @app.route('/api/bot/chat', methods=['POST'])
 @rate_limit
-@login_required
 def api_bot_chat():
     """AI assistant via OpenRouter — can control inventory, add customers, etc."""
     import urllib.request as _ur
@@ -3693,35 +3826,74 @@ def api_bot_chat():
         return jsonify({'error': 'No OpenRouter API key configured. Add one in Settings ⚙️ → API Keys.'}), 400
 
     # Build store context
+    # Page context tells AI where the user is
+    page_context = data.get('page', '')
+    is_logged_in = bool(session.get('logged_in') or session.get('store_logged_in'))
+
     try:
-        products  = load_inventory()
+        products  = load_inventory() if is_logged_in else []
         total_val = sum(float(p.get('Price') or 0) for p in products)
         available = sum(1 for p in products if p.get('Status','').lower() == 'available')
         sold      = sum(1 for p in products if p.get('Status','').lower() == 'sold')
         store_cfg = load_store_config()
+        client_cfg = {}
+        store_name = 'Liberty Inventory'
         if slug:
             client_cfg = load_client_config(slug) or {}
-            store_name = client_cfg.get('store_name', 'this store')
+            store_name = client_cfg.get('store_name', 'Liberty Inventory')
+        elif not is_logged_in:
+            store_name = 'Liberty Inventory'
         else:
-            store_name = store_cfg.get('store_name', 'Liberty Emporium')
-        # Summarize recent inventory (up to 20 items)
+            store_name = store_cfg.get('store_name', 'Liberty Inventory')
+
+        # Load AI CEO memory
+        ai_memory = load_ai_memory(slug) if slug else {}
+        memory_ctx = memory_to_context(ai_memory)
+
+        # Build page-specific guidance
+        if not is_logged_in or 'login' in page_context:
+            page_guidance = (
+                "The user is on the LOGIN page and is NOT yet logged in. "
+                "Help them understand: demo credentials are admin/admin1 or they can sign up free. "
+                "Guide them warmly to log in. Do not discuss inventory. "
+                "If they seem confused, offer to walk them through the login step by step."
+            )
+        elif 'dashboard' in page_context:
+            page_guidance = "The user is on the DASHBOARD. Help them understand the stats and navigate the app."
+        elif 'inventory' in page_context or 'product' in page_context:
+            page_guidance = "The user is viewing INVENTORY. Help them manage products, add items, update prices."
+        elif 'settings' in page_context:
+            page_guidance = "The user is in SETTINGS. Help them configure their store, API keys, and preferences."
+        elif 'signup' in page_context or 'wizard' in page_context:
+            page_guidance = "The user is SIGNING UP. Welcome them warmly, explain the trial, help them get started."
+        else:
+            page_guidance = "Help the user with whatever they need."
+
+        # Summary of inventory
         items_summary = '; '.join(
             f"{p.get('Title','?')} (${p.get('Price','?')}, {p.get('Status','?')})"
             for p in products[:20]
-        )
+        ) if products else 'No inventory loaded yet.'
+
         context = (
-            f"You are the AI assistant for {store_name}, a retail/thrift store. "
-            f"You have full access to help manage the store. "
-            f"Current inventory: {len(products)} items total, {available} available, {sold} sold, "
-            f"total value ${total_val:.2f}. "
-            f"Recent items: {items_summary}. "
-            f"You can help: add inventory, update prices, find products, analyze sales, "
-            f"write descriptions, identify items from photos, and give business advice. "
-            f"When the user uploads a photo, describe and suggest pricing for the item. "
-            f"Be concise, practical, and action-oriented."
+            f"You are the AI CEO assistant for {store_name}. "
+            f"You are intelligent, warm, and genuinely helpful. You learn from every conversation. "
+            f"\n\nCURRENT PAGE: {page_context or 'general'}. {page_guidance}"
+            f"\n\nSTORE STATS: {len(products)} items, {available} available, {sold} sold, "
+            f"total value ${total_val:.2f}."
         )
-    except Exception:
-        context = "You are the AI assistant for a retail store. Help with inventory, pricing, and store management."
+        if items_summary and is_logged_in:
+            context += f"\nRecent inventory: {items_summary}."
+        if memory_ctx:
+            context += f"\n\nYOUR MEMORY ABOUT THIS BOSS:\n{memory_ctx}"
+        context += (
+            f"\n\nYou can: add inventory, update prices, analyze sales, write descriptions, "
+            f"identify items from photos, send Telegram messages to the boss, and give CEO-level business advice. "
+            f"When you learn something important about the boss or business, remember it. "
+            f"Be concise, warm, and action-oriented. Speak like a trusted CEO advisor."
+        )
+    except Exception as e:
+        context = f"You are the AI CEO assistant for a retail/thrift store. Help with everything. Error loading context: {e}"
 
     # Build messages
     messages = [{'role': 'system', 'content': context}]
@@ -3760,6 +3932,16 @@ def api_bot_chat():
         with _ur.urlopen(req, timeout=90) as resp:
             result = json.loads(resp.read())
         reply = result['choices'][0]['message']['content']
+        # Update AI memory from this conversation
+        if slug:
+            try:
+                ai_memory = load_ai_memory(slug)
+                ai_memory = extract_memory_updates(reply, ai_memory)
+                if not ai_memory.get('created_at'):
+                    ai_memory['created_at'] = datetime.datetime.now().isoformat()
+                save_ai_memory(slug, ai_memory)
+            except Exception:
+                pass
         return jsonify({'reply': reply})
     except _ue.HTTPError as e:
         body = ''

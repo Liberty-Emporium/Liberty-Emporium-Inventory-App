@@ -564,5 +564,82 @@
             });
         }
     </script>
+
+<!-- AI Assistant — Available on every page -->
+<style>
+{% raw %}
+  #aiFloatBtn2{position:fixed;bottom:1.5rem;right:1.5rem;z-index:8000;background:#7c3aed;color:white;border:none;width:52px;height:52px;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 16px rgba(124,58,237,0.5);display:flex;align-items:center;justify-content:center;}
+  #aiPanel2{position:fixed;bottom:5rem;right:1.5rem;z-index:8001;width:340px;background:#0f172a;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;border:1px solid #1e293b;}
+  #aiPH2{background:#1e1b4b;padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;}
+  #aiPH2 span{font-size:0.9rem;font-weight:700;color:#e2e8f0;}
+  #aiPH2 button{background:none;border:none;color:#94a3b8;font-size:1.1rem;cursor:pointer;}
+  #aiM2{height:260px;overflow-y:auto;padding:0.75rem;display:flex;flex-direction:column;gap:0.5rem;}
+  .ai2{max-width:88%;padding:0.5rem 0.75rem;border-radius:10px;font-size:0.82rem;line-height:1.4;word-wrap:break-word;white-space:pre-wrap;}
+  .ai2.u{background:#7c3aed;color:white;align-self:flex-end;}
+  .ai2.b{background:#1e293b;color:#e2e8f0;align-self:flex-start;}
+  .ai2.t{background:#1e293b;color:#64748b;align-self:flex-start;font-style:italic;}
+  #aiIR2{display:flex;align-items:center;border-top:1px solid #1e293b;padding:0.4rem;gap:0.35rem;}
+  #aiIR2 input{flex:1;padding:0.55rem 0.65rem;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;font-size:0.85rem;outline:none;}
+  #aiSB2{background:#7c3aed;color:white;border:none;padding:0.5rem 0.85rem;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;}
+  #aiSB2:disabled{opacity:0.5;}
+  @media(max-width:400px){#aiPanel2{width:calc(100vw - 2rem);right:1rem;}}
+{% endraw %}
+</style>
+<button id="aiFloatBtn2" onclick="ai2Toggle()" title="Need help? Ask AI">&#x1F916;</button>
+<div id="aiPanel2">
+  <div id="aiPH2"><span>&#x1F916; AI Assistant</span><button onclick="ai2Toggle()">✕</button></div>
+  <div id="aiM2"></div>
+  <div id="aiIR2">
+    <input type="text" id="aiI2" placeholder="Need help? Ask me..." onkeydown="if(event.key==='Enter'){ai2Send();}">
+    <button id="aiSB2" onclick="ai2Send()">Send</button>
+  </div>
+</div>
+<script>
+var _ai2Open=false,_ai2Hist=[],_ai2Welcome=false;
+function ai2Toggle(){
+  _ai2Open=!_ai2Open;
+  document.getElementById('aiPanel2').style.display=_ai2Open?'flex':'none';
+  if(_ai2Open&&!_ai2Welcome){
+    _ai2Welcome=true;
+    var path=window.location.pathname;
+    var msg;
+    if(path.indexOf('login')>=0||path==='/'){msg='👋 Hi! To sign in, use the demo: username <b>admin</b>, password <b>admin1</b>. Or click Sign Up for your own free store!';}
+    else if(path.indexOf('signup')>=0||path.indexOf('wizard')>=0){msg='🎉 Welcome! Fill in your store name and email to get started. Your free trial is 14 days — no credit card needed. Need help with any field?';}
+    else{msg='👋 Hi! I'm your AI assistant. I'm here to help you get the most out of this app. What do you need?';}
+    ai2AddMsg('b',msg);
+    setTimeout(function(){document.getElementById('aiI2').focus();},100);
+  }
+}
+function ai2AddMsg(cls,text){
+  var d=document.createElement('div');
+  d.className='ai2 '+cls;
+  d.innerHTML=text;
+  var m=document.getElementById('aiM2');
+  m.appendChild(d);m.scrollTop=m.scrollHeight;return d;
+}
+function ai2Send(){
+  var input=document.getElementById('aiI2');
+  var btn=document.getElementById('aiSB2');
+  var msg=input.value.trim();
+  if(!msg)return;
+  input.value='';btn.disabled=true;
+  ai2AddMsg('u',msg);
+  var thinking=ai2AddMsg('t','... thinking');
+  fetch('/api/bot/chat',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message:msg,history:_ai2Hist,page:window.location.pathname})
+  }).then(function(r){return r.json();}).then(function(d){
+    thinking.remove();
+    var reply=d.reply||d.error||'Sorry, I had trouble responding.';
+    ai2AddMsg('b',reply);
+    _ai2Hist.push({role:'user',content:msg},{role:'assistant',content:reply});
+    if(_ai2Hist.length>20)_ai2Hist=_ai2Hist.slice(-20);
+    btn.disabled=false;
+  }).catch(function(e){
+    thinking.remove();ai2AddMsg('b','❌ Error: '+e);btn.disabled=false;
+  });
+}
+</script>
+
 </body>
 </html>

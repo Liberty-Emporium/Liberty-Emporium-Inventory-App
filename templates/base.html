@@ -498,6 +498,7 @@
 
 <!-- ── Floating AI Assistant Panel ── -->
 <style>
+{% raw %}
   #aiFloatBtn { position:fixed; bottom:1.5rem; right:1.5rem; z-index:8000; background:#7c3aed; color:white; border:none; width:52px; height:52px; border-radius:50%; font-size:1.5rem; cursor:pointer; box-shadow:0 4px 16px rgba(124,58,237,0.5); display:flex; align-items:center; justify-content:center; transition:transform 0.15s; }
   #aiFloatBtn:hover { transform:scale(1.1); }
   #aiPanel { position:fixed; bottom:5rem; right:1.5rem; z-index:8001; width:360px; background:#0f172a; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.5); display:none; flex-direction:column; overflow:hidden; border:1px solid #1e293b; }
@@ -518,6 +519,7 @@
   #aiImgPreview { display:none; padding:0.4rem 0.75rem; border-top:1px solid #1e293b; font-size:0.78rem; color:#10b981; align-items:center; gap:0.5rem; }
   #aiImgPreview button { background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.9rem; padding:0; }
   @media(max-width:400px){ #aiPanel { width:calc(100vw - 2rem); right:1rem; } }
+{% endraw %}
 </style>
 
 <button id="aiFloatBtn" onclick="aiTogglePanel()" title="AI Assistant">&#x1F916;</button>
@@ -547,12 +549,30 @@ var aiOpen    = false;
 var aiImgB64  = null;
 var aiImgMime = 'image/jpeg';
 
+var AI_PAGE_CONTEXT = (typeof window !== 'undefined') ? window.location.pathname : '';
+
 function aiTogglePanel() {
   aiOpen = !aiOpen;
   document.getElementById('aiPanel').style.display = aiOpen ? 'flex' : 'none';
   if (aiOpen) {
     if (document.getElementById('aiMsgs').children.length === 0) {
-      aiAddMsg('bot', 'Hi! I\'m your store AI. Ask me anything, add inventory, update prices, or upload a photo to identify an item.');
+      // Context-aware welcome message
+      var path = window.location.pathname;
+      var welcome;
+      if (path.indexOf('login') >= 0 || path === '/') {
+        welcome = '👋 Hi! I can help you sign in. Use demo credentials: admin / admin1, or click Sign Up to start your free trial. What can I help you with?';
+      } else if (path.indexOf('signup') >= 0 || path.indexOf('wizard') >= 0) {
+        welcome = '🎉 Welcome! I can walk you through setting up your store. It takes about 2 minutes. Ready to start?';
+      } else if (path.indexOf('dashboard') >= 0) {
+        welcome = '📊 Welcome to your dashboard! I can help you understand your stats, add inventory, or tell you how to grow your store. What do you need?';
+      } else if (path.indexOf('inventory') >= 0 || path.indexOf('product') >= 0) {
+        welcome = '📦 Hi! I can help you add items, update prices, write descriptions, or identify items from photos. What would you like to do?';
+      } else if (path.indexOf('settings') >= 0) {
+        welcome = '⚙️ Need help with settings? I can guide you through connecting your API key, setting up Square, or configuring Telegram notifications.';
+      } else {
+        welcome = '🤖 Hi! I\'m your AI CEO — I learn about your business over time and help you run it better. Ask me anything!';
+      }
+      aiAddMsg('bot', welcome);
     }
     setTimeout(function(){ document.getElementById('aiInput').focus(); }, 100);
   }
@@ -601,7 +621,7 @@ function aiSend() {
   var thinking = aiAddMsg('thinking', '\u2026 thinking (may take up to 30s\u2026)');
   var controller = new AbortController();
   var timer = setTimeout(function(){ controller.abort(); }, 95000);
-  var payload = {message: msg, history: aiHistory};
+  var payload = {message: msg, history: aiHistory, page: window.location.pathname};
   if (aiImgB64) { payload.image = aiImgB64; payload.image_mime = aiImgMime; }
   fetch('/api/bot/chat', {
     method: 'POST',

@@ -141,7 +141,32 @@
       <button type="submit" style="width:100%; background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; border:none; padding:0.9rem; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 4px 14px rgba(124,58,237,0.35);">
         💾 Save My Settings — Turn On My AI
       </button>
-    </form>
+    
+    <!-- Telegram Notifications -->
+    <div style="border-top:2px solid #e5e7eb; margin-top:2rem; padding-top:2rem;">
+      <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:0.5rem; color:#0f172a;">📱 Telegram Notifications <span style="background:#dbeafe; color:#1e40af; font-size:0.72rem; padding:0.1rem 0.5rem; border-radius:10px; font-weight:600; margin-left:0.4rem;">Optional</span></h3>
+      <p style="font-size:0.85rem; color:#6b7280; margin-bottom:1.25rem;">Connect Telegram so your AI CEO can send you messages, alerts, and updates directly to your phone.</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:0.3rem;">Telegram Bot Token</label>
+          <input type="text" name="telegram_bot_token"
+            value="{{ client_config.telegram_bot_token if client_config else '' }}"
+            placeholder="1234567890:AABBccdd..."
+            style="width:100%; padding:0.65rem 0.85rem; border-radius:10px; border:2px solid #d1d5db; font-size:0.85rem; outline:none; box-sizing:border-box;">
+          <div style="color:#6b7280; font-size:0.78rem; margin-top:0.3rem;">Get from <a href="https://t.me/BotFather" target="_blank" style="color:#7c3aed;">@BotFather</a> on Telegram</div>
+        </div>
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:0.3rem;">Your Telegram Chat ID</label>
+          <input type="text" name="telegram_chat_id"
+            value="{{ client_config.telegram_chat_id if client_config else '' }}"
+            placeholder="123456789"
+            style="width:100%; padding:0.65rem 0.85rem; border-radius:10px; border:2px solid #d1d5db; font-size:0.85rem; outline:none; box-sizing:border-box;">
+          <div style="color:#6b7280; font-size:0.78rem; margin-top:0.3rem;">Get from <a href="https://t.me/userinfobot" target="_blank" style="color:#7c3aed;">@userinfobot</a> on Telegram</div>
+        </div>
+      </div>
+    </div>
+
+</form>
   </div>
 
   <!-- What can the AI do? -->
