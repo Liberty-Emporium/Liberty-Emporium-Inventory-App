@@ -33,6 +33,27 @@ stripe_enabled = bool(STRIPE_SECRET_KEY and (STRIPE_SECRET_KEY.startswith('sk_li
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
 
+import secrets as _secrets_module
+
+def _get_csrf_token():
+    """Generate or retrieve CSRF token from session."""
+    if 'csrf_token' not in session:
+        session['csrf_token'] = _secrets_module.token_hex(32)
+    return session['csrf_token']
+
+def _validate_csrf():
+    """Validate CSRF token on POST requests. Returns True if valid."""
+    if request.method != 'POST':
+        return True
+    # Skip API routes
+    if request.path.startswith('/api/'):
+        return True
+    token = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
+    return token and token == session.get('csrf_token')
+
+app.jinja_env.globals['csrf_token'] = _get_csrf_token
+
+
 # ── Security Headers (API Security Best Practices) ──────────────────────────
 @app.after_request
 def add_security_headers(response):
