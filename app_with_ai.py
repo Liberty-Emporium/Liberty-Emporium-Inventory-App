@@ -5,6 +5,7 @@ import uuid
 import shutil
 import base64
 import hashlib
+import bcrypt
 import datetime
 import io
 import tempfile
@@ -631,7 +632,23 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
 def hash_password(pw):
-    return hashlib.sha256(pw.encode()).hexdigest()
+    """Hash password with bcrypt. Returns bcrypt hash string."""
+    return bcrypt.hashpw(pw.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def _is_sha256(h):
+    """Detect legacy SHA-256 hash (64 hex chars)."""
+    return len(h) == 64 and all(c in '0123456789abcdef' for c in h)
+
+def check_password(pw, stored_hash):
+    """Verify password against stored hash. Supports bcrypt and legacy SHA-256.
+    Returns (is_valid, needs_upgrade).
+    """
+    if _is_sha256(stored_hash):
+        return hashlib.sha256(pw.encode()).hexdigest() == stored_hash, True
+    try:
+        return bcrypt.checkpw(pw.encode('utf-8'), stored_hash.encode('utf-8')), False
+    except Exception:
+        return False, False
 
 def load_users():
     if not os.path.exists(USERS_FILE):
@@ -861,16 +878,21 @@ def login():
             flash('Welcome back, Admin!', 'success')
             return redirect(url_for('dashboard'))
         users = load_users()
-        if username in users and users[username]['password'] == hash_password(password):
-            user_record = users[username]
-            session['logged_in'] = True
-            session['username']  = username
-            session['is_guest']  = False
-            session['role']      = user_record.get('role', '')
-            session.permanent    = True
-            app.permanent_session_lifetime = datetime.timedelta(hours=8)
-            flash(f'Welcome, {username}!', 'success')
-            return redirect(url_for('dashboard'))
+        if username in users:
+            valid, needs_upgrade = check_password(password, users[username].get('password', ''))
+            if valid:
+                if needs_upgrade:
+                    users[username]['password'] = hash_password(password)
+                    save_users(users)
+                user_record = users[username]
+                session['logged_in'] = True
+                session['username']  = username
+                session['is_guest']  = False
+                session['role']      = user_record.get('role', '')
+                session.permanent    = True
+                app.permanent_session_lifetime = datetime.timedelta(hours=8)
+                flash(f'Welcome, {username}!', 'success')
+                return redirect(url_for('dashboard'))
         # Check client store users
         if os.path.exists(CUSTOMERS_DIR):
             for entry in os.listdir(CUSTOMERS_DIR):
@@ -884,7 +906,12 @@ def login():
                     continue
                 if username in store_users:
                     su = store_users[username]
-                    if su.get('password') == hash_password(password):
+                    valid, needs_upgrade = check_password(password, su.get('password', ''))
+                    if valid:
+                        if needs_upgrade:
+                            store_users[username]['password'] = hash_password(password)
+                            with open(store_users_path, 'w') as f:
+                                json.dump(store_users, f, indent=2)
                         store_cfg_path = os.path.join(CUSTOMERS_DIR, entry, 'config.json')
                         store_name = entry
                         if os.path.exists(store_cfg_path):
@@ -934,7 +961,12 @@ def store_login(slug):
         else:
             store_users = {}
 
-        if username in store_users and store_users[username].get('password') == hash_password(password):
+        valid, needs_upgrade = check_password(password, store_users.get(username, {}).get('password', ''))
+        if username in store_users and valid:
+            if needs_upgrade:
+                store_users[username]['password'] = hash_password(password)
+                with open(users_path, 'w') as f:
+                    json.dump(store_users, f, indent=2)
             su = store_users[username]
             if su.get('status') == 'suspended':
                 error = 'Your account has been suspended. Contact support.'
@@ -981,7 +1013,7 @@ def store_change_password(slug):
 
         if username not in store_users:
             error = 'Email address not found.'
-        elif store_users[username].get('password') != hash_password(current_pw):
+        elif not check_password(current_pw, store_users[username].get('password', ''))[0]:
             error = 'Current password is incorrect.'
         elif len(new_pw) < 6:
             error = 'New password must be at least 6 characters.'
@@ -3268,7 +3300,7 @@ def my_store_change_password():
         with open(users_file) as f:
             users = json.load(f)
         user = users.get(email)
-        if not user or hash_password(current_pw) != user.get('password', ''):
+        if not user or not check_password(current_pw, user.get('password', ''))[0]:
             flash('Current password is incorrect.', 'error')
             return redirect(url_for('my_store_change_password'))
         if len(new_pw) < 6:
