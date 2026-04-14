@@ -30,6 +30,7 @@ stripe_enabled = bool(STRIPE_SECRET_KEY and (STRIPE_SECRET_KEY.startswith('sk_li
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
+APP_VERSION = '2026-04-14-v2'  # Echo build marker
 
 # ── Security Headers (API Security Best Practices) ──────────────────────────
 @app.after_request
@@ -828,7 +829,7 @@ def health2():
 @app.route('/routes')
 def list_routes():
     routes = sorted([str(r) for r in app.url_map.iter_rules()])
-    return json.dumps(routes), 200, {"Content-Type": "application/json"}
+    return json.dumps({"version": APP_VERSION, "routes": routes}), 200, {"Content-Type": "application/json"}
 
 @app.route('/ping')
 def ping():
