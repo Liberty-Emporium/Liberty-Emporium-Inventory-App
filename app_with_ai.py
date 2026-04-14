@@ -804,7 +804,7 @@ def inject_globals():
 
 # ── Health check (no login required, for Railway) ─────────────────────────────
 
-@app.route('/health', methods=["GET"])
+@app.route('/health', methods=["GET", "HEAD"])
 def health_check():
     try:
         db = get_db()
@@ -812,15 +812,18 @@ def health_check():
         db_status = "ok"
     except Exception:
         db_status = "error"
-    import json
     status = "ok" if db_status == "ok" else "degraded"
     response_body = json.dumps({"status": status, "db": db_status})
     code = 200 if status == "ok" else 503
     return response_body, code, {"Content-Type": "application/json"}
 
-@app.route('/healthz')
+@app.route('/healthz', methods=["GET", "HEAD"])
 def healthz():
     return 'ok', 200
+
+@app.route('/health2')
+def health2():
+    return json.dumps({"status": "ok", "version": "2026-04-14"}), 200, {"Content-Type": "application/json"}
 
 @app.route('/ping')
 def ping():
