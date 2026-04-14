@@ -804,7 +804,7 @@ def inject_globals():
 
 # ── Health check (no login required, for Railway) ─────────────────────────────
 
-@app.route('/health')
+@app.route('/health', methods=["GET"])
 def health_check():
     try:
         db = get_db()
