@@ -2868,6 +2868,7 @@ def start_trial():
                 app_url=app_url
             )
             app.logger.info(f"ONBOARDING_SEQUENCE_QUEUED: {contact_email}")
+            track('trial.signup', slug=slug)
         except Exception as e:
             app.logger.error(f"ONBOARDING_QUEUE_FAILED: {e}")
 
@@ -3513,6 +3514,71 @@ def overseer_assistant_alerts():
 # ── Run ───────────────────────────────────────────────────────────────────────
 
 # ============================================================
+
+# ============================================================
+# STRUCTURED LOGGING + METRICS
+# ============================================================
+import logging as _logging
+
+def configure_logging(app):
+    """Set up production logging."""
+    handler = _logging.StreamHandler()
+    handler.setFormatter(_logging.Formatter(
+        '%(asctime)s %(levelname)s [%(module)s] %(message)s'
+    ))
+    handler.setLevel(_logging.INFO)
+    app.logger.addHandler(handler)
+    app.logger.setLevel(_logging.INFO)
+
+def _ensure_metrics_table():
+    """Create metrics table if missing."""
+    try:
+        db = get_db()
+        db.execute("""CREATE TABLE IF NOT EXISTS metrics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            metric TEXT NOT NULL,
+            value REAL DEFAULT 1,
+            tenant_slug TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        )""")
+        db.commit()
+    except Exception:
+        pass
+
+def track(metric, value=1, slug=None):
+    """Fire-and-forget metrics tracking."""
+    try:
+        _ensure_metrics_table()
+        db = get_db()
+        db.execute(
+            "INSERT INTO metrics (metric, value, tenant_slug) VALUES (?,?,?)",
+            (metric, value, slug)
+        )
+        db.commit()
+    except Exception:
+        pass  # Never break the app over metrics
+
+# Request timing middleware
+import time as _req_time
+@app.before_request
+def _before_req():
+    from flask import g
+    g._req_start = _req_time.time()
+
+@app.after_request
+def _after_req(response):
+    from flask import g
+    if not request.path.startswith('/static'):
+        elapsed = (_req_time.time() - getattr(g, '_req_start', _req_time.time())) * 1000
+        lvl = 'WARNING' if elapsed > 800 else 'DEBUG'
+        if lvl == 'WARNING':
+            app.logger.warning(
+                f"SLOW_REQUEST {request.method} {request.path} "
+                f"{response.status_code} {elapsed:.0f}ms"
+            )
+    return response
+
+
 # GLOBAL ERROR HANDLERS
 # ============================================================
 @app.errorhandler(404)
