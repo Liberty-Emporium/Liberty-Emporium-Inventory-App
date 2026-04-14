@@ -1,3 +1,4 @@
+# Liberty Inventory — v2.1.0 — 2026-04-14 Echo Build
 import os
 import csv
 import json
