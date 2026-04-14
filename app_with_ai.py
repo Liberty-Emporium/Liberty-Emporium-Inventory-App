@@ -814,7 +814,9 @@ def health_check():
         db_status = "error"
     import json
     status = "ok" if db_status == "ok" else "degraded"
-    return json.dumps({"status": status, "db": db_status}),            200 if status == "ok" else 503,            {"Content-Type": "application/json"}
+    response_body = json.dumps({"status": status, "db": db_status})
+    code = 200 if status == "ok" else 503
+    return response_body, code, {"Content-Type": "application/json"}
 
 @app.route('/healthz')
 def healthz():
