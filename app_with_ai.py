@@ -803,6 +803,19 @@ def inject_globals():
     )
 
 # ── Health check (no login required, for Railway) ─────────────────────────────
+
+@app.route('/health')
+def health_check():
+    try:
+        db = get_db()
+        db.execute("SELECT 1").fetchone()
+        db_status = "ok"
+    except Exception:
+        db_status = "error"
+    import json
+    status = "ok" if db_status == "ok" else "degraded"
+    return json.dumps({"status": status, "db": db_status}),            200 if status == "ok" else 503,            {"Content-Type": "application/json"}
+
 @app.route('/healthz')
 def healthz():
     return 'ok', 200
