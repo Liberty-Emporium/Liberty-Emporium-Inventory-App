@@ -825,6 +825,11 @@ def healthz():
 def health2():
     return json.dumps({"status": "ok", "version": "2026-04-14"}), 200, {"Content-Type": "application/json"}
 
+@app.route('/routes')
+def list_routes():
+    routes = sorted([str(r) for r in app.url_map.iter_rules()])
+    return json.dumps(routes), 200, {"Content-Type": "application/json"}
+
 @app.route('/ping')
 def ping():
     """Deeper check — exercises data loading without login."""
