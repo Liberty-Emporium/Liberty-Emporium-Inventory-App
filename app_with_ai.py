@@ -2856,6 +2856,21 @@ def start_trial():
         })
         save_leads(leads)
 
+        # Queue 14-day onboarding email sequence
+        try:
+            app_url = request.host_url.rstrip('/')
+            queue_onboarding_sequence(
+                email=contact_email,
+                name=contact_name or store_name,
+                store_name=store_name,
+                slug=slug,
+                temp_password=temp_password,
+                app_url=app_url
+            )
+            app.logger.info(f"ONBOARDING_SEQUENCE_QUEUED: {contact_email}")
+        except Exception as e:
+            app.logger.error(f"ONBOARDING_QUEUE_FAILED: {e}")
+
         # Log them in automatically
         session.clear()
         session['logged_in']  = True
@@ -3518,6 +3533,211 @@ def internal_error(e):
 @app.errorhandler(429)
 def rate_limit_error(e):
     return __import__('flask').jsonify({'error': 'Too many requests. Please slow down.'}), 429
+
+
+# ============================================================
+# EMAIL SYSTEM — Onboarding sequences
+# ============================================================
+import smtplib, threading
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+_SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+_SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
+_SMTP_USER = os.environ.get('SMTP_USER', '')
+_SMTP_PASS = os.environ.get('SMTP_PASS', '')
+_FROM_EMAIL = os.environ.get('FROM_EMAIL', 'jay@liberty-emporium.com')
+_FROM_NAME  = os.environ.get('FROM_NAME', 'Jay Alexander - Liberty Inventory')
+
+def _send_email_worker(to_email, subject, html_body):
+    """Internal blocking send — run in thread."""
+    if not _SMTP_USER or not _SMTP_PASS:
+        app.logger.info(f"EMAIL_SKIPPED (no SMTP config): {subject} -> {to_email}")
+        return
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From']    = f"{_FROM_NAME} <{_FROM_EMAIL}>"
+        msg['To']      = to_email
+        msg.attach(MIMEText(html_body, 'html'))
+        with smtplib.SMTP(_SMTP_HOST, _SMTP_PORT, timeout=10) as srv:
+            srv.starttls()
+            srv.login(_SMTP_USER, _SMTP_PASS)
+            srv.sendmail(_FROM_EMAIL, to_email, msg.as_string())
+        app.logger.info(f"EMAIL_SENT: {subject} -> {to_email}")
+    except Exception as e:
+        app.logger.error(f"EMAIL_FAILED: {subject} -> {to_email}: {e}")
+
+def send_email(to_email, subject, html_body):
+    """Non-blocking email send via background thread."""
+    t = threading.Thread(target=_send_email_worker,
+                         args=(to_email, subject, html_body), daemon=True)
+    t.start()
+
+def _schedule_email_queue():
+    """Create email_queue table in main DB if needed."""
+    try:
+        db = get_db()
+        db.execute("""CREATE TABLE IF NOT EXISTS email_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_email TEXT NOT NULL,
+            template TEXT NOT NULL,
+            context TEXT DEFAULT '{}',
+            send_at TEXT NOT NULL,
+            sent INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        )""")
+        db.commit()
+    except Exception as e:
+        app.logger.error(f"EMAIL_QUEUE_INIT_ERROR: {e}")
+
+def queue_email(user_email, template, context_dict, delay_days=0, delay_hours=0):
+    """Schedule an email for future delivery."""
+    import json as _json
+    from datetime import datetime, timedelta
+    send_at = (datetime.utcnow() +
+               timedelta(days=delay_days, hours=delay_hours)).isoformat()
+    try:
+        _schedule_email_queue()
+        db = get_db()
+        db.execute(
+            "INSERT INTO email_queue (user_email, template, context, send_at) VALUES (?,?,?,?)",
+            (user_email, template, _json.dumps(context_dict), send_at)
+        )
+        db.commit()
+    except Exception as e:
+        app.logger.error(f"QUEUE_EMAIL_ERROR: {e}")
+
+def queue_onboarding_sequence(email, name, store_name, slug, temp_password, app_url):
+    """Queue the full 14-day onboarding sequence for a new trial user."""
+    ctx = {
+        'name': name, 'store_name': store_name, 'slug': slug,
+        'temp_password': temp_password, 'app_url': app_url,
+        'login_url': f"{app_url}/login",
+        'dashboard_url': f"{app_url}/dashboard",
+    }
+    queue_email(email, 'welcome',          ctx, delay_days=0)
+    queue_email(email, 'quick_start',      ctx, delay_days=1)
+    queue_email(email, 'feature_spotlight',ctx, delay_days=3)
+    queue_email(email, 'check_in',         ctx, delay_days=5)
+    queue_email(email, 'upgrade_reminder', ctx, delay_days=10)
+    queue_email(email, 'last_chance',      ctx, delay_days=13)
+
+def process_email_queue():
+    """Send due emails from the queue. Call this periodically."""
+    import json as _json
+    from datetime import datetime
+    try:
+        _schedule_email_queue()
+        db = get_db()
+        now = datetime.utcnow().isoformat()
+        rows = db.execute(
+            "SELECT id, user_email, template, context FROM email_queue "
+            "WHERE send_at <= ? AND sent = 0 LIMIT 20", (now,)
+        ).fetchall()
+        for row in rows:
+            ctx = _json.loads(row['context'] or '{}')
+            html = _build_email_template(row['template'], ctx)
+            if html:
+                subj = _EMAIL_SUBJECTS.get(row['template'], 'Message from Liberty Inventory')
+                send_email(row['user_email'], subj, html)
+            db.execute("UPDATE email_queue SET sent = 1 WHERE id = ?", (row['id'],))
+        if rows:
+            db.commit()
+            app.logger.info(f"EMAIL_QUEUE_PROCESSED: {len(rows)} emails sent")
+    except Exception as e:
+        app.logger.error(f"PROCESS_EMAIL_QUEUE_ERROR: {e}")
+
+_EMAIL_SUBJECTS = {
+    'welcome':           "You're in! Here's your first step — Liberty Inventory",
+    'quick_start':       "3 minutes to your first inventory item",
+    'feature_spotlight': "The feature 80%% of our users love most",
+    'check_in':         "Stuck? We're here to help",
+    'upgrade_reminder':  "Your trial ends in 4 days — keep your store",
+    'last_chance':       "Final day: Don't lose your Liberty Inventory store",
+}
+
+def _build_email_template(template, ctx):
+    """Build HTML email from template name and context."""
+    name = ctx.get('name', 'there')
+    store = ctx.get('store_name', 'your store')
+    dashboard = ctx.get('dashboard_url', '#')
+    login_url = ctx.get('login_url', '#')
+    pw = ctx.get('temp_password', '')
+
+    BASE = """<!DOCTYPE html><html><body style="font-family:-apple-system,sans-serif;
+max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
+{body}
+<hr style="margin:32px 0;border:none;border-top:1px solid #e5e7eb;">
+<p style="font-size:12px;color:#9ca3af;">
+Liberty Inventory · <a href="{dashboard}">Dashboard</a>
+</p></body></html>"""
+
+    BTN = '<a href="{url}" style="display:inline-block;background:#2e7d6e;color:white;'           'padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;'           'margin:16px 0;">{label}</a>'
+
+    bodies = {
+        'welcome': f"""
+<h2 style="color:#2e7d6e;">Welcome to Liberty Inventory! 🎉</h2>
+<p>Hi {name},</p>
+<p>Your <strong>{store}</strong> store is ready. You have a full 14-day free trial — no credit card needed.</p>
+<p><strong>Your login details:</strong><br>
+Email: {ctx.get('user_email', ctx.get('email', ''))}<br>
+Password: <code>{pw}</code></p>
+<p>Your first step:</p>
+{BTN.format(url=dashboard, label="Go to Your Dashboard →")}
+<p style="margin-top:24px;color:#6b7280;">Questions? Just reply to this email.<br>– Jay</p>
+""",
+        'quick_start': f"""
+<h2 style="color:#2e7d6e;">Your first inventory item takes 2 minutes</h2>
+<p>Hi {name},</p>
+<p>Ready to add your first item to <strong>{store}</strong>? It's the fastest way to see what Liberty Inventory can do.</p>
+{BTN.format(url=dashboard, label="Add Your First Item →")}
+<p style="color:#6b7280;">Takes less than 2 minutes. – Jay</p>
+""",
+        'feature_spotlight': f"""
+<h2 style="color:#2e7d6e;">The feature our users love most 🏷️</h2>
+<p>Hi {name},</p>
+<p>The #1 thing thrift store owners tell us saves them the most time: <strong>bulk pricing by category</strong>.</p>
+<p>Set a price range for a category once, and every new item defaults to it. No more typing the same price 50 times.</p>
+{BTN.format(url=dashboard, label="Try It In Your Store →")}
+<p style="color:#6b7280;">– Jay</p>
+""",
+        'check_in': f"""
+<h2 style="color:#2e7d6e;">Need a hand? 👋</h2>
+<p>Hi {name},</p>
+<p>Just checking in on your <strong>{store}</strong> trial. If you've hit a snag or have questions, reply to this email — I read every one.</p>
+{BTN.format(url=dashboard, label="Go to Dashboard →")}
+<p style="color:#6b7280;">– Jay</p>
+""",
+        'upgrade_reminder': f"""
+<h2 style="color:#2e7d6e;">Your trial ends in 4 days ⏰</h2>
+<p>Hi {name},</p>
+<p>Your free trial of Liberty Inventory ends in 4 days. To keep <strong>{store}</strong> and your inventory data, upgrade to our hosting plan.</p>
+<p><strong>$20/month</strong> — everything included, cancel any time.</p>
+{BTN.format(url=login_url.replace('/login', '/upgrade'), label="Keep My Store — Upgrade Now →")}
+<p style="color:#6b7280;">– Jay</p>
+""",
+        'last_chance': f"""
+<h2 style="color:#2e7d6e;">Final day — don't lose your data 🚨</h2>
+<p>Hi {name},</p>
+<p>Today is the last day of your Liberty Inventory trial. After today, your <strong>{store}</strong> data will be archived.</p>
+<p>Upgrade now to keep everything and continue running your store.</p>
+{BTN.format(url=login_url.replace('/login', '/upgrade'), label="Save My Store — $20/mo →")}
+<p style="color:#6b7280;">– Jay</p>
+""",
+    }
+
+    body = bodies.get(template)
+    if not body:
+        return None
+    return BASE.format(body=body, dashboard=dashboard)
+
+
+@app.route('/admin/process-emails')
+def admin_process_emails():
+    """Process pending email queue — call via cron or heartbeat."""
+    process_email_queue()
+    return __import__('flask').jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
     app.run(debug=True)
