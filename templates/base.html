@@ -4,6 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ store_name }} | Demo{% endblock %}</title>
+
+    {# ── SEO Meta Tags ── #}
+    <meta name="description" content="{% block meta_description %}Liberty Inventory — The all-in-one inventory management system for thrift stores, resellers & consignment shops. Start your 14-day free trial today.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}thrift store inventory, reseller inventory management, consignment software, inventory tracking{% endblock %}">
+    <link rel="canonical" href="{% block canonical %}{{ request.url }}{% endblock %}">
+
+    {# ── Open Graph ── #}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Liberty Inventory">
+    <meta property="og:title" content="{% block og_title %}{% block title2 %}{{ store_name }} | Inventory Management{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}The all-in-one inventory system for thrift stores & resellers. 14-day free trial. No credit card required.{% endblock %}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{% block og_image %}{{ request.host_url }}static/preview.png{% endblock %}">
+
+    {# ── Twitter Card ── #}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}Liberty Inventory — Thrift Store Management Software{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}The all-in-one inventory system for thrift stores & resellers. Start free today.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ request.host_url }}static/preview.png{% endblock %}">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='mobile.css') }}">
     {% block extra_css %}{% endblock %}
