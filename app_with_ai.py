@@ -710,6 +710,7 @@ def load_inventory():
 def save_inventory(products):
     paths = get_store_paths(active_store_slug())
     inv_file = paths['inventory']
+    os.makedirs(os.path.dirname(inv_file), exist_ok=True)
     fieldnames = ['SKU','Title','Description','Category','Condition','Price',
                   'Cost Paid','Status','Date Added','Images','Section','Shelf']
     _backup_inventory()
@@ -1264,7 +1265,9 @@ def client_new_product():
             if file and allowed_file(file.filename):
                 ext      = file.filename.rsplit('.', 1)[1].lower()
                 filename = f"{sku}_{uuid.uuid4().hex[:8]}.{ext}"
-                file.save(os.path.join(get_store_paths(active_store_slug())['uploads'], filename))
+                uploads_dir = get_store_paths(active_store_slug())['uploads']
+                os.makedirs(uploads_dir, exist_ok=True)
+                file.save(os.path.join(uploads_dir, filename))
                 images.append(filename)
         product = {
             'SKU':         sku,
@@ -1355,7 +1358,9 @@ def edit_product(sku):
             if file and allowed_file(file.filename):
                 ext      = file.filename.rsplit('.', 1)[1].lower()
                 filename = f"{sku}_{uuid.uuid4().hex[:8]}.{ext}"
-                file.save(os.path.join(get_store_paths(active_store_slug())['uploads'], filename))
+                uploads_dir = get_store_paths(active_store_slug())['uploads']
+                os.makedirs(uploads_dir, exist_ok=True)
+                file.save(os.path.join(uploads_dir, filename))
                 existing = [i.strip() for i in product.get('Images','').split(',') if i.strip()]
                 existing.append(filename)
                 product['Images'] = ','.join(existing)
