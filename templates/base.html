@@ -281,18 +281,25 @@
 
             {% if session.get('logged_in') or session.get('is_guest') %}
             <div class="nav-links" id="navLinks">
-                {% if not session.get('is_guest') %}
+                {% if session.get('is_guest') %}
+                {# ── Demo guest: show all features, no admin stuff ── #}
+                <a href="{{ url_for('dashboard') }}">📊 Dashboard</a>
+                <a href="{{ url_for('ad_generator') }}">🤖 AI Ads</a>
+                <a href="{{ url_for('ad_vault') }}">🖼️ Ad Vault</a>
+                <a href="{{ url_for('listing_generator') }}">📝 Listings</a>
+                <a href="#" onclick="showSignupWall('Settings'); return false;">⚙️ Settings</a>
+                {% else %}
                 <a href="{{ url_for('dashboard') }}">Dashboard</a>
                 <a href="{{ url_for('new_product') }}">Add Product</a>
                 <a href="{{ url_for('ad_generator') }}">Picture Ads</a>
                 <a href="{{ url_for('ad_vault') }}">Ad Vault</a>
                 <a href="{{ url_for('listing_generator') }}">Listings</a>
-                {% endif %}
                 {% if session.get('username') == 'admin' %}
                 <a href="{{ url_for('seasonal_sale') }}">Sale</a>
                 {% endif %}
                 {% if session.get('role') == 'overseer' %}
                 <a href="{{ url_for('overseer_dashboard') }}" style="color:#f59e0b;font-weight:700;">🛡️ Overseer</a>
+                {% endif %}
                 {% endif %}
             </div>
             {% endif %}
@@ -310,8 +317,12 @@
                 </a>
                 {% endif %}
                 {% if session.get('logged_in') or session.get('is_guest') %}
-                <!-- Settings button that opens popup -->
+                <!-- Settings button -->
+                {% if session.get('is_guest') %}
+                <button onclick="showSignupWall('Settings')" style="background:none;border:none;cursor:pointer;font-size:1.2rem;padding:0.4rem;opacity:0.5;" title="Sign up to access Settings">⚙️</button>
+                {% else %}
                 <button onclick="document.getElementById('settingsModal').style.display='flex'" style="background:none;border:none;cursor:pointer;font-size:1.2rem;padding:0.4rem;" title="Settings">⚙️</button>
+                {% endif %}
                 <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu" style="margin-left:auto;">
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
                     <span style="background:#ecf0f1 !important; display:block; width:26px; height:3px; margin:5px 0; border-radius:2px;"></span>
@@ -716,6 +727,46 @@ function aiSend() {
 })();
 </script>
 
+
+
+<!-- ── Signup Wall Modal (demo guests only) ── -->
+<div id="signup-wall" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;max-width:420px;width:90%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+    <div style="background:linear-gradient(135deg,#7c3aed,#06b6d4);padding:2rem 2rem 1.5rem;color:#fff;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem;">🔒</div>
+      <h3 style="font-size:1.3rem;font-weight:800;margin:0 0 0.4rem;" id="wall-feature-name">Settings</h3>
+      <p style="opacity:0.9;font-size:0.9rem;margin:0;">This feature is available on your own store.</p>
+    </div>
+    <div style="padding:1.75rem 2rem;">
+      <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;color:#374151;">
+          <span style="color:#7c3aed;font-size:1.1rem;">✓</span> Full access to all features — no limits
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;color:#374151;">
+          <span style="color:#7c3aed;font-size:1.1rem;">✓</span> Your own branded store, yours to keep
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;color:#374151;">
+          <span style="color:#7c3aed;font-size:1.1rem;">✓</span> $99 setup + $20/mo — cancel anytime
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;color:#374151;">
+          <span style="color:#7c3aed;font-size:1.1rem;">✓</span> Ready in 60 seconds
+        </div>
+      </div>
+      <a href="/wizard" style="display:block;background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;text-align:center;padding:0.9rem;border-radius:10px;font-weight:800;font-size:1rem;text-decoration:none;margin-bottom:0.75rem;">🚀 Get My Store Now</a>
+      <button onclick="document.getElementById('signup-wall').style.display='none'" style="display:block;width:100%;background:none;border:none;color:#9ca3af;font-size:0.85rem;cursor:pointer;padding:0.5rem;font-family:inherit;">Continue browsing demo</button>
+    </div>
+  </div>
+</div>
+<script>
+function showSignupWall(feature) {
+    var el = document.getElementById('wall-feature-name');
+    if (el) el.textContent = feature || 'This Feature';
+    document.getElementById('signup-wall').style.display = 'flex';
+}
+document.getElementById('signup-wall').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+});
+</script>
 
 </body>
 </html>
