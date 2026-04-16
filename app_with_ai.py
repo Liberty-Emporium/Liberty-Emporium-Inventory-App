@@ -1721,9 +1721,15 @@ def ai_analyze():
             except:
                 parsed = {'title': 'Item', 'category': 'Miscellaneous', 'condition': 'Good', 'description': text, 'suggested_price': '25.00', 'labels': [], 'objects': []}
             usage = result.get('usage', {})
+            input_tok  = usage.get('prompt_tokens', 0)
+            output_tok = usage.get('completion_tokens', 0)
+            # If model returned 0 tokens it likely doesn't support vision or was unavailable
+            if input_tok == 0 and output_tok == 0:
+                model_used = get_openrouter_model()
+                return jsonify({'error': f'Model "{model_used}" returned no response. It may not support image analysis. Please switch to Gemini Flash 1.5 or GPT-4o Mini in the AI Settings (⚙️ gear icon).'})
             parsed['_usage'] = {
-                'input_tokens': usage.get('prompt_tokens', 0),
-                'output_tokens': usage.get('completion_tokens', 0),
+                'input_tokens': input_tok,
+                'output_tokens': output_tok,
             }
             parsed['_provider'] = 'openrouter'
             return jsonify(parsed)
@@ -4313,6 +4319,25 @@ def send_telegram_message(bot_token, chat_id, text):
     except Exception as e:
         print(f"[Telegram] Error: {e}")
         return False
+
+@app.route('/api/reset-model', methods=['POST'])
+@login_required
+def api_reset_model():
+    """Reset OpenRouter model to the reliable default (gemini-flash-1.5)."""
+    import json as _j
+    app_config_file = os.path.join(DATA_DIR, 'app_config.json')
+    app_cfg = {}
+    if os.path.exists(app_config_file):
+        try:
+            with open(app_config_file) as f:
+                app_cfg = _j.load(f)
+        except Exception:
+            pass
+    app_cfg['openrouter_model'] = 'google/gemini-flash-1.5'
+    with open(app_config_file, 'w') as f:
+        _j.dump(app_cfg, f, indent=2)
+    return jsonify({'ok': True, 'model': 'google/gemini-flash-1.5'})
+
 
 @app.route('/api/bot/telegram', methods=['POST'])
 @rate_limit

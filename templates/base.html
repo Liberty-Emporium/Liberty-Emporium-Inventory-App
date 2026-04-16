@@ -439,17 +439,17 @@
           <div style="display:flex; flex-direction:column; gap:0.3rem;">
             <label style="font-size:0.82rem; font-weight:700; color:#e2e8f0;">🧠 AI Model (which brain to use)</label>
             <select name="OPENROUTER_MODEL" id="openrouterModelSelect" style="width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#fff; font-size:0.85rem;">
-              <optgroup label="⭐ Best for photo + chat (Recommended)">
-                <option value="google/gemini-flash-1.5">Gemini Flash 1.5 — Fast &amp; affordable ⭐</option>
+              <optgroup label="⭐ Best for photo analysis (Recommended)">
+                <option value="google/gemini-flash-1.5">Gemini Flash 1.5 — Fast &amp; affordable ⭐ DEFAULT</option>
+                <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash — Newest Gemini</option>
                 <option value="openai/gpt-4o-mini">GPT-4o Mini — Great all-rounder</option>
                 <option value="anthropic/claude-3-haiku">Claude 3 Haiku — Smart &amp; fast</option>
                 <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet — Best quality</option>
                 <option value="openai/gpt-4o">GPT-4o — Premium</option>
               </optgroup>
-              <optgroup label="🆓 Free models">
-                <option value="meta-llama/llama-3.2-11b-vision-instruct:free">Llama 3.2 Vision — Free</option>
-                <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B — Free</option>
-                <option value="mistralai/mistral-7b-instruct:free">Mistral 7B — Free</option>
+              <optgroup label="🆓 Free models (text only — no photo analysis)">
+                <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B — Free (no vision)</option>
+                <option value="mistralai/mistral-7b-instruct:free">Mistral 7B — Free (no vision)</option>
               </optgroup>
             </select>
             <div style="font-size:0.72rem; color:#64748b;">Browse 100+ models: <a href="https://openrouter.ai/models" target="_blank" style="color:#a78bfa;">openrouter.ai/models</a></div>
