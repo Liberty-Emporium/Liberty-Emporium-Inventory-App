@@ -32,6 +32,9 @@ stripe_enabled = bool(STRIPE_SECRET_KEY and (STRIPE_SECRET_KEY.startswith('sk_li
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(hours=8)
 
 import secrets as _secrets_module
 
