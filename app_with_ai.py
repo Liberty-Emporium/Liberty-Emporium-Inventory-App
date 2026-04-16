@@ -4108,13 +4108,14 @@ def admin_api_generator():
 def admin_generate_api_key():
     """Generate a new API key — admin only."""
     import secrets as _sec
+    from datetime import datetime as _dt
     label = request.form.get('label', 'Testing Key').strip() or 'Testing Key'
     raw_key = 'lib_' + _sec.token_urlsafe(32)
     keys = load_api_keys()
     keys[raw_key] = {
         'name': label,
         'created_by': 'admin',
-        'created_at': datetime.utcnow().isoformat(),
+        'created_at': _dt.utcnow().isoformat(),
         'active': True,
     }
     save_api_keys(keys)
@@ -4141,7 +4142,8 @@ def api_token_ui_generate():
     import secrets as _s
     raw_key = 'lib_' + _s.token_urlsafe(32)
     keys = load_api_keys()
-    keys[raw_key] = {'name': 'ui-generated', 'created_by': 'admin', 'created_at': datetime.utcnow().isoformat(), 'active': True}
+    from datetime import datetime as _dt2
+    keys[raw_key] = {'name': 'ui-generated', 'created_by': 'admin', 'created_at': _dt2.utcnow().isoformat(), 'active': True}
     save_api_keys(keys)
     return jsonify({'success': True, 'api_token': raw_key})
 
