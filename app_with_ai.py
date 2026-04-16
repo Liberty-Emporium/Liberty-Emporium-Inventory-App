@@ -31,7 +31,32 @@ STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
 stripe_enabled = bool(STRIPE_SECRET_KEY and (STRIPE_SECRET_KEY.startswith('sk_live_') or STRIPE_SECRET_KEY.startswith('sk_test_')))
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = os.environ.get('SECRET_KEY', 'liberty-emporium-secret-2026')
+def _get_secret_key():
+    env_key = os.environ.get('SECRET_KEY')
+    if env_key:
+        return env_key
+    # Persist key to /data so sessions survive Railway redeploys
+    data_dir = os.environ.get('RAILWAY_DATA_DIR') or os.environ.get('DATA_DIR') or '/data'
+    key_file = os.path.join(data_dir, 'secret_key')
+    try:
+        os.makedirs(data_dir, exist_ok=True)
+        if os.path.exists(key_file):
+            with open(key_file) as f:
+                key = f.read().strip()
+            if key:
+                return key
+        import secrets as _sec
+        key = _sec.token_hex(32)
+        with open(key_file, 'w') as f:
+            f.write(key)
+        return key
+    except Exception:
+        import secrets as _sec
+        return _sec.token_hex(32)
+
+app.secret_key = _get_secret_key()
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(hours=8)

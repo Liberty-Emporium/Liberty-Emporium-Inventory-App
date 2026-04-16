@@ -57,6 +57,7 @@
   </div>
 
   <form method="POST" action="{{ url_for('onboarding') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <!-- Step 1: Store Name -->
     <div class="onboarding-step active" data-step="1">
       <div class="step-title">What's Your Store Name?</div>

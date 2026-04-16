@@ -144,6 +144,7 @@
       {% endif %}
 
       <form method="POST" action="/store/{{ slug }}/login">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="field">
           <label>Email Address</label>
           <input type="email" name="username" placeholder="you@email.com" required autofocus>

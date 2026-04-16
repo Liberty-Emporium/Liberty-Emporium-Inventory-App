@@ -60,6 +60,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
         <h1 style="color:#2e7d6e;">💾 Inventory Backups</h1>
         <form method="POST" action="{{ url_for('manual_backup') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-primary">📦 Create Backup Now</button>
         </form>
     </div>
@@ -83,6 +84,7 @@
                     <a href="{{ url_for('download_backup', filename=b.filename) }}" class="btn btn-secondary btn-small">⬇️ Download</a>
                     <form method="POST" action="{{ url_for('restore_backup', filename=b.filename) }}"
                           onsubmit="return confirm('Restore inventory from this backup? Current inventory will be overwritten.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-primary btn-small">♻️ Restore</button>
                     </form>
                 </div>

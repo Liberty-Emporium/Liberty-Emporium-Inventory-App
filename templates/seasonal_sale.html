@@ -44,12 +44,14 @@
         <strong>Sale Active:</strong> {{ sale_state.discount_percent }}% off {{ sale_state.category }}
     </div>
     <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="action" value="deactivate">
         <button type="submit" class="btn btn-danger">Stop Sale</button>
     </form>
     {% else %}
     <div style="background:white; border-radius:10px; padding:2rem; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
         <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="activate">
             <div class="form-group">
                 <label>Category</label>

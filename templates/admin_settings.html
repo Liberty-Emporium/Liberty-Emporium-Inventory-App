@@ -141,6 +141,7 @@
         {% endif %}
 
         <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div style="margin-bottom:1.5rem;">
                 <label for="anthropic_api_key" style="font-size:0.85rem; font-weight:700; color:#333; display:block; margin-bottom:0.35rem;">
                     Anthropic (Claude) API Key
@@ -208,6 +209,7 @@
     <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1a1a2e;margin:0 0 1rem;">📧 Email (SMTP)</h2>
     <p style="color:#555;font-size:0.9rem;margin-bottom:1.25rem;">Used by the Overseer Assistant to send follow-up emails to clients. For Gmail, use <strong>smtp.gmail.com</strong> port <strong>587</strong> and an <a href="https://support.google.com/accounts/answer/185833" target="_blank" style="color:#2e7d6e;">App Password</a>.</p>
     <form method="POST" action="/admin/settings/smtp">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
         <div>
           <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.3rem;">SMTP Host</label>
@@ -234,6 +236,7 @@
       </div>
     </form>
     <form method="POST" action="/admin/settings/smtp/test" style="margin-top:0.75rem;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" style="background:#f0ede8;color:#1a1a2e;border:none;padding:0.55rem 1.1rem;border-radius:8px;font-weight:600;cursor:pointer;">📨 Send Test Email</button>
     </form>
   </div>

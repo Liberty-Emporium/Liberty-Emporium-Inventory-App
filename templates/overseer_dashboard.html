@@ -159,6 +159,7 @@
         </div>
         <div class="client-card-actions">
           <form method="POST" action="/overseer/client/{{ store.slug }}/impersonate" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn-manage">🔀 Manage</button>
           </form>
           <a href="/overseer/client/{{ store.slug }}" class="btn-details">Details</a>
@@ -202,6 +203,7 @@
   <div class="modal">
     <h2>➕ Add New Client</h2>
     <form method="POST" action="/overseer/client/create">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-row"><label>Store Name *</label><input type="text" name="store_name" required placeholder="e.g. Treasure Trove Thrift"></div>
       <div class="form-row"><label>Contact Name</label><input type="text" name="contact_name" placeholder="Owner's full name"></div>
       <div class="form-row"><label>Contact Email (Login) *</label><input type="email" name="contact_email" required placeholder="client@email.com"></div>

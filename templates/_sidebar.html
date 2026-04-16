@@ -6,34 +6,34 @@
     <div class="sidebar-section">
         <h3>Overview</h3>
         <a href="{{ url_for('dashboard') }}" class="active">📊 Dashboard</a>
-        <a href="{{ url_for('new_item') }}">➕ Add New Item</a>
+        <a href="{{ url_for('new_product') }}">➕ Add New Item</a>
     </div>
     
     <div class="sidebar-section">
         <h3>Users</h3>
-        <a href="{{ url_for('manage_users') }}">👥 Manage Users</a>
-        <a href="{{ url_for('manage_teams') }}">🏢 Manage Teams</a>
+        <a href="{{ url_for('admin_users') }}">👥 Manage Users</a>
+        <a href="{{ url_for('admin_users') }}">🏢 Manage Teams</a>
     </div>
     
     <div class="sidebar-section">
         <h3>Inventory</h3>
-        <a href="{{ url_for('inventory_list') }}">📦 All Items</a>
-        <a href="{{ url_for('manage_categories') }}">🏷️ Categories</a>
-        <a href="{{ url_for('backups') }}">💾 Backups</a>
+        <a href="{{ url_for('dashboard') }}">📦 All Items</a>
+        <a href="{{ url_for('dashboard') }}">🏷️ Categories</a>
+        <a href="{{ url_for('admin_backups') }}">💾 Backups</a>
     </div>
     
     <div class="sidebar-section">
         <h3>Export & Import</h3>
-        <a href="{{ url_for('export_csv') }}">📥 Export CSV</a>
-        <a href="{{ url_for('export_for_square') }}">⬛ Export for Square</a>
-        <a href="{{ url_for('import_from_square') }}">📥 Import from Square</a>
+        <a href="{{ url_for('export_inventory') }}">📥 Export CSV</a>
+        <a href="{{ url_for('export_square') }}">⬛ Export for Square</a>
+        <a href="{{ url_for('import_square') }}">📥 Import from Square</a>
     </div>
     
     <div class="sidebar-section">
         <h3>Settings</h3>
-        <a href="{{ url_for('settings_general') }}">⚙️ General</a>
-        <a href="{{ url_for('settings_store') }}">🏪 Store Info</a>
-        <a href="{{ url_for('settings_billing') }}">💳 Billing</a>
+        <a href="{{ url_for('admin_settings') }}">⚙️ General</a>
+        <a href="{{ url_for('admin_settings') }}">🏪 Store Info</a>
+        <a href="{{ url_for('admin_settings') }}">💳 Billing</a>
     </div>
     
     <div class="sidebar-footer">

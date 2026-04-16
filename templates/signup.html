@@ -4,6 +4,7 @@
 <div class="form-container">
     <h1 style="color:#2e7d6e; margin-bottom:1.5rem;">📝 Request an Account</h1>
     <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label>Username *</label>
             <input type="text" name="username" required placeholder="Choose a username">

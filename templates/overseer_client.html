@@ -85,9 +85,11 @@
   </div>
   <div class="action-bar">
     <form method="POST" action="/overseer/client/{{ slug }}/impersonate">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn-primary">🔀 Log In as This Store</button>
     </form>
     <form method="POST" action="/overseer/client/{{ slug }}/suspend">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn-warn">{% if client.status == 'suspended' %}✅ Unsuspend{% else %}⏸ Suspend{% endif %}</button>
     </form>
   </div>
@@ -106,6 +108,7 @@
 <div class="section-card">
   <h2>✏️ Edit Store Details</h2>
   <form method="POST" action="/overseer/client/{{ slug }}/update">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="info-grid">
       <div class="form-row">
         <label>Store Name</label>
@@ -151,6 +154,7 @@
   <h2>🔑 Set Client Password</h2>
   <p style="color:#555;font-size:0.9rem;margin-bottom:1.25rem;">Create a new password for this client and share it with them.</p>
   <form method="POST" action="/overseer/client/{{ slug }}/reset-password" id="pwResetForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="info-grid" style="max-width:480px;">
       <div class="form-row">
         <label>New Password</label>
@@ -179,6 +183,7 @@
     <h2>⚠️ Delete Store?</h2>
     <p>This is permanent. Type <strong>{{ client.store_name }}</strong> to confirm.</p>
     <form method="POST" action="/overseer/client/{{ slug }}/delete">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="text" name="confirm_name" placeholder="Type store name to confirm" autocomplete="off">
       <div class="modal-actions">
         <button type="button" class="btn-cancel-modal" onclick="document.getElementById('deleteModal').classList.remove('open')">Cancel</button>

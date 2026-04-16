@@ -130,6 +130,8 @@
 
   <form method="POST" action="/my-store/branding" enctype="multipart/form-data">
 
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
     <!-- Store Info -->
     <div class="br-card">
       <h2>Store Info</h2>

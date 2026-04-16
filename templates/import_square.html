@@ -117,6 +117,8 @@
     <div style="background:white; border-radius:10px; padding:2rem; box-shadow:0 4px 16px rgba(46,125,110,0.12);">
         <form method="POST" enctype="multipart/form-data">
 
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
             <div class="form-group" style="margin-bottom:1.25rem;">
                 <label for="csv_file" style="font-weight:600; color:#2c3e50;">Select Square CSV File</label>
                 <input type="file" id="csv_file" name="csv_file" accept=".csv" required
