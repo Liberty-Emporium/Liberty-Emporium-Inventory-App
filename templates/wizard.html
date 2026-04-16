@@ -399,19 +399,22 @@
             
             <!-- Loading -->
             <div class="wizard-loading" id="wizardLoading">
-                <div class="loading-spinner">⚙️</div>
-                <div class="loading-text">We are building your personalized store...</div>
-                <div class="loading-sub" id="loadingStatus">It will be available very soon. Please wait.</div>
+                <div class="loading-spinner" style="font-size:3rem;animation:spin 1.2s linear infinite;display:inline-block;">⚙️</div>
+                <div class="loading-text">Building your store…</div>
+                <div class="loading-sub" id="loadingStatus">Setting up branding…</div>
+                <div style="margin-top:1.5rem;width:100%;max-width:300px;background:#e8f5e9;border-radius:20px;height:8px;overflow:hidden;">
+                    <div id="buildProgress" style="height:100%;background:linear-gradient(90deg,#2e7d6e,#56c7b6);border-radius:20px;width:0%;transition:width 0.5s ease;"></div>
+                </div>
             </div>
             
             <!-- Success -->
             <div class="wizard-success" id="wizardSuccess">
-                <div class="success-icon">⚙️</div>
-                <div class="success-title">Your store is being built!</div>
-                <p class="success-subtitle">We are building your personalized store. It will be available very soon. Please wait.</p>
-                <div class="success-url" id="successUrl"></div>
-                
-                <p style="color:#64748b; font-size:0.9rem; margin-top:1.5rem;">We are building your personalized store with sample products. Check your email for login details when it's ready!</p>
+                <div class="success-icon">🎉</div>
+                <div class="success-title" id="successStoreName">Your store is ready!</div>
+                <p class="success-subtitle">Your personalized store has been built with sample products loaded in.</p>
+                <div class="success-url" id="successUrl" style="margin:1rem 0;font-family:monospace;font-size:0.9rem;color:#2e7d6e;"></div>
+                <a id="successLink" href="#" style="display:inline-block;background:linear-gradient(135deg,#2e7d6e,#56c7b6);color:#fff;padding:0.8rem 2rem;border-radius:10px;font-weight:800;text-decoration:none;font-size:1rem;margin-top:0.5rem;">🚀 Go To My Store →</a>
+                <p style="color:#64748b;font-size:0.85rem;margin-top:1.25rem;">Use the login details you entered. <a href="/login" style="color:#2e7d6e;">Admin login here →</a></p>
             </div>
             
             <!-- Navigation (hidden during loading/success) -->
@@ -525,16 +528,23 @@
                 contact_phone: document.getElementById('contactPhone').value.trim()
             };
             
-            // Animate loading messages
+            // Animate loading messages + progress bar
             var statusEl = document.getElementById('loadingStatus');
-            var messages = ['Setting up branding...', 'Building your store...', 'Adding sample inventory...', 'Almost ready...'];
+            var progressEl = document.getElementById('buildProgress');
+            var messages = [
+                {text: 'Setting up your branding…',   pct: '20%'},
+                {text: 'Loading sample inventory…',    pct: '45%'},
+                {text: 'Configuring your dashboard…',  pct: '70%'},
+                {text: 'Almost ready…',               pct: '90%'},
+            ];
             var msgIndex = 0;
             var msgInterval = setInterval(function() {
                 if (msgIndex < messages.length) {
-                    statusEl.textContent = messages[msgIndex];
+                    statusEl.textContent = messages[msgIndex].text;
+                    if (progressEl) progressEl.style.width = messages[msgIndex].pct;
                     msgIndex++;
                 }
-            }, 800);
+            }, 700);
             
             // POST to backend
             fetch('/wizard-submit', {
@@ -547,15 +557,13 @@
                 clearInterval(msgInterval);
                 document.getElementById('wizardLoading').classList.remove('active');
                 document.getElementById('wizardSuccess').classList.add('active');
-                document.getElementById('successStoreName').textContent = data.store_name;
-                document.getElementById('successUrl').textContent = resp.url || ('/store/' + slug);
-                document.getElementById('trialStoreName').value = data.store_name;
-                document.getElementById('trialEmail').value = data.contact_email || '';
-                document.getElementById('trialContactName').value = data.contact_name || '';
-                document.getElementById('trialSlug').value = slug;
-                document.getElementById('trialColor').value = data.color || '#2e7d6e';
-                document.getElementById('trialIndustry').value = data.industry || 'general';
-                document.getElementById('trialTagline').value = data.tagline || '';
+                var storeUrl = resp.url || ('/store/' + slug);
+                var nameEl = document.getElementById('successStoreName');
+                var urlEl  = document.getElementById('successUrl');
+                var linkEl = document.getElementById('successLink');
+                if (nameEl) nameEl.textContent = '🎉 ' + data.store_name + ' is ready!';
+                if (urlEl)  urlEl.textContent  = window.location.origin + storeUrl;
+                if (linkEl) { linkEl.href = storeUrl; }
             })
             .catch(function() {
                 clearInterval(msgInterval);
