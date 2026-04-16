@@ -911,6 +911,9 @@ def login():
                     users[username]['password'] = hash_password(password)
                     save_users(users)
                 user_record = users[username]
+                if user_record.get('status') == 'suspended':
+                    flash('Your account has been suspended. Contact the administrator.', 'error')
+                    return render_template('login.html', client_stores=list_client_stores(), **ctx())
                 session['logged_in'] = True
                 session['username']  = username
                 session['is_guest']  = False
@@ -2447,6 +2450,102 @@ def remove_user(username):
     return redirect(url_for('admin_users'))
 
 # ── Admin – Backups ───────────────────────────────────────────────────────────
+
+@app.route('/admin/add-user', methods=['POST'])
+@rate_limit
+@login_required
+@admin_required
+def add_user():
+    username = request.form.get('username','').strip().lower()
+    email    = request.form.get('email','').strip()
+    password = request.form.get('password','')
+    role     = request.form.get('role','user')
+    if not username or not password:
+        flash('Username and password are required.', 'error')
+        return redirect(url_for('admin_users'))
+    users = load_users()
+    if username == ADMIN_USER or username in users:
+        flash(f'Username "{username}" already exists.', 'error')
+        return redirect(url_for('admin_users'))
+    if len(password) < 6:
+        flash('Password must be at least 6 characters.', 'error')
+        return redirect(url_for('admin_users'))
+    users[username] = {
+        'password': hash_password(password),
+        'email': email,
+        'role': role,
+        'joined': datetime.date.today().isoformat(),
+        'status': 'active'
+    }
+    save_users(users)
+    flash(f'User "{username}" created successfully!', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/edit-user', methods=['POST'])
+@rate_limit
+@login_required
+@admin_required
+def edit_user():
+    username = request.form.get('username','').strip()
+    email    = request.form.get('email','').strip()
+    role     = request.form.get('role','user')
+    users = load_users()
+    if username in users:
+        users[username]['email'] = email
+        users[username]['role']  = role
+        save_users(users)
+        flash(f'User "{username}" updated.', 'success')
+    else:
+        flash('User not found.', 'error')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/reset-password', methods=['POST'])
+@rate_limit
+@login_required
+@admin_required
+def admin_reset_password():
+    username     = request.form.get('username','').strip()
+    new_password = request.form.get('new_password','')
+    confirm      = request.form.get('confirm_password','')
+    if new_password != confirm:
+        flash('Passwords do not match.', 'error')
+        return redirect(url_for('admin_users'))
+    if len(new_password) < 6:
+        flash('Password must be at least 6 characters.', 'error')
+        return redirect(url_for('admin_users'))
+    users = load_users()
+    if username in users:
+        users[username]['password'] = hash_password(new_password)
+        save_users(users)
+        flash(f'Password reset for "{username}".', 'success')
+    else:
+        flash('User not found.', 'error')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/suspend/<username>', methods=['POST'])
+@rate_limit
+@login_required
+@admin_required
+def suspend_user(username):
+    users = load_users()
+    if username in users:
+        users[username]['status'] = 'suspended'
+        save_users(users)
+        flash(f'User "{username}" suspended.', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/unsuspend/<username>', methods=['POST'])
+@rate_limit
+@login_required
+@admin_required
+def unsuspend_user(username):
+    users = load_users()
+    if username in users:
+        users[username]['status'] = 'active'
+        save_users(users)
+        flash(f'User "{username}" restored.', 'success')
+    return redirect(url_for('admin_users'))
+
 @app.route('/admin/backups')
 @login_required
 @admin_required

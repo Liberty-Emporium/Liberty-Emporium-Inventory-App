@@ -1,149 +1,336 @@
 {% extends 'base.html' %}
-{% block title %}User Management | Liberty Emporium{% endblock %}
-
-{% block howto_slides %}
-<div class="ht-slide">
-  <div class="ht-icon">👥</div>
-  <div class="ht-label">User Management — How-To Guide</div>
-  <h2>Managing Who Can Access Your Store</h2>
-  <p>This page lets you <strong>approve</strong> new signup requests, <strong>reject</strong> unwanted ones, and <strong>remove</strong> users who should no longer have access.</p>
-  <div class="ht-tip">🔒 Only the <strong>Owner (admin)</strong> account can see and use this page.</div>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">⏳</div>
-  <div class="ht-label">Section 1 — Pending Approval</div>
-  <h2>Pending Approval</h2>
-  <p>When someone signs up, they appear here with their <strong>username</strong>, <strong>email</strong>, and <strong>request date</strong>.</p>
-  <div class="ht-mock">
-    <div class="ht-mock-row">
-      <span><strong>sarah_jones</strong> · Requested: 2026-03-28</span>
-      <span style="display:flex;gap:6px;">
-        <span style="background:#2e7d6e;color:white;padding:3px 9px;border-radius:5px;font-size:0.78rem;font-weight:700;">✅ Approve</span>
-        <span style="background:#e53e3e;color:white;padding:3px 9px;border-radius:5px;font-size:0.78rem;font-weight:700;">❌ Reject</span>
-      </span>
-    </div>
-  </div>
-  <p style="margin-top:10px; font-size:0.84rem; color:#888;">If there are no pending requests, you'll see "No pending requests."</p>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">✅</div>
-  <div class="ht-label">Action — Approve</div>
-  <h2>Approving a New User</h2>
-  <ol>
-    <li>Find the user in the <strong>Pending Approval</strong> section.</li>
-    <li>Click the green <strong>✅ Approve</strong> button next to their name.</li>
-    <li>They are instantly moved to <strong>Approved Users</strong> and can now log in.</li>
-  </ol>
-  <div class="ht-tip">No confirmation dialog — approval is instant.</div>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">❌</div>
-  <div class="ht-label">Action — Reject</div>
-  <h2>Rejecting a Request</h2>
-  <ol>
-    <li>Find the unwanted request in <strong>Pending Approval</strong>.</li>
-    <li>Click the red <strong>❌ Reject</strong> button.</li>
-    <li>A confirmation dialog appears — click OK to confirm.</li>
-    <li>The request is deleted permanently.</li>
-  </ol>
-  <div class="ht-warn">⚠️ Rejection is permanent. The person would need to sign up again if you change your mind.</div>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">✅</div>
-  <div class="ht-label">Section 2 — Approved Users</div>
-  <h2>Approved Users</h2>
-  <p>Shows everyone who currently has access. The <strong>Owner (admin)</strong> always appears at the top and cannot be removed.</p>
-  <div class="ht-mock">
-    <div class="ht-mock-row">
-      <span><strong>admin</strong> <span style="background:#2e7d6e;color:white;font-size:0.72rem;padding:2px 8px;border-radius:10px;margin-left:6px;">Owner</span></span>
-      <span style="color:#aaa;font-size:0.78rem;">Cannot remove</span>
-    </div>
-    <div class="ht-mock-row">
-      <strong>sarah_jones</strong>
-      <span style="background:#ff9100;color:white;padding:3px 9px;border-radius:5px;font-size:0.78rem;font-weight:700;">🗑️ Remove</span>
-    </div>
-  </div>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">🚫</div>
-  <div class="ht-label">Action — Remove</div>
-  <h2>Removing an Approved User</h2>
-  <ol>
-    <li>Scroll to the <strong>Approved Users</strong> section.</li>
-    <li>Click the orange <strong>🗑️ Remove</strong> button next to the user.</li>
-    <li>Confirm the action in the dialog that appears.</li>
-    <li>The user is removed and can no longer log in.</li>
-  </ol>
-  <div class="ht-tip">The admin/Owner account can never be removed from this list.</div>
-</div>
-<div class="ht-slide">
-  <div class="ht-icon">🎓</div>
-  <div class="ht-label">Summary</div>
-  <h2>Quick Reference</h2>
-  <div class="ht-grid">
-    <div class="ht-grid-item"><strong>⏳ Pending</strong><span>New signup requests waiting for review</span></div>
-    <div class="ht-grid-item"><strong>✅ Approve</strong><span>Grants login access instantly</span></div>
-    <div class="ht-grid-item"><strong>❌ Reject</strong><span>Permanently removes the request</span></div>
-    <div class="ht-grid-item"><strong>🗑️ Remove</strong><span>Revokes access from approved users</span></div>
-  </div>
-</div>
-{% endblock %}
+{% block title %}User Management | {{ store_name }}{% endblock %}
 
 {% block content %}
-<div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">❓ How to Use This Page</button></div>
-<div style="max-width:800px; margin:0 auto;">
-    <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
-    <h1 style="color:#2e7d6e; margin-bottom:1.5rem;">👥 User Management</h1>
+<style>
+  .um-wrap { max-width: 900px; margin: 0 auto; padding: 1rem; }
+  .um-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+  .um-header h1 { margin: 0; color: #0f172a; font-size: 1.6rem; }
+  .um-stats { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .um-stat { background: white; border-radius: 12px; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07); flex: 1; min-width: 120px; text-align: center; border-top: 3px solid #6366f1; }
+  .um-stat.pending  { border-color: #f59e0b; }
+  .um-stat.approved { border-color: #10b981; }
+  .um-stat.total    { border-color: #6366f1; }
+  .um-stat .num { font-size: 2rem; font-weight: 800; color: #0f172a; }
+  .um-stat .lbl { font-size: 0.78rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
 
-    <!-- Pending approvals -->
-    <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 8px rgba(46,125,110,0.1); margin-bottom:1.5rem; border-left:4px solid #f0a500;">
-        <h2 style="color:#7c5a00; margin-bottom:1rem;">⏳ Pending Approval ({{ pending|length }})</h2>
-        {% if pending %}
-            {% for user in pending %}
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#fffbf0; border-radius:6px; margin-bottom:0.5rem; border:1px solid #ffe4a0;">
-                <div>
-                    <strong>{{ user.username }}</strong>
-                    <span style="color:#6b9e95; margin-left:0.75rem; font-size:0.9rem;">{{ user.email }}</span>
-                    <span style="color:#aaa; margin-left:0.75rem; font-size:0.85rem;">Requested: {{ user.requested }}</span>
-                </div>
-                <div style="display:flex; gap:0.5rem;">
-                    <form method="POST" action="{{ url_for('approve_user', username=user.username) }}" style="display:inline;">
-                        <button type="submit" class="btn btn-primary btn-small">✅ Approve</button>
-                    </form>
-                    <form method="POST" action="{{ url_for('reject_user', username=user.username) }}" style="display:inline;"
-                          onsubmit="return confirm('Reject {{ user.username }}?')">
-                        <button type="submit" class="btn btn-danger btn-small">❌ Reject</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
+  /* Search bar */
+  .um-search-row { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .um-search { flex: 1; min-width: 200px; padding: 0.65rem 1rem 0.65rem 2.5rem; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; outline: none; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E") no-repeat 0.75rem center; transition: border-color .2s; }
+  .um-search:focus { border-color: #6366f1; }
+  .um-filter { padding: 0.65rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; background: white; cursor: pointer; }
+  .um-btn-add { background: #6366f1; color: white; border: none; border-radius: 10px; padding: 0.65rem 1.25rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 0.4rem; }
+  .um-btn-add:hover { background: #4f46e5; }
+
+  /* Section */
+  .um-section { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 1.5rem; overflow: hidden; }
+  .um-section-head { display: flex; align-items: center; gap: 0.5rem; padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; }
+  .um-section-head h2 { margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a; }
+  .um-badge-count { background: #f1f5f9; color: #475569; border-radius: 20px; padding: 0.15rem 0.6rem; font-size: 0.78rem; font-weight: 700; }
+
+  /* User rows */
+  .um-row { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1.25rem; border-bottom: 1px solid #f8fafc; transition: background .15s; flex-wrap: wrap; }
+  .um-row:last-child { border-bottom: none; }
+  .um-row:hover { background: #f8fafc; }
+  .um-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0; color: white; }
+  .um-info { flex: 1; min-width: 140px; }
+  .um-name { font-weight: 700; color: #0f172a; font-size: 0.95rem; }
+  .um-meta { font-size: 0.8rem; color: #64748b; margin-top: 0.1rem; }
+  .um-role-badge { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 20px; padding: 0.2rem 0.65rem; font-size: 0.75rem; font-weight: 700; }
+  .role-owner    { background: #ede9fe; color: #5b21b6; }
+  .role-manager  { background: #dbeafe; color: #1d4ed8; }
+  .role-staff    { background: #d1fae5; color: #065f46; }
+  .role-viewer   { background: #f1f5f9; color: #475569; }
+  .role-user     { background: #fef3c7; color: #92400e; }
+  .status-active    { color: #10b981; font-size: 0.78rem; font-weight: 600; }
+  .status-suspended { color: #ef4444; font-size: 0.78rem; font-weight: 600; }
+  .um-actions { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; }
+  .um-btn { border: none; border-radius: 7px; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .um-btn-approve  { background: #d1fae5; color: #065f46; }
+  .um-btn-approve:hover  { background: #10b981; color: white; }
+  .um-btn-reject   { background: #fee2e2; color: #b91c1c; }
+  .um-btn-reject:hover   { background: #ef4444; color: white; }
+  .um-btn-edit     { background: #e0e7ff; color: #3730a3; }
+  .um-btn-edit:hover     { background: #6366f1; color: white; }
+  .um-btn-suspend  { background: #fef3c7; color: #92400e; }
+  .um-btn-suspend:hover  { background: #f59e0b; color: white; }
+  .um-btn-unsuspend { background: #d1fae5; color: #065f46; }
+  .um-btn-unsuspend:hover { background: #10b981; color: white; }
+  .um-btn-remove   { background: #fee2e2; color: #b91c1c; }
+  .um-btn-remove:hover   { background: #ef4444; color: white; }
+  .um-btn-pwd      { background: #f1f5f9; color: #475569; }
+  .um-btn-pwd:hover      { background: #e2e8f0; color: #0f172a; }
+  .um-empty { padding: 2rem; text-align: center; color: #94a3b8; font-size: 0.9rem; }
+
+  /* Modal */
+  .um-modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9000; align-items: center; justify-content: center; }
+  .um-modal-bg.open { display: flex; }
+  .um-modal { background: white; border-radius: 16px; padding: 2rem; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin: 1rem; }
+  .um-modal h2 { margin: 0 0 1.25rem; font-size: 1.2rem; color: #0f172a; }
+  .um-modal label { display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.3rem; margin-top: 0.85rem; }
+  .um-modal label:first-of-type { margin-top: 0; }
+  .um-modal input, .um-modal select { width: 100%; padding: 0.6rem 0.85rem; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box; outline: none; }
+  .um-modal input:focus, .um-modal select:focus { border-color: #6366f1; }
+  .um-modal-btns { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+  .um-modal-btns button { flex: 1; padding: 0.7rem; border-radius: 9px; font-weight: 700; font-size: 0.9rem; border: none; cursor: pointer; }
+  .um-modal-save { background: #6366f1; color: white; }
+  .um-modal-save:hover { background: #4f46e5; }
+  .um-modal-cancel { background: #f1f5f9; color: #475569; }
+  .um-modal-cancel:hover { background: #e2e8f0; }
+
+  .um-joined { font-size: 0.78rem; color: #94a3b8; }
+  .hidden-row { display: none !important; }
+</style>
+
+<div class="um-wrap">
+  <div class="um-header">
+    <div>
+      <a href="{{ url_for('dashboard') }}" style="color:#6366f1; font-size:0.88rem; text-decoration:none;">← Back to Dashboard</a>
+      <h1 style="margin-top:0.25rem;">👥 User Management</h1>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="um-stats">
+    <div class="um-stat total">
+      <div class="num">{{ (users|length) + 1 }}</div>
+      <div class="lbl">Total Users</div>
+    </div>
+    <div class="um-stat approved">
+      <div class="num">{{ (users|length) + 1 }}</div>
+      <div class="lbl">Active</div>
+    </div>
+    <div class="um-stat pending">
+      <div class="num">{{ pending|length }}</div>
+      <div class="lbl">Pending</div>
+    </div>
+  </div>
+
+  <!-- Search + Add -->
+  <div class="um-search-row">
+    <input class="um-search" type="text" id="umSearch" placeholder="Search by name, email, or role…" oninput="filterUsers()">
+    <select class="um-filter" id="umFilter" onchange="filterUsers()">
+      <option value="">All Roles</option>
+      <option value="owner">Owner</option>
+      <option value="manager">Manager</option>
+      <option value="staff">Staff</option>
+      <option value="viewer">Viewer</option>
+      <option value="user">User</option>
+    </select>
+    <button class="um-btn-add" onclick="openAddModal()">＋ Add User</button>
+  </div>
+
+  <!-- Pending Section -->
+  {% if pending %}
+  <div class="um-section">
+    <div class="um-section-head">
+      <span style="font-size:1.1rem;">⏳</span>
+      <h2>Pending Approval</h2>
+      <span class="um-badge-count">{{ pending|length }}</span>
+    </div>
+    {% for u in pending %}
+    <div class="um-row" data-name="{{ u.username }}" data-email="{{ u.email or '' }}" data-role="pending">
+      <div class="um-avatar" style="background:#f59e0b;">{{ u.username[0].upper() }}</div>
+      <div class="um-info">
+        <div class="um-name">{{ u.username }}</div>
+        <div class="um-meta">{{ u.email or 'No email' }} · Requested {{ u.requested or 'Unknown' }}</div>
+      </div>
+      <span class="um-role-badge role-user">Pending</span>
+      <div class="um-actions">
+        <form method="POST" action="{{ url_for('approve_user', username=u.username) }}" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="um-btn um-btn-approve">✅ Approve</button>
+        </form>
+        <form method="POST" action="{{ url_for('reject_user', username=u.username) }}" style="display:inline;"
+              onsubmit="return confirm('Reject {{ u.username }}? This cannot be undone.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="um-btn um-btn-reject">✕ Reject</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Approved Users Section -->
+  <div class="um-section">
+    <div class="um-section-head">
+      <span style="font-size:1.1rem;">✅</span>
+      <h2>Approved Users</h2>
+      <span class="um-badge-count" id="approvedCount">{{ (users|length) + 1 }}</span>
+    </div>
+
+    <!-- Admin row (always first) -->
+    <div class="um-row" data-name="admin" data-email="" data-role="owner">
+      <div class="um-avatar" style="background:#6366f1;">A</div>
+      <div class="um-info">
+        <div class="um-name">admin <span class="um-role-badge role-owner" style="margin-left:.4rem;">👑 Owner</span></div>
+        <div class="um-meta">System administrator — cannot be modified</div>
+      </div>
+      <span class="status-active">● Active</span>
+    </div>
+
+    {% for username, udata in users.items() %}
+    {% set role = udata.get('role', 'user') %}
+    {% set suspended = udata.get('status') == 'suspended' %}
+    <div class="um-row" data-name="{{ username }}" data-email="{{ udata.get('email','') }}" data-role="{{ role }}">
+      <div class="um-avatar" style="background:{{ ['#10b981','#3b82f6','#8b5cf6','#ef4444','#f59e0b'][loop.index0 % 5] }};">{{ username[0].upper() }}</div>
+      <div class="um-info">
+        <div class="um-name">{{ username }}</div>
+        <div class="um-meta">
+          {{ udata.get('email') or 'No email' }}
+          {% if udata.get('joined') %} · Joined {{ udata.get('joined') }}{% endif %}
+        </div>
+      </div>
+      <span class="um-role-badge role-{{ role }}">
+        {% if role == 'manager' %}🔧{% elif role == 'staff' %}👤{% elif role == 'viewer' %}👁{% else %}👤{% endif %}
+        {{ role|capitalize }}
+      </span>
+      {% if suspended %}
+        <span class="status-suspended">⊘ Suspended</span>
+      {% else %}
+        <span class="status-active">● Active</span>
+      {% endif %}
+      <div class="um-actions">
+        <button class="um-btn um-btn-edit" onclick="openEditModal('{{ username }}','{{ udata.get('email','') }}','{{ role }}')">✏️ Edit</button>
+        <button class="um-btn um-btn-pwd" onclick="openPwdModal('{{ username }}')">🔑 Pwd</button>
+        {% if suspended %}
+        <form method="POST" action="{{ url_for('unsuspend_user', username=username) }}" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="um-btn um-btn-unsuspend">▶ Restore</button>
+        </form>
         {% else %}
-            <p style="color:#6b9e95;">No pending requests.</p>
+        <form method="POST" action="{{ url_for('suspend_user', username=username) }}" style="display:inline;"
+              onsubmit="return confirm('Suspend {{ username }}? They will not be able to log in.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="um-btn um-btn-suspend">⊘ Suspend</button>
+        </form>
         {% endif %}
+        <form method="POST" action="{{ url_for('remove_user', username=username) }}" style="display:inline;"
+              onsubmit="return confirm('Permanently remove {{ username }}?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="um-btn um-btn-remove">🗑</button>
+        </form>
+      </div>
     </div>
+    {% endfor %}
 
-    <!-- Approved users -->
-    <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 8px rgba(46,125,110,0.1); border-left:4px solid #3a9688;">
-        <h2 style="color:#2e7d6e; margin-bottom:1rem;">✅ Approved Users ({{ approved|length + 1 }})</h2>
-        <!-- Admin always shown -->
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f0f7f4; border-radius:6px; margin-bottom:0.5rem;">
-            <div>
-                <strong>admin</strong>
-                <span style="background:#2e7d6e; color:white; font-size:0.75rem; padding:0.15rem 0.5rem; border-radius:10px; margin-left:0.5rem;">Owner</span>
-            </div>
-        </div>
-        {% for username in approved %}
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f0f7f4; border-radius:6px; margin-bottom:0.5rem;">
-            <strong>{{ username }}</strong>
-            <form method="POST" action="{{ url_for('remove_user', username=username) }}" style="display:inline;"
-                  onsubmit="return confirm('Remove {{ username }}?')">
-                <button type="submit" class="btn btn-danger btn-small">🗑️ Remove</button>
-            </form>
-        </div>
-        {% endfor %}
-        {% if not approved %}
-            <p style="color:#6b9e95; margin-top:0.5rem;">No other approved users yet.</p>
-        {% endif %}
-    </div>
+    {% if not users %}
+    <div class="um-empty">No other users yet. Click <strong>＋ Add User</strong> to create one.</div>
+    {% endif %}
+  </div>
 </div>
+
+<!-- Add User Modal -->
+<div class="um-modal-bg" id="addModal">
+  <div class="um-modal">
+    <h2>➕ Add New User</h2>
+    <form method="POST" action="{{ url_for('add_user') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Username *</label>
+      <input type="text" name="username" required placeholder="e.g. sarah_jones" autocomplete="off">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="sarah@store.com">
+      <label>Password *</label>
+      <input type="password" name="password" required placeholder="Min 6 characters" autocomplete="new-password">
+      <label>Role</label>
+      <select name="role">
+        <option value="staff">Staff — can add/edit products</option>
+        <option value="manager">Manager — full access except admin</option>
+        <option value="viewer">Viewer — read only</option>
+        <option value="user">User — basic access</option>
+      </select>
+      <div class="um-modal-btns">
+        <button type="button" class="um-modal-cancel" onclick="closeModals()">Cancel</button>
+        <button type="submit" class="um-modal-save">Create User</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="um-modal-bg" id="editModal">
+  <div class="um-modal">
+    <h2>✏️ Edit User</h2>
+    <form method="POST" action="{{ url_for('edit_user') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="username" id="editUsername">
+      <label>Username</label>
+      <input type="text" id="editUsernameDisplay" disabled style="background:#f8fafc; color:#94a3b8;">
+      <label>Email</label>
+      <input type="email" name="email" id="editEmail" placeholder="email@store.com">
+      <label>Role</label>
+      <select name="role" id="editRole">
+        <option value="staff">Staff</option>
+        <option value="manager">Manager</option>
+        <option value="viewer">Viewer</option>
+        <option value="user">User</option>
+      </select>
+      <div class="um-modal-btns">
+        <button type="button" class="um-modal-cancel" onclick="closeModals()">Cancel</button>
+        <button type="submit" class="um-modal-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="um-modal-bg" id="pwdModal">
+  <div class="um-modal">
+    <h2>🔑 Reset Password</h2>
+    <form method="POST" action="{{ url_for('admin_reset_password') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="username" id="pwdUsername">
+      <label>User</label>
+      <input type="text" id="pwdUsernameDisplay" disabled style="background:#f8fafc; color:#94a3b8;">
+      <label>New Password *</label>
+      <input type="password" name="new_password" required placeholder="Min 6 characters" autocomplete="new-password">
+      <label>Confirm Password *</label>
+      <input type="password" name="confirm_password" required placeholder="Repeat password">
+      <div class="um-modal-btns">
+        <button type="button" class="um-modal-cancel" onclick="closeModals()">Cancel</button>
+        <button type="submit" class="um-modal-save">Reset Password</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function filterUsers() {
+  var q = document.getElementById('umSearch').value.toLowerCase();
+  var role = document.getElementById('umFilter').value.toLowerCase();
+  var rows = document.querySelectorAll('.um-row');
+  var visible = 0;
+  rows.forEach(function(row) {
+    var name  = (row.dataset.name  || '').toLowerCase();
+    var email = (row.dataset.email || '').toLowerCase();
+    var r     = (row.dataset.role  || '').toLowerCase();
+    var matchQ    = !q    || name.includes(q) || email.includes(q) || r.includes(q);
+    var matchRole = !role || r === role;
+    if (matchQ && matchRole) { row.classList.remove('hidden-row'); visible++; }
+    else row.classList.add('hidden-row');
+  });
+  document.getElementById('approvedCount').textContent = visible;
+}
+function openAddModal()  { document.getElementById('addModal').classList.add('open'); }
+function openEditModal(u, email, role) {
+  document.getElementById('editUsername').value        = u;
+  document.getElementById('editUsernameDisplay').value = u;
+  document.getElementById('editEmail').value           = email;
+  document.getElementById('editRole').value            = role || 'user';
+  document.getElementById('editModal').classList.add('open');
+}
+function openPwdModal(u) {
+  document.getElementById('pwdUsername').value        = u;
+  document.getElementById('pwdUsernameDisplay').value = u;
+  document.getElementById('pwdModal').classList.add('open');
+}
+function closeModals() {
+  document.querySelectorAll('.um-modal-bg').forEach(function(m){ m.classList.remove('open'); });
+}
+// Close on backdrop click
+document.querySelectorAll('.um-modal-bg').forEach(function(bg){
+  bg.addEventListener('click', function(e){ if(e.target===bg) closeModals(); });
+});
+</script>
 {% endblock %}
