@@ -309,10 +309,16 @@
     </script>
 
     {% if session.get('is_guest') %}
-    <div style="background:#fff8e1; border-bottom:2px solid #ffe082; padding:0.6rem 2rem; text-align:center; font-size:0.95rem; color:#7c5a00;">
-        👁️ You are browsing as a <strong>Guest</strong> — view only.
-        <a href="{{ url_for('logout') }}" style="color:#2e7d6e; font-weight:600;">Log out</a>
+    <!-- Demo mode: sales bar is injected per-page in dashboard.html — base shows subtle strip only on non-dashboard pages -->
+    {% if request.path != '/dashboard' %}
+    <div style="background:linear-gradient(90deg,#4f46e5,#7c3aed);color:#fff;padding:0.5rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;font-size:0.85rem;">
+        <span>🚀 <strong>Demo Mode</strong> — Exploring {{ request.path.replace('/','').replace('-',' ').title() or 'the app' }}</span>
+        <div style="display:flex;gap:1rem;align-items:center;">
+            <a href="/wizard" style="background:#fff;color:#4f46e5;font-weight:800;padding:0.3rem 0.9rem;border-radius:6px;text-decoration:none;font-size:0.82rem;">Get This App →</a>
+            <a href="{{ url_for('logout') }}" style="color:rgba(255,255,255,0.7);font-size:0.8rem;">Exit Demo</a>
+        </div>
     </div>
+    {% endif %}
     {% endif %}
 
     <main>

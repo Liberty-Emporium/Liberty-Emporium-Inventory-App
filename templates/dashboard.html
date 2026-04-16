@@ -58,6 +58,123 @@
 {% endblock %}
 
 {% block content %}
+{% if session.get('is_guest') %}
+<!-- ── DEMO EXPERIENCE ─────────────────────────────────────────────────── -->
+<style>
+/* Demo top bar */
+#demo-bar{background:linear-gradient(90deg,#4f46e5,#7c3aed);color:#fff;padding:0.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;font-size:0.9rem;position:sticky;top:0;z-index:500;box-shadow:0 2px 12px rgba(79,70,229,0.4);}
+#demo-bar strong{font-size:1rem;}
+#demo-bar .demo-cta{background:#fff;color:#4f46e5;font-weight:800;padding:0.45rem 1.2rem;border-radius:8px;text-decoration:none;font-size:0.88rem;white-space:nowrap;transition:all 0.2s;}
+#demo-bar .demo-cta:hover{background:#e0e7ff;transform:translateY(-1px);}
+#demo-bar .demo-close{background:none;border:none;color:rgba(255,255,255,0.7);font-size:1.2rem;cursor:pointer;padding:0 0.5rem;}
+
+/* Floating sales card */
+#pitch-card{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9000;width:310px;background:#fff;border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,0.18);overflow:hidden;display:none;animation:slideUp 0.4s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+#pitch-card .pc-head{background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:1.25rem 1.5rem;color:#fff;}
+#pitch-card .pc-head h3{font-size:1.1rem;font-weight:800;margin:0 0 0.25rem;}
+#pitch-card .pc-head p{font-size:0.83rem;opacity:0.9;margin:0;}
+#pitch-card .pc-body{padding:1.25rem 1.5rem;}
+#pitch-card .pc-feature{display:flex;align-items:flex-start;gap:0.65rem;margin-bottom:0.85rem;}
+#pitch-card .pc-feature .ico{font-size:1.3rem;flex-shrink:0;line-height:1;}
+#pitch-card .pc-feature .txt strong{display:block;font-size:0.88rem;color:#1a1a2e;font-weight:700;}
+#pitch-card .pc-feature .txt span{font-size:0.78rem;color:#64748b;}
+#pitch-card .pc-price{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:0.85rem 1rem;text-align:center;margin-bottom:1rem;}
+#pitch-card .pc-price .price{font-size:1.8rem;font-weight:800;color:#166534;line-height:1;}
+#pitch-card .pc-price .price-sub{font-size:0.78rem;color:#166534;margin-top:0.2rem;}
+#pitch-card .btn-get{display:block;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;text-align:center;padding:0.8rem;border-radius:10px;font-weight:800;font-size:0.95rem;text-decoration:none;transition:all 0.2s;}
+#pitch-card .btn-get:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(79,70,229,0.4);}
+#pitch-card .btn-dismiss{display:block;text-align:center;color:#94a3b8;font-size:0.78rem;margin-top:0.6rem;cursor:pointer;border:none;background:none;width:100%;font-family:inherit;}
+
+/* Tour tooltips */
+.demo-tooltip{position:relative;}
+.demo-tooltip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#4f46e5;color:#fff;padding:0.4rem 0.75rem;border-radius:7px;font-size:0.75rem;white-space:nowrap;font-weight:600;pointer-events:none;opacity:0;transition:opacity 0.2s;z-index:100;}
+.demo-tooltip:hover::after{opacity:1;}
+.demo-tooltip::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#4f46e5;pointer-events:none;opacity:0;transition:opacity 0.2s;}
+.demo-tooltip:hover::before{opacity:1;}
+
+/* Pulse highlight on key elements */
+.demo-highlight{animation:demoPulse 2.5s ease-in-out 3;}
+@keyframes demoPulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.5)}50%{box-shadow:0 0 0 8px rgba(99,102,241,0)}}
+
+/* Demo watermark */
+.demo-watermark{position:fixed;bottom:50%;right:-60px;transform:rotate(-30deg) translateY(50%);font-size:5rem;color:rgba(99,102,241,0.04);font-weight:900;pointer-events:none;z-index:0;user-select:none;}
+</style>
+
+<div id="demo-bar">
+  <div><strong>🚀 You're in Demo Mode</strong> — Explore everything. No account needed.</div>
+  <div style="display:flex;align-items:center;gap:0.75rem;">
+    <span style="opacity:0.8;font-size:0.82rem;">Ready to own this for your store?</span>
+    <a href="/wizard" class="demo-cta">Get This App → </a>
+    <button class="demo-close" onclick="document.getElementById('demo-bar').style.display='none'" title="Close">✕</button>
+  </div>
+</div>
+
+<div class="demo-watermark">DEMO</div>
+
+<!-- Floating pitch card -->
+<div id="pitch-card">
+  <div class="pc-head">
+    <h3>🏪 This Could Be Your Store</h3>
+    <p>Everything you're seeing right now — yours in minutes.</p>
+  </div>
+  <div class="pc-body">
+    <div class="pc-feature">
+      <span class="ico">📦</span>
+      <div class="txt"><strong>Full Inventory Management</strong><span>Track every item, price, photo, and status</span></div>
+    </div>
+    <div class="pc-feature">
+      <span class="ico">🤖</span>
+      <div class="txt"><strong>AI Photo Ads & Listings</strong><span>One click — write the ad, generate the listing</span></div>
+    </div>
+    <div class="pc-feature">
+      <span class="ico">📊</span>
+      <div class="txt"><strong>Live Sales Dashboard</strong><span>See exactly what's selling and what's not</span></div>
+    </div>
+    <div class="pc-feature">
+      <span class="ico">🌍</span>
+      <div class="txt"><strong>Works in 8 Languages</strong><span>Built for your customers, wherever they are</span></div>
+    </div>
+    <div class="pc-price">
+      <div class="price">$99 <span style="font-size:1rem;font-weight:600;">setup</span></div>
+      <div class="price-sub">then just $20/month — cancel anytime</div>
+    </div>
+    <a href="/wizard" class="btn-get">🚀 Set Up My Store Now</a>
+    <button class="btn-dismiss" onclick="document.getElementById('pitch-card').style.display='none'">Maybe later</button>
+  </div>
+</div>
+
+<script>
+// Show pitch card after 30 seconds
+setTimeout(function() {
+  var card = document.getElementById('pitch-card');
+  if (card) card.style.display = 'block';
+}, 30000);
+
+// Add tooltips to nav links so guest knows what each section does
+var tips = {
+  'Add Product':    'See how easy it is to add items to inventory',
+  'Picture Ads':    'Watch AI write ads from a photo in seconds',
+  'Ad Vault':       'Browse all your generated ads in one place',
+  'Listings':       'AI-generated eBay & Facebook Marketplace listings',
+  'Dashboard':      'Your inventory command center',
+};
+document.querySelectorAll('.nav-links a, #navLinks a').forEach(function(a) {
+  var txt = a.textContent.trim();
+  if (tips[txt]) {
+    a.setAttribute('data-tip', tips[txt]);
+    a.classList.add('demo-tooltip');
+  }
+});
+
+// Pulse the "Add Product" button to draw attention
+document.querySelectorAll('a[href*="add_product"], a[href*="new_product"], a[href*="add-product"]').forEach(function(el) {
+  el.classList.add('demo-highlight');
+});
+</script>
+{% endif %}
+<!-- ── END DEMO EXPERIENCE ────────────────────────────────────────────── -->
+
 <div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">💡 How to Use This Page</button></div>
 <div class="dashboard">
     <h1 style="text-align:center;">The Inventory Management Dashboard</h1>
