@@ -1,6 +1,68 @@
 {% extends 'base.html' %}
 
-{% block title %}App Settings | {{ store_name }}{% endblock %}
+{% block title %}App Settings | {{ store_name }}
+<!-- Admin-only API Access Token Card -->
+<div style="background:white;border:1.5px solid #d1c9bc;border-radius:16px;padding:1.5rem;margin-top:2rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem;">
+    <h3 style="font-size:1rem;font-weight:800;color:#1a1a2e;margin:0;">🤖 API Access Token</h3>
+    <span style="font-size:0.75rem;background:#fef9c3;color:#92400e;padding:0.2rem 0.6rem;border-radius:20px;font-weight:700;">Admin Only</span>
+  </div>
+  <p style="color:#6b7280;font-size:0.85rem;margin-bottom:1rem;">Generate a token to access this app's data programmatically. For testing and building purposes only.</p>
+
+  <div id="apiTokenBox" style="display:none;margin-bottom:1rem;">
+    <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.4rem;">Your Token (shown once — copy it now!)</label>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="text" id="apiTokenValue" readonly
+             style="font-family:monospace;font-size:0.82rem;flex:1;padding:0.55rem 0.75rem;border:1.5px solid #d1c9bc;border-radius:8px;background:#f9f6f2;">
+      <button type="button" onclick="copyApiToken()"
+              style="background:#f0ede8;border:1.5px solid #d1c9bc;padding:0.5rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;white-space:nowrap;">📋 Copy</button>
+    </div>
+    <p style="color:#b45309;font-size:0.78rem;margin-top:0.5rem;">⚠️ Save this now — won't be shown again. Use as: <code>Authorization: Bearer TOKEN</code></p>
+  </div>
+
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+    <button type="button" id="genApiBtn" onclick="generateApiToken()"
+            style="background:#1a1a2e;color:white;border:none;padding:0.6rem 1.3rem;border-radius:8px;font-weight:700;cursor:pointer;">⚡ Generate Token</button>
+    <button type="button" onclick="revokeApiToken()"
+            style="background:#f0ede8;color:#dc2626;border:1.5px solid #fca5a5;padding:0.6rem 1.1rem;border-radius:8px;font-weight:700;cursor:pointer;">🗑️ Revoke</button>
+  </div>
+</div>
+
+<script>
+async function generateApiToken() {
+  const btn = document.getElementById('genApiBtn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  try {
+    const res = await fetch('/api/token/ui', {
+      method: 'POST', credentials: 'same-origin',
+      headers: {'Content-Type': 'application/json'}
+    });
+    const d = await res.json();
+    if (d.api_token) {
+      document.getElementById('apiTokenValue').value = d.api_token;
+      document.getElementById('apiTokenBox').style.display = 'block';
+      btn.textContent = '✓ Generated';
+    } else { alert(d.error || 'Failed'); btn.textContent = '⚡ Generate Token'; }
+  } catch(e) { alert(e.message); btn.textContent = '⚡ Generate Token'; }
+  btn.disabled = false;
+}
+async function revokeApiToken() {
+  if (!confirm('Revoke this token?')) return;
+  const d = await (await fetch('/api/token/ui', {
+    method: 'DELETE', credentials: 'same-origin',
+    headers: {'Content-Type': 'application/json'}
+  })).json();
+  if (d.success) { document.getElementById('apiTokenBox').style.display='none'; alert('✅ Token revoked.'); }
+}
+function copyApiToken() {
+  navigator.clipboard.writeText(document.getElementById('apiTokenValue').value).then(() => {
+    const b = event.target; b.textContent = '✅ Copied!';
+    setTimeout(() => b.textContent = '📋 Copy', 2000);
+  });
+}
+</script>
+
+{% endblock %}
 
 {% block howto_slides %}
 <div class="ht-slide">
