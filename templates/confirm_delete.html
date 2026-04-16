@@ -13,6 +13,7 @@
         <p class="confirm-detail">Price: ${{ product.Price|default('0.00') }}</p>
         <p class="confirm-warning">This will permanently remove the product and all its images from your inventory.</p>
         <form method="POST" action="{{ url_for('delete_product', sku=product.SKU) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn-confirm-delete">Yes, Delete Permanently</button>
         </form>
         
@@ -22,6 +23,7 @@
         <p class="confirm-detail"><strong>File:</strong> {{ filename }}</p>
         <p class="confirm-warning">This will permanently remove the image.</p>
         <form method="POST" action="{{ url_for('delete_image', sku=sku) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="filename" value="{{ filename }}">
             <button type="submit" class="btn-confirm-delete">Yes, Delete Permanently</button>
         </form>
@@ -31,6 +33,7 @@
         <p class="confirm-detail"><strong>File:</strong> {{ filename }}</p>
         <p class="confirm-warning">This will permanently remove the video from your Ad Vault.</p>
         <form method="POST" action="{{ url_for('delete_video', filename=filename) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn-confirm-delete">Yes, Delete Permanently</button>
         </form>
         

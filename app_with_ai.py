@@ -1397,7 +1397,7 @@ def confirm_delete_product(sku):
         flash('Product not found.', 'error')
         return redirect(url_for('dashboard'))
     return render_template('confirm_delete.html', product=product,
-        delete_type='product', back_url=url_for('product_view', sku=sku), **ctx())
+        delete_type='product', back_url=url_for('view_product', sku=sku), **ctx())
 
 @app.route('/delete/<sku>', methods=['POST'])
 @rate_limit
