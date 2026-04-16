@@ -9,7 +9,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-ARG CACHEBUST=1776172554
+ARG CACHEBUST=1776298666
 COPY . .
 
 # Create data dirs in the container layer - Railway's volume mount will overlay /data
