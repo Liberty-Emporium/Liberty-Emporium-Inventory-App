@@ -7,7 +7,7 @@
   <div style="text-align:center; margin-bottom:2rem;">
     <div style="font-size:3rem; margin-bottom:0.5rem;">🤖</div>
     <h2 style="font-size:1.75rem; font-weight:800; margin-bottom:0.5rem;">Power Up Your AI Assistant</h2>
-    <p style="color:#666; font-size:1rem; max-width:480px; margin:0 auto;">Your store's AI CEO needs one free API key to work. Don't worry — we'll walk you through every step. It takes about 2 minutes.</p>
+    <p style="color:#666; font-size:1rem; max-width:480px; margin:0 auto;">Your store's AI CEO needs an OpenRouter API key to work. You'll need to add a small amount of credits ($5 gets you a lot). We'll walk you through every step — it takes about 2 minutes.</p>
   </div>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -20,7 +20,7 @@
   <div style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:14px; padding:1.5rem; margin-bottom:1.5rem;">
     <h3 style="font-size:1rem; font-weight:700; color:#166534; margin-bottom:0.5rem;">💡 What's an API key and why do I need one?</h3>
     <p style="color:#166534; font-size:0.92rem; line-height:1.7; margin:0;">
-      Think of an API key like a <strong>membership card</strong> for an AI service. OpenRouter is the AI service that powers your store's AI assistant. When you create a free account and get a key, it's like handing your store a membership card so it can access the AI. <strong>No key = no AI.</strong> The key is free to get and free to use for normal store activity.
+      Think of an API key like a <strong>membership card</strong> for an AI service. OpenRouter is the AI service that powers your store's AI assistant. You create an account, add a small amount of credits (as little as $5), and get an API key. <strong>No key = no AI.</strong> The good news: $5 in credits goes a very long way for normal store use.
     </p>
   </div>
 
@@ -45,7 +45,7 @@
         <div>
           <div style="font-weight:700; margin-bottom:0.2rem; color:#0f172a;">Create a free account</div>
           <div style="color:#6b7280; font-size:0.9rem; line-height:1.6;">
-            Click <strong>"Sign In"</strong> at the top right, then <strong>"Create account."</strong> You can sign up with Google in one click — no credit card needed.
+            Click <strong>"Sign In"</strong> at the top right, then <strong>"Create account."</strong> You can sign up with Google in one click.
           </div>
         </div>
       </div>
@@ -55,7 +55,7 @@
         <div>
           <div style="font-weight:700; margin-bottom:0.2rem; color:#0f172a;">Get your API key</div>
           <div style="color:#6b7280; font-size:0.9rem; line-height:1.6;">
-            Once logged in, go to <a href="https://openrouter.ai/keys" target="_blank" style="color:#7c3aed; font-weight:600;">openrouter.ai/keys</a>. Click <strong>"Create Key,"</strong> give it any name (like "My Store"), then click <strong>"Create."</strong> You'll see a long code that starts with <code style="background:#f3f4f6; padding:0.1rem 0.35rem; border-radius:4px; font-size:0.85rem;">sk-or-v1-...</code>
+            Once logged in, go to <a href="https://openrouter.ai/credits" target="_blank" style="color:#7c3aed; font-weight:600;">openrouter.ai/credits</a> and add at least $5 in credits. Then go to <a href="https://openrouter.ai/keys" target="_blank" style="color:#7c3aed; font-weight:600;">openrouter.ai/keys</a>, click <strong>"Create Key,"</strong> give it any name (like "My Store"), and click <strong>"Create."</strong> You'll see a long code starting with <code style="background:#f3f4f6; padding:0.1rem 0.35rem; border-radius:4px; font-size:0.85rem;">sk-or-v1-...</code>
           </div>
         </div>
       </div>
@@ -97,7 +97,7 @@
         {% if keys.openrouter_key %}
         <div style="color:#10b981; font-size:0.8rem; margin-top:0.35rem;">✅ API key is saved and active</div>
         {% else %}
-        <div style="color:#6b7280; font-size:0.8rem; margin-top:0.35rem;">Get yours free at <a href="https://openrouter.ai/keys" target="_blank" style="color:#7c3aed;">openrouter.ai/keys</a></div>
+        <div style="color:#6b7280; font-size:0.8rem; margin-top:0.35rem;">Get yours at <a href="https://openrouter.ai/keys" target="_blank" style="color:#7c3aed;">openrouter.ai/keys</a> (requires credits)</div>
         {% endif %}
       </div>
 
@@ -112,7 +112,7 @@
           <option value="anthropic" {% if keys.active_provider == 'anthropic' %}selected{% endif %}>🧠 Anthropic Claude — Very smart, detailed answers</option>
           <option value="xai" {% if keys.active_provider == 'xai' %}selected{% endif %}>🚀 xAI Grok — Good all-around AI</option>
         </select>
-        <div style="color:#6b7280; font-size:0.8rem; margin-top:0.35rem;">Stick with OpenRouter — it works great and gives you access to many AI models.</div>
+        <div style="color:#6b7280; font-size:0.8rem; margin-top:0.35rem;">Stick with OpenRouter — it works great and gives you access to many AI models. You'll need credits at openrouter.ai to use it.</div>
       </div>
 
       <!-- Advanced: other keys (collapsed) -->
