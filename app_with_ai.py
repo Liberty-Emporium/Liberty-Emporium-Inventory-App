@@ -4090,41 +4090,70 @@ start_email_scheduler()
 
 
 # ── Admin-only API token UI routes ───────────────────────────────────────────
+# ── API Generator (Admin only) ──────────────────────────────────────────────
+
+@app.route('/admin/api-generator')
+@login_required
+@admin_required
+def admin_api_generator():
+    """Dedicated API Generator page — admin only."""
+    # Load existing tokens
+    keys = load_api_keys()
+    admin_keys = {k: v for k, v in keys.items() if v.get('created_by') == 'admin'}
+    return render_template('admin_api_generator.html', api_keys=admin_keys, base_url=request.host_url.rstrip('/'), **ctx())
+
+@app.route('/admin/api-generator/generate', methods=['POST'])
+@login_required
+@admin_required
+def admin_generate_api_key():
+    """Generate a new API key — admin only."""
+    import secrets as _sec
+    label = request.form.get('label', 'Testing Key').strip() or 'Testing Key'
+    raw_key = 'lib_' + _sec.token_urlsafe(32)
+    keys = load_api_keys()
+    keys[raw_key] = {
+        'name': label,
+        'created_by': 'admin',
+        'created_at': datetime.utcnow().isoformat(),
+        'active': True,
+    }
+    save_api_keys(keys)
+    flash(f'API key generated: {raw_key}', 'success')
+    return redirect(url_for('admin_api_generator') + '?new_key=' + raw_key)
+
+@app.route('/admin/api-generator/revoke/<path:key>', methods=['POST'])
+@login_required
+@admin_required
+def admin_revoke_api_key(key):
+    """Revoke an API key — admin only."""
+    keys = load_api_keys()
+    if key in keys:
+        del keys[key]
+        save_api_keys(keys)
+        flash('API key revoked.', 'success')
+    return redirect(url_for('admin_api_generator'))
+
 @app.route('/api/token/ui', methods=['POST'])
+@login_required
+@admin_required
 def api_token_ui_generate():
-    if session.get('role') != 'overseer':
-        return jsonify({'error': 'Admin only'}), 403
-    import secrets as _s, hashlib as _h, datetime as _dt
-    user_id = session.get('user_id') or 1
-    label = 'ui-generated'
-    raw_token = _s.token_urlsafe(48)
-    token_hash = _h.sha256(raw_token.encode()).hexdigest()
-    expires_at = (_dt.datetime.utcnow() + _dt.timedelta(days=365)).isoformat()
-    conn = get_db()
-    try:
-        conn.execute('''CREATE TABLE IF NOT EXISTS api_tokens
-            (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER,
-             token_hash TEXT UNIQUE, label TEXT, expires_at TEXT,
-             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-        conn.execute('DELETE FROM api_tokens WHERE user_id=? AND label=?', (user_id, label))
-        conn.execute('INSERT INTO api_tokens (user_id,token_hash,label,expires_at) VALUES (?,?,?,?)',
-                     (user_id, token_hash, label, expires_at))
-        conn.commit()
-    finally:
-        conn.close()
-    return jsonify({'success': True, 'api_token': raw_token, 'expires_at': expires_at})
+    """Legacy endpoint kept for backward compat — redirects to new system."""
+    import secrets as _s
+    raw_key = 'lib_' + _s.token_urlsafe(32)
+    keys = load_api_keys()
+    keys[raw_key] = {'name': 'ui-generated', 'created_by': 'admin', 'created_at': datetime.utcnow().isoformat(), 'active': True}
+    save_api_keys(keys)
+    return jsonify({'success': True, 'api_token': raw_key})
 
 @app.route('/api/token/ui', methods=['DELETE'])
+@login_required
+@admin_required
 def api_token_ui_revoke():
-    if session.get('role') != 'overseer':
-        return jsonify({'error': 'Admin only'}), 403
-    user_id = session.get('user_id') or 1
-    conn = get_db()
-    try:
-        conn.execute('DELETE FROM api_tokens WHERE user_id=? AND label=?', (user_id, 'ui-generated'))
-        conn.commit()
-    finally:
-        conn.close()
+    keys = load_api_keys()
+    to_del = [k for k, v in keys.items() if v.get('name') == 'ui-generated']
+    for k in to_del:
+        del keys[k]
+    save_api_keys(keys)
     return jsonify({'success': True})
 
 if __name__ == '__main__':
@@ -4145,18 +4174,20 @@ def save_api_keys(keys):
         json.dump(keys, f, indent=2)
 
 def require_api_key(f):
-    """Decorator to require valid API key"""
+    """Decorator to require valid API key. Accepts X-API-Key header, Authorization: Bearer, or ?api_key= param."""
     @functools.wraps(f)
     def decorated(*args, **kwargs):
         api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+        # Also accept Authorization: Bearer <key>
         if not api_key:
-            return jsonify({'error': 'API key required'}), 401
-        
+            auth = request.headers.get('Authorization', '')
+            if auth.startswith('Bearer '):
+                api_key = auth[7:].strip()
+        if not api_key:
+            return jsonify({'error': 'API key required. Pass as X-API-Key header or Authorization: Bearer <key>'}), 401
         keys = load_api_keys()
         if api_key not in keys:
             return jsonify({'error': 'Invalid API key'}), 401
-        
-        # Store key info in g for route access
         g.api_key = api_key
         g.api_key_name = keys[api_key].get('name', 'API Key')
         return f(*args, **kwargs)

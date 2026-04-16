@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% block title %}API Generator | Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.api-page { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+.api-section { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 2rem; margin-bottom: 2rem; }
+.api-section h2 { font-size: 1.15rem; font-weight: 800; color: #1a1a2e; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+.api-section .sub { color: #64748b; font-size: 0.85rem; margin-bottom: 1.5rem; }
+.key-row { display: flex; align-items: center; gap: 0.75rem; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 0.9rem 1.1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.key-val { font-family: monospace; font-size: 0.82rem; color: #1e293b; flex: 1; word-break: break-all; }
+.key-label { font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 700; white-space: nowrap; }
+.key-date { font-size: 0.72rem; color: #94a3b8; white-space: nowrap; }
+.btn-copy { background: #f0f4ff; border: 1.5px solid #c7d2fe; color: #4338ca; padding: 0.35rem 0.85rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+.btn-copy:hover { background: #e0e7ff; }
+.btn-revoke { background: #fff0f0; border: 1.5px solid #fca5a5; color: #dc2626; padding: 0.35rem 0.85rem; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+.btn-revoke:hover { background: #fee2e2; }
+.endpoint-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.endpoint-table th { text-align: left; padding: 0.6rem 0.9rem; background: #f8fafc; color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
+.endpoint-table td { padding: 0.7rem 0.9rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.endpoint-table tr:hover td { background: #fafbfc; }
+.method { display: inline-block; padding: 0.18rem 0.55rem; border-radius: 5px; font-size: 0.72rem; font-weight: 800; font-family: monospace; }
+.GET  { background: #dcfce7; color: #166534; }
+.POST { background: #dbeafe; color: #1e40af; }
+.PUT  { background: #fef9c3; color: #854d0e; }
+.DEL  { background: #fee2e2; color: #991b1b; }
+.path { font-family: monospace; font-size: 0.82rem; color: #1e293b; }
+.test-console { background: #0f172a; border-radius: 12px; padding: 1.5rem; }
+.test-console select, .test-console input { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; border-radius: 8px; padding: 0.55rem 0.9rem; font-size: 0.88rem; font-family: inherit; }
+.test-console select:focus, .test-console input:focus { outline: none; border-color: #6366f1; }
+.test-console label { color: #94a3b8; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.35rem; }
+.test-console .row { margin-bottom: 1rem; }
+.btn-run { background: #6366f1; color: #fff; border: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
+.btn-run:hover { background: #4f46e5; }
+.response-box { background: #020817; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; margin-top: 1rem; font-family: monospace; font-size: 0.82rem; color: #e2e8f0; white-space: pre-wrap; max-height: 320px; overflow-y: auto; min-height: 60px; }
+.new-key-alert { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+.new-key-alert h4 { color: #166534; font-size: 0.95rem; margin-bottom: 0.5rem; }
+.new-key-alert code { background: #dcfce7; padding: 0.4rem 0.75rem; border-radius: 6px; font-family: monospace; font-size: 0.88rem; color: #14532d; word-break: break-all; display: block; margin: 0.5rem 0; }
+.new-key-alert p { color: #166534; font-size: 0.82rem; margin: 0; }
+.admin-badge { background: #fef9c3; color: #92400e; font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="api-page">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1 style="font-size:1.6rem; font-weight:800; color:#1a1a2e; margin:0;">🔌 API Generator</h1>
+            <p style="color:#64748b; font-size:0.88rem; margin:0.25rem 0 0;">Generate API keys and test endpoints — Admin access only</p>
+        </div>
+        <span class="admin-badge">🔒 Admin Only</span>
+    </div>
+
+    <!-- New key alert (shown once after generation) -->
+    {% set new_key = request.args.get('new_key') %}
+    {% if new_key %}
+    <div class="new-key-alert">
+        <h4>✅ New API Key Generated — Copy it now!</h4>
+        <code id="newKeyDisplay">{{ new_key }}</code>
+        <div style="display:flex; gap:0.75rem; margin-top:0.75rem;">
+            <button class="btn-copy" onclick="copyKey('newKeyDisplay', this)">📋 Copy Key</button>
+        </div>
+        <p>⚠️ This is shown only once. Store it somewhere safe. Use as: <code style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;">X-API-Key: {{ new_key }}</code></p>
+    </div>
+    {% endif %}
+
+    <!-- Generate New Key -->
+    <div class="api-section">
+        <h2>⚡ Generate API Key</h2>
+        <p class="sub">Keys are for testing and building integrations. Only you (admin) can see and manage them.</p>
+        <form method="POST" action="/admin/api-generator/generate" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div style="flex:1; min-width:200px;">
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:#374151; margin-bottom:0.35rem;">Key Label (for your reference)</label>
+                <input type="text" name="label" placeholder="e.g. Testing, Postman, Integration" value="Testing Key"
+                       style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #d1c9bc; border-radius:8px; font-size:0.9rem; box-sizing:border-box;">
+            </div>
+            <button type="submit" style="background:#1a1a2e; color:white; border:none; padding:0.65rem 1.5rem; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">
+                ⚡ Generate Key
+            </button>
+        </form>
+    </div>
+
+    <!-- Active Keys -->
+    <div class="api-section">
+        <h2>🗝️ Your Active API Keys</h2>
+        <p class="sub">Keys are hashed in storage. They're shown here for reference — only you can see this page.</p>
+
+        {% if api_keys %}
+            {% for key, info in api_keys.items() %}
+            <div class="key-row">
+                <span class="key-label">{{ info.name }}</span>
+                <span class="key-val" id="key-{{ loop.index }}">{{ key }}</span>
+                <span class="key-date">{{ info.created_at[:10] if info.created_at else '' }}</span>
+                <button class="btn-copy" onclick="copyKey('key-{{ loop.index }}', this)">📋 Copy</button>
+                <form method="POST" action="/admin/api-generator/revoke/{{ key }}" style="margin:0;" onsubmit="return confirm('Revoke this key?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-revoke">🗑️ Revoke</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#94a3b8; font-size:0.9rem; padding:1rem 0;">No keys yet. Generate one above.</p>
+        {% endif %}
+    </div>
+
+    <!-- API Reference -->
+    <div class="api-section">
+        <h2>📚 API Reference</h2>
+        <p class="sub">Base URL: <code style="background:#f1f5f9; padding:2px 8px; border-radius:5px; font-family:monospace;">{{ base_url }}</code> — Pass your key as <code style="background:#f1f5f9; padding:2px 8px; border-radius:5px; font-family:monospace;">X-API-Key: YOUR_KEY</code> header</p>
+
+        <table class="endpoint-table">
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="method GET">GET</span></td>
+                    <td class="path">/api/inventory</td>
+                    <td>Get all inventory products</td>
+                </tr>
+                <tr>
+                    <td><span class="method GET">GET</span></td>
+                    <td class="path">/api/inventory/&lt;sku&gt;</td>
+                    <td>Get a single product by SKU</td>
+                </tr>
+                <tr>
+                    <td><span class="method POST">POST</span></td>
+                    <td class="path">/api/inventory</td>
+                    <td>Add a new product</td>
+                </tr>
+                <tr>
+                    <td><span class="method PUT">PUT</span></td>
+                    <td class="path">/api/inventory/&lt;sku&gt;</td>
+                    <td>Update a product by SKU</td>
+                </tr>
+                <tr>
+                    <td><span class="method DEL">DELETE</span></td>
+                    <td class="path">/api/inventory/&lt;sku&gt;</td>
+                    <td>Delete a product by SKU</td>
+                </tr>
+                <tr>
+                    <td><span class="method GET">GET</span></td>
+                    <td class="path">/api/stats</td>
+                    <td>Get store stats (total items, value, etc.)</td>
+                </tr>
+                <tr>
+                    <td><span class="method GET">GET</span></td>
+                    <td class="path">/api/keys</td>
+                    <td>List your API keys</td>
+                </tr>
+                <tr>
+                    <td><span class="method POST">POST</span></td>
+                    <td class="path">/api/ads/generate</td>
+                    <td>Generate an AI ad for a product</td>
+                </tr>
+                <tr>
+                    <td><span class="method GET">GET</span></td>
+                    <td class="path">/health-check</td>
+                    <td>Health check (no auth required)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top:1.5rem; background:#f8fafc; border-radius:10px; padding:1.25rem;">
+            <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:0.75rem;">Example: cURL</h4>
+            <pre style="font-family:monospace; font-size:0.82rem; color:#1e293b; margin:0; white-space:pre-wrap;">curl -H "X-API-Key: YOUR_KEY" \
+  {{ base_url }}api/inventory</pre>
+        </div>
+        <div style="margin-top:0.75rem; background:#f8fafc; border-radius:10px; padding:1.25rem;">
+            <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:0.75rem;">Example: Python</h4>
+            <pre style="font-family:monospace; font-size:0.82rem; color:#1e293b; margin:0; white-space:pre-wrap;">import requests
+r = requests.get(
+    '{{ base_url }}api/inventory',
+    headers={'X-API-Key': 'YOUR_KEY'}
+)
+print(r.json())</pre>
+        </div>
+    </div>
+
+    <!-- Test Console -->
+    <div class="api-section">
+        <h2>🧪 Test Console</h2>
+        <p class="sub">Make live API requests directly from your browser — for testing only.</p>
+        <div class="test-console">
+            <div class="row" style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                <div style="flex:0 0 auto;">
+                    <label>Method</label>
+                    <select id="tc-method" style="min-width:90px;">
+                        <option>GET</option>
+                        <option>POST</option>
+                        <option>PUT</option>
+                        <option>DELETE</option>
+                    </select>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <label>Endpoint</label>
+                    <select id="tc-endpoint" onchange="tcFillEndpoint(this.value)" style="width:100%;">
+                        <option value="/api/inventory">GET /api/inventory — all products</option>
+                        <option value="/api/stats">GET /api/stats — store stats</option>
+                        <option value="/api/inventory/SKU">GET /api/inventory/&lt;sku&gt;</option>
+                        <option value="/api/keys">GET /api/keys</option>
+                        <option value="/health-check">GET /health-check</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row" style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                <div style="flex:1; min-width:200px;">
+                    <label>API Key</label>
+                    <input type="text" id="tc-key" placeholder="lib_your_key_here" style="width:100%; box-sizing:border-box;">
+                </div>
+            </div>
+            <div class="row" id="tc-body-row" style="display:none;">
+                <label>Request Body (JSON)</label>
+                <textarea id="tc-body" rows="4" style="width:100%; background:#1e293b; border:1px solid #334155; color:#e2e8f0; border-radius:8px; padding:0.75rem; font-family:monospace; font-size:0.82rem; box-sizing:border-box; resize:vertical;">{"name": "Test Item", "price": 9.99}</textarea>
+            </div>
+            <button class="btn-run" onclick="tcRun()">▶ Run Request</button>
+            <div class="response-box" id="tc-response">// Response will appear here</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function copyKey(elId, btn) {
+    var val = document.getElementById(elId).textContent.trim();
+    navigator.clipboard.writeText(val).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = '✅ Copied!';
+        setTimeout(function() { btn.textContent = orig; }, 2000);
+    });
+}
+
+function tcFillEndpoint(val) {
+    var method = document.getElementById('tc-method');
+    if (val.includes('stats') || val.includes('keys') || val.includes('health')) {
+        method.value = 'GET';
+    }
+    document.getElementById('tc-body-row').style.display =
+        (method.value === 'POST' || method.value === 'PUT') ? 'block' : 'none';
+}
+
+document.getElementById('tc-method').addEventListener('change', function() {
+    document.getElementById('tc-body-row').style.display =
+        (this.value === 'POST' || this.value === 'PUT') ? 'block' : 'none';
+});
+
+async function tcRun() {
+    var method   = document.getElementById('tc-method').value;
+    var endpoint = document.getElementById('tc-endpoint').value;
+    var apiKey   = document.getElementById('tc-key').value.trim();
+    var body     = document.getElementById('tc-body') ? document.getElementById('tc-body').value.trim() : '';
+    var respEl   = document.getElementById('tc-response');
+
+    if (!apiKey) { respEl.textContent = '⚠️  Paste an API key above first.'; return; }
+
+    respEl.textContent = '⏳ Sending...';
+    var opts = {
+        method: method,
+        headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' }
+    };
+    if ((method === 'POST' || method === 'PUT') && body) opts.body = body;
+
+    try {
+        var url = endpoint.startsWith('http') ? endpoint : window.location.origin + endpoint;
+        var res = await fetch(url, opts);
+        var text = await res.text();
+        var status = res.status + ' ' + res.statusText;
+        try {
+            var pretty = JSON.stringify(JSON.parse(text), null, 2);
+            respEl.textContent = '// HTTP ' + status + '\n\n' + pretty;
+        } catch(e) {
+            respEl.textContent = '// HTTP ' + status + '\n\n' + text;
+        }
+    } catch(e) {
+        respEl.textContent = '❌ Error: ' + e.message;
+    }
+}
+
+// Pre-fill key from URL if just generated
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var k = params.get('new_key');
+    if (k) document.getElementById('tc-key').value = k;
+})();
+</script>
+{% endblock %}
