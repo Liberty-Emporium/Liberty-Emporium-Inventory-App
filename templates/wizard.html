@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get This App Now! — RetailTrack</title>
+    <title>Get This App Now! — Alexander AI Inventory</title>
     <link rel="stylesheet" href="/static/style.css">
     <style>
         body { margin: 0; min-height: 100vh; background: linear-gradient(135deg, #0f172a, #1e293b); }
@@ -354,7 +354,7 @@
                 <h2>Pick your brand color</h2>
                 <p class="step-subtitle">This sets the theme for your entire app</p>
                 <div class="color-options" id="colorOptions">
-                    <div class="color-option selected" data-color="#2e7d6e" style="background:#2e7d6e;" title="Forest Green"></div>
+                    <div class="color-option selected" data-color="#7c3aed" style="background:#7c3aed;" title="Forest Green"></div>
                     <div class="color-option" data-color="#3b82f6" style="background:#3b82f6;" title="Ocean Blue"></div>
                     <div class="color-option" data-color="#8b5cf6" style="background:#8b5cf6;" title="Royal Purple"></div>
                     <div class="color-option" data-color="#ef4444" style="background:#ef4444;" title="Fire Red"></div>
@@ -364,7 +364,7 @@
                     <div class="color-option" data-color="#e91e63" style="background:#e91e63;" title="Rose"></div>
                 </div>
                 <label class="wizard-label" style="margin-top:1.5rem;">Custom Color</label>
-                <input type="color" class="wizard-input" id="customColor" value="#2e7d6e" style="width:60px; height:45px; padding:4px; cursor:pointer;">
+                <input type="color" class="wizard-input" id="customColor" value="#7c3aed" style="width:60px; height:45px; padding:4px; cursor:pointer;">
             </div>
             
             <!-- Step 3: Industry -->
@@ -402,8 +402,8 @@
                 <div class="loading-spinner" style="font-size:3rem;animation:spin 1.2s linear infinite;display:inline-block;">⚙️</div>
                 <div class="loading-text">Building your store…</div>
                 <div class="loading-sub" id="loadingStatus">Setting up branding…</div>
-                <div style="margin-top:1.5rem;width:100%;max-width:300px;background:#e8f5e9;border-radius:20px;height:8px;overflow:hidden;">
-                    <div id="buildProgress" style="height:100%;background:linear-gradient(90deg,#2e7d6e,#56c7b6);border-radius:20px;width:0%;transition:width 0.5s ease;"></div>
+                <div style="margin-top:1.5rem;width:100%;max-width:300px;background:#f5f3ff;border-radius:20px;height:8px;overflow:hidden;">
+                    <div id="buildProgress" style="height:100%;background:linear-gradient(90deg,#7c3aed,#06b6d4);border-radius:20px;width:0%;transition:width 0.5s ease;"></div>
                 </div>
             </div>
             
@@ -412,9 +412,9 @@
                 <div class="success-icon">🎉</div>
                 <div class="success-title" id="successStoreName">Your store is ready!</div>
                 <p class="success-subtitle">Your personalized store has been built with sample products loaded in.</p>
-                <div class="success-url" id="successUrl" style="margin:1rem 0;font-family:monospace;font-size:0.9rem;color:#2e7d6e;"></div>
-                <a id="successLink" href="#" style="display:inline-block;background:linear-gradient(135deg,#2e7d6e,#56c7b6);color:#fff;padding:0.8rem 2rem;border-radius:10px;font-weight:800;text-decoration:none;font-size:1rem;margin-top:0.5rem;">🚀 Go To My Store →</a>
-                <p style="color:#64748b;font-size:0.85rem;margin-top:1.25rem;">Use the login details you entered. <a href="/login" style="color:#2e7d6e;">Admin login here →</a></p>
+                <div class="success-url" id="successUrl" style="margin:1rem 0;font-family:monospace;font-size:0.9rem;color:#7c3aed;"></div>
+                <a id="successLink" href="#" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;padding:0.8rem 2rem;border-radius:10px;font-weight:800;text-decoration:none;font-size:1rem;margin-top:0.5rem;">🚀 Go To My Store →</a>
+                <p style="color:#64748b;font-size:0.85rem;margin-top:1.25rem;">Use the login details you entered. <a href="/login" style="color:#7c3aed;">Admin login here →</a></p>
             </div>
             
             <!-- Navigation (hidden during loading/success) -->
@@ -429,7 +429,7 @@
         // ── State ──────────────────────────────────────────────────────
         var currentStep = 1;
         var totalSteps = 4;
-        var selectedColor = '#2e7d6e';
+        var selectedColor = '#7c3aed';
         
         // ── URL Preview ────────────────────────────────────────────────
         var storeNameInput = document.getElementById('storeName');

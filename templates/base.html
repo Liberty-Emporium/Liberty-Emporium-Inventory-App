@@ -6,13 +6,13 @@
     <title>{% block title %}{{ store_name }} | Demo{% endblock %}</title>
 
     {# ── SEO Meta Tags ── #}
-    <meta name="description" content="{% block meta_description %}Liberty Inventory — The all-in-one inventory management system for thrift stores, resellers & consignment shops. Start your 14-day free trial today.{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Alexander AI Inventory — The all-in-one inventory management system for thrift stores, resellers & consignment shops. Start your 14-day free trial today.{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}thrift store inventory, reseller inventory management, consignment software, inventory tracking{% endblock %}">
     <link rel="canonical" href="{% block canonical %}{{ request.url }}{% endblock %}">
 
     {# ── Open Graph ── #}
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Liberty Inventory">
+    <meta property="og:site_name" content="Alexander AI Inventory">
     <meta property="og:title" content="{% block og_title %}{% block title2 %}{{ store_name }} | Inventory Management{% endblock %}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}The all-in-one inventory system for thrift stores & resellers. 14-day free trial. No credit card required.{% endblock %}">
     <meta property="og:url" content="{{ request.url }}">
@@ -20,7 +20,7 @@
 
     {# ── Twitter Card ── #}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{% block twitter_title %}Liberty Inventory — Thrift Store Management Software{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}Alexander AI Inventory — Thrift Store Management Software{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}The all-in-one inventory system for thrift stores & resellers. Start free today.{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}{{ request.host_url }}static/preview.png{% endblock %}">
 
@@ -40,8 +40,8 @@
         overflow:hidden; display:flex; flex-direction:column;
         box-shadow:0 20px 60px rgba(0,0,0,0.35); position:relative;
       }
-      #ht-progress-wrap { height:4px; background:#e8f5e9; }
-      #ht-progress-bar  { height:100%; background:linear-gradient(90deg,#2e7d6e,#56c7b6); transition:width .3s; }
+      #ht-progress-wrap { height:4px; background:#f5f3ff; }
+      #ht-progress-bar  { height:100%; background:linear-gradient(90deg,#7c3aed,#06b6d4); transition:width .3s; }
       #ht-close {
         position:absolute; top:10px; right:14px;
         background:none; border:none; font-size:1.3rem;
@@ -53,13 +53,13 @@
       .ht-icon { font-size:44px; margin-bottom:8px; line-height:1; }
       .ht-label {
         font-size:0.7rem; letter-spacing:2px; text-transform:uppercase;
-        color:#2e7d6e; margin-bottom:5px;
+        color:#7c3aed; margin-bottom:5px;
       }
-      .ht-slide h2 { color:#1a4a42; font-size:1.28rem; margin-bottom:9px; }
+      .ht-slide h2 { color:#3b0764; font-size:1.28rem; margin-bottom:9px; }
       .ht-slide p  { color:#555; font-size:0.9rem; line-height:1.6; margin-bottom:0; }
       .ht-slide ol, .ht-slide ul { color:#444; font-size:0.9rem; line-height:1.85; padding-left:20px; margin:10px 0 0; }
       .ht-tip {
-        background:#f0f7f4; border-left:3px solid #2e7d6e;
+        background:#faf5ff; border-left:3px solid #7c3aed;
         border-radius:0 8px 8px 0; padding:9px 13px;
         margin-top:12px; font-size:0.84rem; color:#2d6b5e;
       }
@@ -79,24 +79,24 @@
       .ht-mock-row:last-child { border-bottom:none; }
       .ht-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:12px; }
       .ht-grid-item {
-        background:#f0f7f4; border-radius:8px;
+        background:#faf5ff; border-radius:8px;
         padding:9px 11px; font-size:0.84rem;
       }
-      .ht-grid-item strong { color:#2e7d6e; display:block; margin-bottom:2px; }
+      .ht-grid-item strong { color:#7c3aed; display:block; margin-bottom:2px; }
       .ht-grid-item span   { color:#555; }
       #ht-nav {
         display:flex; align-items:center; justify-content:space-between;
-        padding:12px 22px; border-top:1px solid #e8f5e9; background:#fafafa;
+        padding:12px 22px; border-top:1px solid #f5f3ff; background:#fafafa;
       }
       .ht-btn {
         border:none; border-radius:7px; padding:8px 18px;
         font-size:0.84rem; font-weight:700; cursor:pointer; transition:background .2s;
       }
-      #ht-prev-btn { background:#e8f5e9; color:#2e7d6e; }
+      #ht-prev-btn { background:#f5f3ff; color:#7c3aed; }
       #ht-prev-btn:hover { background:#d0ece7; }
       #ht-prev-btn:disabled { opacity:.35; cursor:default; }
-      #ht-next-btn { background:#2e7d6e; color:#fff; }
-      #ht-next-btn:hover { background:#245f55; }
+      #ht-next-btn { background:#7c3aed; color:#fff; }
+      #ht-next-btn:hover { background:#5b21b6; }
       #ht-counter { font-size:0.8rem; color:#aaa; }
       /* How-To trigger button */
       .ht-open-btn {
@@ -125,7 +125,7 @@
     <!-- ── DEMO BANNER ───────────────────────────────────────────────── -->
     {% if demo_mode %}
     <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed); color:white; padding:0.6rem 1.5rem; text-align:center; font-size:0.9rem; font-weight:600; z-index:200; position:relative;">
-        🚀 <strong>LIVE DEMO</strong> &mdash; This is a fully working demo of RetailTrack.
+        🚀 <strong>LIVE DEMO</strong> &mdash; This is a fully working demo of Alexander AI Inventory.
         Want this for your store?
         <a href="mailto:{{ demo_contact_email }}" style="color:#fbbf24; text-decoration:underline; margin-left:0.4rem;">Contact Alexander AI Integrated Solutions &rarr;</a>
     </div>
@@ -142,7 +142,35 @@
     <!-- ──────────────────────────────────────────────────────────────── -->
 
     <style>
-        .hamburger {
+        /* ── Alexander AI Brand Colors ── */
+        :root {
+            --brand: #7c3aed;
+            --brand-light: #a78bfa;
+            --brand-dark: #5b21b6;
+            --brand-accent: #06b6d4;
+        }
+        header nav {
+            background: linear-gradient(135deg, #0f0c29, #1a1040, #0f172a) !important;
+            border-bottom: 1px solid rgba(124,58,237,0.25) !important;
+            box-shadow: 0 1px 0 rgba(124,58,237,0.1), 0 4px 20px rgba(0,0,0,0.3) !important;
+        }
+        .logo { color: #e2e8f0 !important; }
+        .nav-links a { color: #94a3b8 !important; }
+        .nav-links a:hover { background: rgba(124,58,237,0.15) !important; color: #a78bfa !important; }
+        .nav-cta {
+            background: linear-gradient(135deg, #7c3aed, #06b6d4) !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            font-weight: 700 !important;
+            box-shadow: 0 2px 12px rgba(124,58,237,0.4) !important;
+            animation: ctaGlowAI 3s infinite !important;
+        }
+        @keyframes ctaGlowAI {
+            0%,100% { box-shadow: 0 2px 12px rgba(124,58,237,0.4); }
+            50%      { box-shadow: 0 2px 24px rgba(6,182,212,0.6); }
+        }
+
+                .hamburger {
             display: none;
             flex-direction: column;
             gap: 5px;
@@ -248,7 +276,7 @@
     <header style="position:relative;">
         <nav>
             <a href="{{ url_for('dashboard') }}" class="logo">
-              🏪 {{ store_name or 'Liberty Inventory' }}
+              🏪 {{ store_name or 'Alexander AI Inventory' }}
             </a>
 
             {% if session.get('logged_in') or session.get('is_guest') %}
@@ -311,7 +339,7 @@
     {% if session.get('is_guest') %}
     <!-- Demo mode: sales bar is injected per-page in dashboard.html — base shows subtle strip only on non-dashboard pages -->
     {% if request.path != '/dashboard' %}
-    <div style="background:linear-gradient(90deg,#4f46e5,#7c3aed);color:#fff;padding:0.5rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;font-size:0.85rem;">
+    <div style="background:linear-gradient(90deg,#7c3aed,#06b6d4);color:#fff;padding:0.5rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;font-size:0.85rem;">
         <span>🚀 <strong>Demo Mode</strong> — Exploring {{ request.path.replace('/','').replace('-',' ').title() or 'the app' }}</span>
         <div style="display:flex;gap:1rem;align-items:center;">
             <a href="/wizard" style="background:#fff;color:#4f46e5;font-weight:800;padding:0.3rem 0.9rem;border-radius:6px;text-decoration:none;font-size:0.82rem;">Get This App →</a>

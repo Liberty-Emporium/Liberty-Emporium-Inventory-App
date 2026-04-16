@@ -1,6 +1,6 @@
 /* ============================================================
-   LIBERTY INVENTORY — Design System v2
-   Inspired by: Linear, Vercel, Stripe
+   ALEXANDER AI INVENTORY — Design System v3
+   Brand: Deep Violet + Electric Cyan
    Font: Inter (Google Fonts)
    ============================================================ */
 
@@ -8,11 +8,12 @@
 
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root {
-  /* Brand */
-  --brand:        #6366f1;   /* indigo — unique, memorable */
-  --brand-light:  #818cf8;
-  --brand-dark:   #4f46e5;
-  --brand-bg:     #eef2ff;
+  /* Brand — Alexander AI: Deep violet + electric blue */
+  --brand:        #7c3aed;   /* violet — premium, AI, modern */
+  --brand-light:  #a78bfa;
+  --brand-dark:   #5b21b6;
+  --brand-bg:     #f5f3ff;
+  --brand-accent: #06b6d4;   /* electric cyan — energy, tech */
 
   /* Neutrals */
   --gray-50:  #f8fafc;

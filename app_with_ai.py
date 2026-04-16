@@ -612,7 +612,7 @@ def list_client_stores():
 STORE_CONFIG_FILE = os.path.join(DATA_DIR, 'store_config.json')
 
 DEFAULT_STORE_CONFIG = {
-    'store_name': 'Liberty Emporium & Thrift',
+    'store_name': 'Alexander AI Inventory',
     'tagline': 'Inventory Management',
     'contact_email': 'alexanderjay70@gmail.com',
     'jay_email': 'alexanderjay70@gmail.com',
@@ -621,7 +621,7 @@ DEFAULT_STORE_CONFIG = {
     'accent_color': '#4f46e5',
     'logo_url': '',  # empty = use emoji fallback
     'logo_emoji': '🏪',
-    'store_description': 'RetailTrack — A beautiful inventory management app for your store.',
+    'store_description': 'AI-powered inventory management for modern stores.',
     # Pricing tiers (customizable per demo instance)
     'pricing': {
         'starter': {'name': 'Starter', 'price': 299, 'features': [
@@ -1158,7 +1158,7 @@ def store_forgot_password(slug):
                 f"Click the link below to set a new password (valid for 1 hour):\n\n"
                 f"{reset_url}\n\n"
                 f"If you didn't request this, ignore this email.\n\n"
-                f"— Liberty Emporium Programs"
+                f"— Alexander AI Integrated Solutions"
             )
             ok, err = send_smtp_email(email, f"Password Reset — {cfg.get('store_name', slug)}", body)
             if not ok:
@@ -1740,7 +1740,7 @@ def ai_analyze():
                     'Authorization': f'Bearer {api_key}',
                     'Content-Type': 'application/json',
                     'HTTP-Referer': 'https://liberty-emporium.app',
-                    'X-Title': 'Liberty Inventory'
+                    'X-Title': 'Alexander AI Inventory'
                 }
             )
             with ur.urlopen(req, timeout=30) as resp:
@@ -1785,7 +1785,7 @@ def generate_ad_copy(title, price, category, condition, description, api_key):
         return fallback
 
     prompt = (
-        "You write ad copy for a thrift and antique store called Liberty Emporium.\n"
+        "You write ad copy for a retail store.\n"
         "Given this product, return ONLY a JSON object with these exact keys:\n"
         "- headline: punchy ad headline, max 6 words\n"
         "- selling_line: one benefit or descriptor, max 10 words\n"
@@ -2143,7 +2143,7 @@ def generate_listing():
     desc      = product.get('description', '')
     sku       = product.get('sku', '')
 
-    store_info = 'Liberty Emporium & Thrift, 125 W Swannanoa Ave, Liberty NC 27298'
+    store_info = 'Alexander AI Integrated Solutions'
 
     platform_prompts = {
         'facebook': (
@@ -2752,7 +2752,7 @@ def admin_settings_smtp_test():
     cfg = get_smtp_config()
     ok, err = send_smtp_email(
         to=cfg['smtp_user'],
-        subject='RetailTrack — SMTP Test',
+        subject='Alexander AI Inventory — SMTP Test',
         body='Your email settings are working correctly.'
     )
     if ok:
@@ -3561,7 +3561,7 @@ def overseer_assistant_chat():
         return jsonify({'reply': 'No AI API key configured. Add it in Admin Settings.', 'type': 'text'})
 
     context = build_assistant_context()
-    system_prompt = f"""You are the Overseer Assistant for RetailTrack, a SaaS inventory management app run by Jay Alexander (Liberty Emporium Programs).
+    system_prompt = f"""You are the Overseer Assistant for RetailTrack, a SaaS inventory management app run by Jay Alexander (Alexander AI Integrated Solutions).
 
 {context}
 
@@ -3572,7 +3572,7 @@ You help Jay run his business. You can:
 
 Rules:
 - Be concise and direct. Jay is busy.
-- When drafting emails, be warm and professional — sign off as "— Jay, Liberty Emporium Programs"
+- When drafting emails, be warm and professional — sign off as "— Jay, Alexander AI Integrated Solutions"
 - For suspend/unsuspend/reset_password, output ONLY the JSON on its own line (no extra text on that line).
 - Never suggest deleting a store — that requires manual confirmation.
 - If you don't know something, say so honestly."""
@@ -3717,7 +3717,7 @@ def overseer_assistant_alerts():
                     f"To keep your store running, the one-time setup fee is $99.99 and then just $20/month after that. "
                     f"I'll send you a payment link as soon as you're ready.\n\n"
                     f"Feel free to reply to this email with any questions.\n\n"
-                    f"— Jay\nLiberty Emporium Programs"
+                    f"— Jay\nAlexander AI Integrated Solutions"
                 ),
             })
     alerts.sort(key=lambda a: a['days'])

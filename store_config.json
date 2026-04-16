@@ -1,47 +1,47 @@
 {
-  "store_name": "Liberty Emporium & Thrift",
-  "tagline": "Inventory Management",
-  "contact_email": "alexanderjay70@gmail.com",
-  "jay_email": "alexanderjay70@gmail.com",
-  "primary_color": "#2c3e50",
-  "secondary_color": "#27ae60",
-  "accent_color": "#4f46e5",
-  "logo_url": "",
-  "logo_emoji": "\ud83c\udfea",
-  "store_description": "RetailTrack \u2014 A beautiful inventory management app for your store.",
-  "pricing": {
-    "starter": {
-      "name": "Starter",
-      "price": 299,
-      "features": [
-        "Full inventory management",
-        "AI photo analysis",
-        "Ad & listing generators",
-        "Single device"
-      ]
+    "store_name": "Alexander AI Inventory",
+    "tagline": "AI-Powered Inventory Management",
+    "contact_email": "alexanderjay70@gmail.com",
+    "jay_email": "alexanderjay70@gmail.com",
+    "primary_color": "#7c3aed",
+    "secondary_color": "#06b6d4",
+    "accent_color": "#5b21b6",
+    "logo_url": "",
+    "logo_emoji": "\ud83c\udfea",
+    "store_description": "Alexander AI Inventory \u2014 The AI-powered inventory platform for modern stores.",
+    "pricing": {
+        "starter": {
+            "name": "Starter",
+            "price": 299,
+            "features": [
+                "Full inventory management",
+                "AI photo analysis",
+                "Ad & listing generators",
+                "Single device"
+            ]
+        },
+        "pro": {
+            "name": "Pro",
+            "price": 499,
+            "features": [
+                "Everything in Starter",
+                "Multi-device sync",
+                "Square integration",
+                "Email support",
+                "Custom branding"
+            ]
+        },
+        "enterprise": {
+            "name": "Enterprise",
+            "price": 799,
+            "features": [
+                "Everything in Pro",
+                "Multiple locations",
+                "API access",
+                "Priority support",
+                "Custom features"
+            ]
+        }
     },
-    "pro": {
-      "name": "Pro",
-      "price": 499,
-      "features": [
-        "Everything in Starter",
-        "Multi-device sync",
-        "Square integration",
-        "Email support",
-        "Custom branding"
-      ]
-    },
-    "enterprise": {
-      "name": "Enterprise",
-      "price": 799,
-      "features": [
-        "Everything in Pro",
-        "Multiple locations",
-        "API access",
-        "Priority support",
-        "Custom features"
-      ]
-    }
-  },
-  "onboarding_done": false
+    "onboarding_done": false
 }
