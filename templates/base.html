@@ -310,7 +310,7 @@
                     {% if stats %}{{ stats.get('total', 0) }}{% else %}0{% endif %} Items
                 </div>
                 {% if session.get('logged_in') %}
-                <span style="color:#bdc3c7; font-size:0.8rem;">{{ session.get('username') }}</span>
+                {% if not session.get('is_guest') %}<span style="color:#bdc3c7; font-size:0.8rem;">{{ session.get('username') }}</span>{% endif %}
                 <a href="{{ url_for('logout') }}"
                    style="color:#ecf0f1; font-size:0.85rem; text-decoration:none; background:rgba(255,255,255,0.15); padding:0.4rem 0.8rem; border-radius:4px;">
                     🚪 Logout
@@ -351,7 +351,19 @@
     <!-- Demo mode: sales bar is injected per-page in dashboard.html — base shows subtle strip only on non-dashboard pages -->
     {% if request.path != '/dashboard' %}
     <div style="background:linear-gradient(90deg,#7c3aed,#06b6d4);color:#fff;padding:0.5rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;font-size:0.85rem;">
-        <span>🚀 <strong>Demo Mode</strong> — Exploring {{ request.path.replace('/','').replace('-',' ').title() or 'the app' }}</span>
+        <span>🚀 <strong>Demo Mode</strong> —
+          {% if request.path.startswith('/store/') %}
+            Viewing a sample store
+          {% elif request.path == '/ad-generator' or request.path == '/generate-ads' %}
+            AI Picture Ads feature
+          {% elif request.path == '/ad-vault' %}
+            Ad Vault feature
+          {% elif request.path == '/listing-generator' %}
+            Listing Generator feature
+          {% else %}
+            Exploring the app
+          {% endif %}
+        </span>
         <div style="display:flex;gap:1rem;align-items:center;">
             <a href="/wizard" style="background:#fff;color:#4f46e5;font-weight:800;padding:0.3rem 0.9rem;border-radius:6px;text-decoration:none;font-size:0.82rem;">Get This App →</a>
             <a href="{{ url_for('logout') }}" style="color:rgba(255,255,255,0.7);font-size:0.8rem;">Exit Demo</a>

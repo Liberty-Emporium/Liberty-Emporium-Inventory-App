@@ -29,7 +29,32 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Branded nav for customer store */
+.nav > a.logo, header nav > a.logo {
+  font-weight: 900 !important;
+}
+</style>
+{% endblock %}
 {% block content %}
+<script>
+// Override nav logo text with this store's name
+document.addEventListener('DOMContentLoaded', function() {
+  var logo = document.querySelector('nav a.logo, header nav a.logo');
+  if (logo) {
+    logo.innerHTML = '🏪 <strong style="color:#fff;">{{ config.store_name | e }}</strong>';
+    logo.style.webkitTextFillColor = '#fff';
+  }
+  // Fix demo bar — show clean store name not URL slug
+  var demoBar = document.querySelector('#demo-bar strong');
+  // Store mini-bar
+  var miniStrong = document.querySelector('[style*="Demo Mode"] strong');
+  if (miniStrong) {
+    miniStrong.nextSibling && (miniStrong.parentNode.childNodes[2].textContent = ' — Viewing demo store: {{ config.store_name | e }}');
+  }
+});
+</script>
 
 {# ── Font choice ── #}
 {% set fc = config.font_choice or 'classic' %}
@@ -52,7 +77,7 @@
 
   /* Announcement banner */
   .sp-announcement {
-    background: {{ config.primary_color or '#2e7d6e' }};
+    background: linear-gradient(90deg, {{ config.primary_color or '#7c3aed' }}, #06b6d4);
     color: white;
     text-align: center;
     padding: 0.65rem 1rem;
@@ -65,8 +90,11 @@
   .sp-hero {
     position: relative;
     width: 100%;
-    height: 320px;
-    background: {{ config.primary_color or '#2e7d6e' }};
+    height: 340px;
+    background: linear-gradient(135deg,
+      {{ config.primary_color or '#7c3aed' }} 0%,
+      {{ config.primary_color or '#7c3aed' }}cc 60%,
+      #0f0c29 100%);
     overflow: hidden;
   }
   .sp-hero-slide {
@@ -179,16 +207,16 @@
 <div class="sp-hero" id="spHero">
   {# Slides injected by JS below; fallback color already set via background style #}
   <div class="sp-hero-overlay" id="spHeroOverlay">
-    <div class="sp-hero-logo" id="spHeroLogo">
+    <div class="sp-hero-logo" id="spHeroLogo" style="width:90px;height:90px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:1rem;box-shadow:0 8px 32px rgba(0,0,0,0.3);background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);border:2px solid rgba(255,255,255,0.25);">
       {% if config.logo_url %}
-        <img src="{{ config.logo_url }}" alt="{{ config.store_name }} logo">
+        <img src="{{ config.logo_url }}" alt="{{ config.store_name }} logo" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">
       {% else %}
-        🏪
+        {{ config.store_name[0].upper() if config.store_name else 'S' }}
       {% endif %}
     </div>
-    <div class="sp-hero-name">{{ config.store_name or 'Your Store' }}</div>
-    {% if config.tagline %}<div class="sp-hero-tagline">{{ config.tagline }}</div>{% endif %}
-    {% if config.hero_slogan %}<div class="sp-hero-slogan">"{{ config.hero_slogan }}"</div>{% endif %}
+    <div class="sp-hero-name" style="font-size:2.2rem;font-weight:900;letter-spacing:-1px;text-shadow:0 2px 12px rgba(0,0,0,0.3);">{{ config.store_name or 'Your Store' }}</div>
+    {% if config.tagline %}<div class="sp-hero-tagline" style="font-size:1.1rem;opacity:0.9;margin-top:0.4rem;font-weight:500;">{{ config.tagline }}</div>{% endif %}
+    {% if config.contact_name %}<div style="opacity:0.7;font-size:0.85rem;margin-top:0.5rem;">📍 {{ config.contact_name }}</div>{% endif %}
   </div>
   <div class="sp-hero-dots" id="spDots"></div>
 </div>
