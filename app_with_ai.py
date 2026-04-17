@@ -554,6 +554,229 @@ def send_smtp_email(to, subject, body):
         return False, str(e)
 
 # ── Multi-tenant helpers ──────────────────────────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MULTI-TENANT INFRASTRUCTURE — Applied 2026-04-16
+# ══════════════════════════════════════════════════════════════════════════════
+import re as _re, threading as _threading, queue as _queue, zipfile as _zipfile
+import io as _io
+from functools import wraps as _wraps
+
+# ── 1. Slug Validation ────────────────────────────────────────────────────────
+def _validate_slug(slug):
+    """Sanitize and validate a tenant slug. Raises ValueError if invalid."""
+    if not slug:
+        raise ValueError("Empty slug")
+    clean = _re.sub(r"[^a-z0-9\-]", "", str(slug).lower().strip())
+    clean = _re.sub(r"-+", "-", clean).strip("-")[:60]
+    reserved = {"admin","api","static","health","login","logout","overseer","guest","demo"}
+    if not clean or clean in reserved:
+        raise ValueError(f"Invalid or reserved slug: {slug}")
+    return clean
+
+# ── 2. Audit Log ──────────────────────────────────────────────────────────────
+_AUDIT_FILE = os.path.join(
+    os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "/data"), "audit.log"
+)
+
+def _audit(action, slug=None, user=None, details=None):
+    """Fire-and-forget audit entry. Never raises."""
+    try:
+        from datetime import datetime as _dt
+        import json as _j
+        slug  = slug  or (session.get("impersonating_slug") or session.get("store_slug") or "system")
+        user  = user  or session.get("username", "unknown")
+        ip    = request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr) if request else ""
+        line  = _j.dumps({
+            "ts": _dt.utcnow().isoformat(),
+            "slug": slug, "user": user,
+            "action": action, "ip": ip,
+            "details": details or {}
+        })
+        os.makedirs(os.path.dirname(_AUDIT_FILE), exist_ok=True)
+        with open(_AUDIT_FILE, "a") as _f:
+            _f.write(line + "\n")
+    except Exception:
+        pass
+
+# ── 3. Background Job Queue ───────────────────────────────────────────────────
+class _JobQueue:
+    def __init__(self):
+        self._q = _queue.Queue()
+        t = _threading.Thread(target=self._worker, daemon=True)
+        t.start()
+    def enqueue(self, fn, *args, **kwargs):
+        self._q.put((fn, args, kwargs))
+    def _worker(self):
+        while True:
+            try:
+                fn, args, kwargs = self._q.get(timeout=1)
+                try:
+                    fn(*args, **kwargs)
+                except Exception as e:
+                    try:
+                        app.logger.error(f"[JobQueue] {e}")
+                    except Exception:
+                        pass
+                self._q.task_done()
+            except _queue.Empty:
+                pass
+
+_job_queue = _JobQueue()
+
+# ── 4. Per-Tenant Rate Limiter ────────────────────────────────────────────────
+import time as _time
+from collections import defaultdict as _defaultdict
+_tenant_calls = _defaultdict(list)
+
+def _tenant_rate_ok(slug, max_calls=120, window=60):
+    now = _time.time()
+    _tenant_calls[slug] = [t for t in _tenant_calls[slug] if now - t < window]
+    if len(_tenant_calls[slug]) >= max_calls:
+        return False
+    _tenant_calls[slug].append(now)
+    return True
+
+def _tenant_rate_limit(max_calls=120):
+    def decorator(f):
+        @_wraps(f)
+        def decorated(*args, **kwargs):
+            slug = session.get("impersonating_slug") or session.get("store_slug")
+            if slug and not _tenant_rate_ok(slug, max_calls):
+                return jsonify({"error": "Too many requests. Please slow down."}), 429
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
+
+# ── 5. Trial Status ───────────────────────────────────────────────────────────
+def _get_trial_status(slug):
+    """Returns 'paid', 'active', or 'expired'."""
+    try:
+        from datetime import datetime as _dt
+        cfg_path = os.path.join(
+            os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "/data"),
+            "customers", slug, "config.json"
+        )
+        if not os.path.exists(cfg_path):
+            return "active"
+        with open(cfg_path) as f:
+            import json as _j; cfg = _j.load(f)
+        if cfg.get("plan") == "paid":
+            return "paid"
+        trial_end = cfg.get("trial_ends")
+        if not trial_end:
+            return "active"
+        return "active" if _dt.utcnow() < _dt.fromisoformat(trial_end) else "expired"
+    except Exception:
+        return "active"
+
+def _trial_gate(f):
+    """Redirect expired trials to upgrade page."""
+    @_wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("is_guest"):
+            slug = session.get("impersonating_slug") or session.get("store_slug")
+            if slug and _get_trial_status(slug) == "expired":
+                if not session.get("role") == "overseer":
+                    flash("Your trial has expired. Upgrade to continue.", "warning")
+                    return redirect("/upgrade")
+        return f(*args, **kwargs)
+    return decorated
+
+# ── 6. Tenant Health Summary (for Overseer) ────────────────────────────────────
+def _get_tenant_health():
+    from datetime import datetime as _dt
+    import json as _j, csv as _csv
+    customers_dir = os.path.join(
+        os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "/data"), "customers"
+    )
+    stores = []
+    if not os.path.exists(customers_dir):
+        return stores
+    for slug in os.listdir(customers_dir):
+        cfg_path = os.path.join(customers_dir, slug, "config.json")
+        if not os.path.isdir(os.path.join(customers_dir, slug)):
+            continue
+        if not os.path.exists(cfg_path):
+            continue
+        try:
+            with open(cfg_path) as f:
+                cfg = _j.load(f)
+            status = _get_trial_status(slug)
+            trial_end = cfg.get("trial_ends","")
+            days_left = 0
+            if status == "active" and trial_end:
+                days_left = max(0, (_dt.fromisoformat(trial_end) - _dt.utcnow()).days)
+
+            # Count items
+            items = 0
+            inv = os.path.join(customers_dir, slug, "inventory.csv")
+            if os.path.exists(inv):
+                with open(inv) as f:
+                    items = max(0, sum(1 for _ in f) - 1)
+
+            # Last active
+            tdir = os.path.join(customers_dir, slug)
+            mtimes = [os.path.getmtime(os.path.join(tdir, fn))
+                      for fn in os.listdir(tdir)
+                      if os.path.isfile(os.path.join(tdir, fn))]
+            last_active = _dt.fromtimestamp(max(mtimes)).strftime("%Y-%m-%d %H:%M") if mtimes else ""
+
+            stores.append({
+                "slug":        slug,
+                "store_name":  cfg.get("store_name", slug),
+                "email":       cfg.get("contact_email",""),
+                "plan":        cfg.get("plan","trial"),
+                "status":      status,
+                "days_left":   days_left,
+                "items":       items,
+                "created":     cfg.get("created_at","")[:10],
+                "last_active": last_active,
+                "mrr":         20.0 if cfg.get("plan") == "paid" else 0,
+            })
+        except Exception:
+            continue
+    return sorted(stores, key=lambda x: (x["plan"] != "paid", x["last_active"]), reverse=True)
+
+# ── 7. Data Export ─────────────────────────────────────────────────────────────
+@app.route("/settings/export-data")
+def _export_tenant_data():
+    if not session.get("logged_in"):
+        return redirect("/login")
+    if session.get("is_guest"):
+        flash("Sign up to export your data.", "error")
+        return redirect("/")
+    slug = session.get("impersonating_slug") or session.get("store_slug")
+    if not slug:
+        abort(403)
+    _audit("data_export", slug)
+    customers_dir = os.path.join(
+        os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", "/data"), "customers"
+    )
+    tenant_dir = os.path.join(customers_dir, slug)
+    buf = _io.BytesIO()
+    with _zipfile.ZipFile(buf, "w", _zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(tenant_dir):
+            for fname in files:
+                full = os.path.join(root, fname)
+                arcname = os.path.relpath(full, tenant_dir)
+                zf.write(full, arcname)
+    buf.seek(0)
+    safe_slug = _re.sub(r"[^a-z0-9\-]", "", slug)
+    from flask import send_file as _sf
+    return _sf(buf, mimetype="application/zip", as_attachment=True,
+               download_name=f"{safe_slug}-data-export.zip")
+
+# ── 8. Overseer Tenant Health API ────────────────────────────────────────────
+@app.route("/overseer/tenant-health")
+def _overseer_tenant_health():
+    if session.get("role") != "overseer" and session.get("username") != "admin":
+        abort(403)
+    return jsonify(_get_tenant_health())
+
+# ══════════════════════════════════════════════════════════════════════════════
+# END MULTI-TENANT INFRASTRUCTURE
+# ══════════════════════════════════════════════════════════════════════════════
 def get_store_paths(slug=None):
     """Return data paths for a given client store slug, or Liberty Emporium if None."""
     if slug:
@@ -1261,6 +1484,7 @@ def sales_page():
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 @app.route('/dashboard')
 @login_required
+@_trial_gate
 def dashboard():
     products = load_inventory()
     return render_template('dashboard.html', products=products, **ctx())
@@ -1440,6 +1664,7 @@ def delete_product(sku):
     products = load_inventory()
     products = [p for p in products if p['SKU'] != sku]
     save_inventory(products)
+    _audit('delete_product', details={'sku': sku})
     flash('Product deleted.', 'success')
     return redirect(url_for('dashboard'))
 
@@ -3116,15 +3341,19 @@ def admin_leads():
 @login_required
 @overseer_required
 def overseer_dashboard():
-    stores = list_client_stores()
-    plan_prices = {'starter': 99.99}
-    total_revenue = sum(plan_prices.get(s.get('plan', 'starter'), 99.99) for s in stores)
+    # Use enhanced tenant health data
+    stores = _get_tenant_health() or list_client_stores()
+    total_revenue   = sum(s.get('mrr', 0) for s in stores)
     active_count    = sum(1 for s in stores if s.get('status') == 'active')
+    paid_count      = sum(1 for s in stores if s.get('plan') == 'paid')
+    expired_count   = sum(1 for s in stores if s.get('status') == 'expired')
     suspended_count = sum(1 for s in stores if s.get('status') == 'suspended')
     return render_template('overseer_dashboard.html',
         stores=stores,
         total_revenue=total_revenue,
         active_count=active_count,
+        paid_count=paid_count,
+        expired_count=expired_count,
         suspended_count=suspended_count,
         **ctx()
     )
@@ -3669,7 +3898,8 @@ def overseer_assistant_send_email():
         return jsonify({'success': False, 'error': 'Invalid email address.'}), 400
     ok, err = send_smtp_email(to, subject, body)
     if ok:
-        return jsonify({'success': True, 'message': f'Sent to {to}'})
+        _audit('wizard_complete', slug=slug, details={'store_name': store_name})
+    return jsonify({'success': True, 'message': f'Sent to {to}'})
     return jsonify({'success': False, 'error': err}), 422
 
 
