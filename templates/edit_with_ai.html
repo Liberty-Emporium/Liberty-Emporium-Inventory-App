@@ -606,7 +606,7 @@ function analyzeWithAI() {
   document.getElementById('aiLoading').style.display = 'block';
   document.getElementById('aiResult').innerHTML = '';
 
-  fetch('/ai-analyze', { method: 'POST', body: formData })
+  fetch('/ai-analyze', { method: 'POST', credentials: 'include', body: formData })
   .then(function(r){ return r.json(); })
   .then(function(data) {
     document.getElementById('aiLoading').style.display = 'none';

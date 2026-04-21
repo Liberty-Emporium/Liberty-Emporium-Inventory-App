@@ -597,7 +597,7 @@ function generateAds() {
   section.classList.remove('visible');
 
   fetch('/generate-ads', {
-    method: 'POST',
+    method: 'POST', credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       products: products,

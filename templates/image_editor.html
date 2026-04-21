@@ -134,7 +134,7 @@ function saveImage() {
     
     const dataURL = canvas.toDataURL('image/png');
     fetch('/save-image/{{ product.SKU }}', {
-        method: 'POST',
+        method: 'POST', credentials: 'include',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({image_data: dataURL})
     })

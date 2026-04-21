@@ -553,7 +553,7 @@
         
         try {
           const response = await fetch('/api/save-settings', {
-            method: 'POST',
+            method: 'POST', credentials: 'include',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(keys)
           });
@@ -702,7 +702,7 @@ function aiSend() {
   var payload = {message: msg, history: aiHistory, page: window.location.pathname};
   if (aiImgB64) { payload.image = aiImgB64; payload.image_mime = aiImgMime; }
   fetch('/api/bot/chat', {
-    method: 'POST',
+    method: 'POST', credentials: 'include',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(payload),
     signal: controller.signal

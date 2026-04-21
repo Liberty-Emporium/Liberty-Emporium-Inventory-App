@@ -245,7 +245,7 @@
 <script>
 // ── Proactive alerts ──────────────────────────────────────────────────────────
 function loadAlerts() {
-  fetch('/overseer/assistant/alerts', { method: 'POST' })
+  fetch('/overseer/assistant/alerts', { method: 'POST', credentials: 'include' })
     .then(r => r.json())
     .then(data => {
       const container = document.getElementById('asstAlerts');
@@ -279,7 +279,7 @@ function sendMessage() {
   document.getElementById('asstSendBtn').disabled = true;
 
   fetch('/overseer/assistant/chat', {
-    method: 'POST',
+    method: 'POST', credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: msg })
   })
@@ -342,7 +342,7 @@ function sendDraft(draftId, btn) {
   btn.textContent = 'Sending...';
 
   fetch('/overseer/assistant/send-email', {
-    method: 'POST',
+    method: 'POST', credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ to, subject, body })
   })

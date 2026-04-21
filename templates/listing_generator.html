@@ -334,7 +334,7 @@ function generateListing() {
   document.getElementById('generateBtn').disabled = true;
 
   fetch('/generate-listing', {
-    method: 'POST',
+    method: 'POST', credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ product: selectedProduct, platform: selectedPlatform })
   })

@@ -445,7 +445,7 @@ function ai2Send(){
   ai2AddMsg('u',msg);
   var thinking=ai2AddMsg('t','... thinking');
   fetch('/api/bot/chat',{
-    method:'POST',headers:{'Content-Type':'application/json'},
+    method:'POST', credentials: 'include',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({message:msg,history:_ai2Hist,page:window.location.pathname})
   }).then(function(r){return r.json();}).then(function(d){
     thinking.remove();
