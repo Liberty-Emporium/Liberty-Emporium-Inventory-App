@@ -9,3 +9,4 @@ __pycache__/
 -e 
 # Customer data
 customers/
+.env.railway
