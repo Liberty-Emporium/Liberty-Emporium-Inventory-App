@@ -1,6 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}User Management | {{ store_name }}{% endblock %}
 
+{% block help_content %}
+<h3>What is this page?</h3>
+<p>User Management lets you add and manage staff accounts. Each user gets their own login with a role that controls what they can access.</p>
+<h3>User Roles</h3>
+<ul>
+  <li><strong>Admin</strong> — full access including settings, billing, and user management</li>
+  <li><strong>Manager</strong> — can add/edit/delete items and run reports</li>
+  <li><strong>Staff</strong> — can view and add items, cannot access settings or billing</li>
+</ul>
+<h3>Adding a Staff Member</h3>
+<ul>
+  <li>Click <strong>+ Add User</strong>, enter their name, email, and set a temporary password</li>
+  <li>Assign their role based on their responsibilities</li>
+  <li>They can change their password on first login</li>
+</ul>
+<div class="help-tip">Give staff the minimum access they need — it prevents accidental changes to settings or pricing.</div>
+{% endblock %}
+{% block content %}
 {% block content %}
 <style>
   .um-wrap { max-width: 900px; margin: 0 auto; padding: 1rem; }

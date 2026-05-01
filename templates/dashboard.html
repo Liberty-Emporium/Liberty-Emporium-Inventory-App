@@ -57,6 +57,24 @@
 </div>
 {% endblock %}
 
+{% block help_content %}
+<h3>What is this page?</h3>
+<p>The Inventory Dashboard is your store's command center — see your total item count, recent activity, low stock alerts, and quick access to every feature.</p>
+<h3>Getting Started</h3>
+<ul>
+  <li><strong>Add your first items</strong> — click <em>+ Add Item</em> to start building your inventory</li>
+  <li><strong>Set up your store branding</strong> — go to Settings to add your store name, logo, and colors</li>
+  <li><strong>Import from Square</strong> — if you use Square POS, import your existing inventory with one click</li>
+</ul>
+<h3>Daily Operations</h3>
+<ul>
+  <li>Check the dashboard each morning for low-stock alerts and recent activity</li>
+  <li>Use the search bar to find any item instantly by name, SKU, or category</li>
+  <li>Run the <strong>Listing Generator</strong> to create sales listings for eBay, Facebook Marketplace, and more</li>
+</ul>
+<div class="help-tip">The more complete your item records are (photos, descriptions, prices), the more useful the AI listing generator becomes — it uses your data to write the listings.</div>
+{% endblock %}
+{% block content %}
 {% block content %}
 {% if session.get('is_guest') %}
 <!-- ── DEMO EXPERIENCE ─────────────────────────────────────────────────── -->

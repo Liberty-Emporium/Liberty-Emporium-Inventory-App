@@ -95,6 +95,24 @@ function copyApiToken() {
 </div>
 {% endblock %}
 
+{% block help_content %}
+<h3>What is this page?</h3>
+<p>App Settings controls the global configuration for your inventory platform — branding, integrations, defaults, and subscription management.</p>
+<h3>First-Time Setup Checklist</h3>
+<ul>
+  <li><strong>Store name</strong> — appears on all listings and exports</li>
+  <li><strong>Default currency &amp; tax rate</strong> — applied to pricing calculations</li>
+  <li><strong>Square integration</strong> — connect your Square account to sync POS sales</li>
+  <li><strong>AI API Key</strong> — your BYOK (Bring Your Own Key) setting for AI features</li>
+</ul>
+<h3>Branding</h3>
+<ul>
+  <li>Upload your logo and set brand colors so all generated listings match your store's look</li>
+  <li>Custom branding appears on exported listings and your store page</li>
+</ul>
+<div class="help-tip">Set up your branding before generating any listings — the AI incorporates your store name and style into every listing it writes.</div>
+{% endblock %}
+{% block content %}
 {% block content %}
 <div class="ht-page-bar"><button class="ht-open-btn" onclick="htOpen()">💡 How to Use This Page</button></div>
 <div style="max-width:640px; margin:2rem auto;">
