@@ -4047,18 +4047,6 @@ def sitemap():
     xml.append('</urlset>')
     return '\n'.join(xml), 200, {'Content-Type': 'application/xml'}
 
-@app.route('/health')
-def health_check():
-    """Health check endpoint for Railway and monitoring."""
-    try:
-        db = get_db()
-        db.execute('SELECT 1')
-        db_status = 'ok'
-    except Exception as e:
-        db_status = str(e)
-    return {'status': 'ok', 'db': db_status}, 200
-
-
 @app.route('/robots.txt')
 def robots():
     """robots.txt for search engine crawling guidance."""
